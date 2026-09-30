@@ -52,6 +52,11 @@ defmodule SportsCoachBookingsWeb.SpaController do
   # Plug.Conn.send_file/3 does not set a content type in this stack, and the
   # SecurityHeaders plug sends `x-content-type-options: nosniff`, so without an
   # explicit type the browser refuses to render HTML or execute JS modules.
+  #
+  # `path` is always one of the app's own dist files: it is resolved with
+  # Path.expand/2 and confined to the dist root by within_root?/2 above, and the
+  # content type is derived from that static asset's extension.
+  # sobelow_skip ["Traversal.SendFile", "XSS.ContentType"]
   defp serve_file(conn, path) do
     conn
     |> put_resp_content_type(MIME.from_path(path))
