@@ -1,3 +1,4 @@
+import { Navigate, useParams } from 'react-router-dom';
 import { GuestReservePage } from './GuestReservePage';
 
 /**
@@ -8,4 +9,13 @@ import { GuestReservePage } from './GuestReservePage';
  */
 export function OfferingScheduleRoute() {
   return <GuestReservePage />;
+}
+
+/**
+ * Every offering requires picking a date/time, so the offering page and its
+ * schedule page are collapsed: `/offerings/:id` redirects to the schedule.
+ */
+export function OfferingRedirect() {
+  const { offeringId } = useParams<{ offeringId: string }>();
+  return <Navigate to={`/offerings/${offeringId}/schedule`} replace />;
 }

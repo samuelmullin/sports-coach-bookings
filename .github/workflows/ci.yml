@@ -8,9 +8,6 @@ on:
     tags: ["v*"]
   pull_request:
 
-env:
-  MIX_ENV: test
-
 jobs:
   backend:
     name: Backend
@@ -85,6 +82,8 @@ jobs:
 
       - name: Test
         working-directory: backend
+        env:
+          MIX_ENV: test
         run: mix test
 
       - name: OpenAPI drift check

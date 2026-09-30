@@ -243,8 +243,8 @@ export function GuestReservePage() {
   return (
     <div className="flex flex-col gap-4">
       <Button asChild variant="ghost" size="sm" className="self-start">
-        <Link to={`/offerings/${offeringId}`}>
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to offering
+        <Link to="/schedule">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to schedule
         </Link>
       </Button>
 
@@ -258,8 +258,11 @@ export function GuestReservePage() {
         ) : (
           <>
             <PageHeader
-              title={`Reserve ${offering.name} sessions`}
-              description="Pick the sessions you want, hold them for 10 minutes, then create your account to confirm."
+              title={offering.name}
+              description={
+                offering.description ??
+                'Pick the sessions you want, hold them for 10 minutes, then finish your booking.'
+              }
             />
 
             <TimezoneNote timezone={timezone} />

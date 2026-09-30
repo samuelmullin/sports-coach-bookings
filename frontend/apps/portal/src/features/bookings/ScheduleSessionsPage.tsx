@@ -233,8 +233,8 @@ export function ScheduleSessionsPage() {
   return (
     <div className="flex flex-col gap-4">
       <Button asChild variant="ghost" size="sm" className="self-start">
-        <Link to={`/offerings/${offeringId}`}>
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to offering
+        <Link to="/schedule">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to schedule
         </Link>
       </Button>
 

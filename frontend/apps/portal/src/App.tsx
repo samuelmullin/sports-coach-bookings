@@ -4,7 +4,6 @@ import { PortalLayout } from './layouts/PortalLayout';
 import { HomePage } from './features/home/HomePage';
 import { SchedulePage } from './features/catalog/SchedulePage';
 import { SessionDetailPage } from './features/catalog/SessionDetailPage';
-import { OfferingDetailPage } from './features/catalog/OfferingDetailPage';
 import { PackagesPage } from './features/catalog/PackagesPage';
 import { PackageDetailPage } from './features/catalog/PackageDetailPage';
 import { ShopPage } from './features/shop/ShopPage';
@@ -16,7 +15,10 @@ import { PlayerDetailPage } from './features/players/PlayerDetailPage';
 import { WaiverSignPage } from './features/waivers/WaiverSignPage';
 import { BookingsPage } from './features/bookings/BookingsPage';
 import { BookingFlowPage } from './features/bookings/BookingFlowPage';
-import { OfferingScheduleRoute } from './features/reservations/OfferingScheduleRoute';
+import {
+  OfferingRedirect,
+  OfferingScheduleRoute,
+} from './features/reservations/OfferingScheduleRoute';
 import { ReservationCompletePage } from './features/reservations/ReservationCompletePage';
 import { OrdersPage } from './features/orders/OrdersPage';
 import { OrderDetailPage } from './features/orders/OrderDetailPage';
@@ -38,7 +40,7 @@ export function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="sessions/:sessionId" element={<SessionDetailPage />} />
-        <Route path="offerings/:offeringId" element={<OfferingDetailPage />} />
+        <Route path="offerings/:offeringId" element={<OfferingRedirect />} />
         <Route path="offerings/:offeringId/schedule" element={<OfferingScheduleRoute />} />
         <Route path="packages" element={<PackagesPage />} />
         <Route path="packages/:packageId" element={<PackageDetailPage />} />

@@ -50,7 +50,10 @@ export function HomePage() {
               <li key={offering.id}>
                 <Card>
                   <CardContent className="flex flex-col gap-1 pt-4">
-                    <Link to={`/offerings/${offering.id}`} className="font-medium hover:underline">
+                    <Link
+                      to={`/offerings/${offering.id}/schedule`}
+                      className="font-medium hover:underline"
+                    >
                       {offering.name}
                     </Link>
                     <span className="text-sm capitalize text-muted-foreground">
