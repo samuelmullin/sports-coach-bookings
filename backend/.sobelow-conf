@@ -1,0 +1,16 @@
+# Sobelow configuration (WP-19). `skip: true` honours the `# sobelow_skip`
+# comments that mark accepted false positives (each documented in
+# docs/security-review.md). `exit: "low"` fails the command on any unskipped
+# finding.
+[
+  exit: "low",
+  format: "txt",
+  ignore: [],
+  ignore_files: [],
+  out: nil,
+  private: false,
+  router: nil,
+  skip: true,
+  threshold: :low,
+  verbose: false
+]

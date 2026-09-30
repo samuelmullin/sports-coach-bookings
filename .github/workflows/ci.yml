@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    # Release tags also run CI; .github/workflows/deploy.yml gates the
+    # production deploy on that run succeeding.
+    tags: ["v*"]
+  pull_request:
+
+env:
+  MIX_ENV: test
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "29"
+          elixir-version: "1.20"
+
+      - name: Create non-superuser app role and databases
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE scb_app LOGIN PASSWORD 'scb_app' NOSUPERUSER NOBYPASSRLS CREATEDB;
+          CREATE DATABASE sports_coach_bookings_dev OWNER scb_app;
+          CREATE DATABASE sports_coach_bookings_test OWNER scb_app;
+          SQL
+
+      - name: Cache deps and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/deps
+            backend/_build
+          key: ${{ runner.os }}-mix-${{ hashFiles('backend/mix.lock') }}
+
+      - name: Install deps
+        working-directory: backend
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+
+      - name: Check formatting
+        working-directory: backend
+        run: mix format --check-formatted
+
+      - name: Compile (warnings as errors)
+        working-directory: backend
+        run: mix compile --warnings-as-errors
+
+      - name: Credo
+        working-directory: backend
+        run: mix credo --strict
+
+      - name: Dialyzer
+        working-directory: backend
+        run: mix dialyzer
+
+      - name: Sobelow
+        working-directory: backend
+        run: mix sobelow --config
+
+      - name: Test
+        working-directory: backend
+        run: mix test
+
+      - name: OpenAPI drift check
+        working-directory: backend
+        run: |
+          mix app.openapi.export
+          git diff --exit-code ../docs/openapi.json
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: frontend
+        run: pnpm -r typecheck
+
+      - name: Lint
+        working-directory: frontend
+        run: pnpm lint
+
+      - name: Test
+        working-directory: frontend
+        run: pnpm -r test
+
+      - name: Build
+        working-directory: frontend
+        run: pnpm -r build

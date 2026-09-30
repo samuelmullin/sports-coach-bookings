@@ -1,0 +1,33 @@
+{
+  "name": "@scb/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./mutator": "./src/mutator/custom-fetch.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.0",
+    "zod": "^3.24.1"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-hook-form": "^7.54.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/react": "^18.3.18",
+    "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-hook-form": "^7.54.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

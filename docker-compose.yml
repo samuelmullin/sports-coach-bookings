@@ -1,0 +1,98 @@
+# Local development parity stack.
+#
+# Fragments:
+#   * postgres  - Postgres 16 with the non-superuser scb_app role pre-created
+#   * minio     - S3-compatible object storage for exercising Storage.S3
+#
+# Recommended local flow (just the infrastructure; run the app with `mix`):
+#
+#     docker compose up -d postgres minio
+#     cd backend && mix setup && mix phx.server
+#
+# To run the built release image as well (slower; builds the full image):
+#
+#     docker compose --profile app up --build
+#
+# All credentials below are DEV-ONLY and intentionally not secret.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: scb-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init-app-role.sql:/docker-entrypoint-initdb.d/10-app-role.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: scb-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      S3_BUCKET: scb-uploads
+    volumes:
+      - ./infra/minio/create-bucket.sh:/create-bucket.sh:ro
+    entrypoint: ["/bin/sh", "/create-bucket.sh"]
+
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: scb-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ecto://scb_app:scb_app@postgres:5432/sports_coach_bookings_dev
+      SECRET_KEY_BASE: dev-only-secret-key-base-not-for-production-0000000000000000
+      PLAYER_MEDICAL_ENCRYPTION_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+      PHX_HOST: localhost
+      PORT: "4000"
+      BASE_DOMAIN: localhost
+      PLATFORM_HOST: localhost
+      REPO_ROOT: /app
+      S3_BUCKET: scb-uploads
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin
+      S3_ENDPOINT: http://minio:9000
+      S3_FORCE_PATH_STYLE: "true"
+    ports:
+      - "4000:4000"
+
+volumes:
+  pgdata:
+  miniodata:

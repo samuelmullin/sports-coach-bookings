@@ -1,0 +1,15 @@
+#!/bin/sh
+# Release entrypoint: starts the app with the HTTP server enabled.
+#
+# Migrations are NOT run here. The platform runs `bin/migrate` as a release
+# command before traffic shifts (see fly.toml); running them from every web
+# machine would race across replicas. For a one-off docker run, migrate first:
+#
+#     docker run --rm --env-file .env IMAGE /app/bin/migrate
+#     docker run --env-file .env -p 4000:4000 IMAGE /app/bin/server
+set -eu
+
+cd -P "$(dirname "$0")/.."
+export PHX_SERVER=true
+
+exec bin/sports_coach_bookings start

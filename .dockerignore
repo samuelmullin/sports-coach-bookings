@@ -1,0 +1,32 @@
+# Keep the Docker build context small and reproducible.
+.git
+.github
+*.md
+.dockerignore
+.DS_Store
+
+# Local secrets / env files (never bake into images)
+.env
+.env.*
+!.env.example
+
+# Backend build artifacts (rebuilt inside the image)
+backend/_build
+backend/deps
+backend/cover
+backend/doc
+backend/erl_crash.dump
+backend/tmp
+backend/priv/static/assets
+backend/priv/static/cache_manifest.json
+
+# Frontend build artifacts (rebuilt inside the image)
+frontend/node_modules
+frontend/**/node_modules
+frontend/**/dist
+frontend/.vite
+frontend/coverage
+
+# Fly / compose local state
+fly.toml.local
+tmp

@@ -1,0 +1,12 @@
+# Secrets and local state — never commit these.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+
+# Local build artifacts (backend and frontend have their own .gitignore too).
+backend/erl_crash.dump

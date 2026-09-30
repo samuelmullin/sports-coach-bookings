@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #15803d;
+  --color-primary-foreground: #f8fafc;
+  --color-secondary: #166534;
+  --color-secondary-foreground: #f0fdf4;
+  --color-accent: #f59e0b;
+  --color-accent-foreground: #1c1917;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #0f172a;
+  --color-muted: #e2e8f0;
+  --color-muted-foreground: #64748b;
+  --color-border: #cbd5e1;
+  --color-danger: #dc2626;
+  --color-danger-foreground: #fef2f2;
+  --radius: 0.75rem;
+  --font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family);
+}
+
+/* Printing a document from the modal: show only the print region. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #document-print-region,
+  #document-print-region * {
+    visibility: visible;
+  }
+
+  #document-print-region {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 1.5rem;
+    background: #ffffff;
+    color: #000000;
+  }
+}

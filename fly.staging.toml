@@ -1,0 +1,63 @@
+# Fly.io staging config for SportsCoachBookings.
+#
+# Same Canadian region (yyz) as production. Auto-deploys from `main` after CI
+# succeeds (see .github/workflows/deploy.yml). Hosted as
+# `<tenant>.staging.sportscoachbookings.com`; the seeded `demo` tenant is the
+# acceptance target. Stripe runs in TEST mode here.
+#
+# PLACEHOLDERS: app name, staging host, S3 bucket.
+
+app = "sportscoachbookings-staging"
+primary_region = "yyz"
+
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "backend/Dockerfile"
+
+[deploy]
+  release_command = "/app/bin/migrate"
+  strategy = "rolling"
+
+[env]
+  PHX_HOST = "staging.sportscoachbookings.com"
+  BASE_DOMAIN = "staging.sportscoachbookings.com"
+  PLATFORM_HOST = "staging.sportscoachbookings.com"
+  PORT = "4000"
+  POOL_SIZE = "5"
+  ECTO_SSL = "true"
+  REPO_ROOT = "/app"
+  S3_REGION = "ca-central-1"
+  S3_BUCKET = "scb-uploads-staging"
+  S3_FORCE_PATH_STYLE = "false"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 500
+    soft_limit = 250
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/health/ready"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

@@ -1,0 +1,73 @@
+# Fly.io production config for SportsCoachBookings.
+#
+# Region: yyz (Toronto, Canada) — REQUIRED policy choice. Player data belongs to
+# minors, so all app compute, the Postgres primary, and the object-storage
+# bucket stay in a Canadian region. See docs/decisions/20260928-hosting-region.md.
+#
+# Deploy:
+#     fly secrets import --app <app> < .env.production   # once / on rotation
+#     fly deploy --config fly.toml
+#
+# PLACEHOLDERS to fill in before first deploy:
+#   * app            - create the Fly app first (`fly apps create ...`)
+#   * PHX_HOST / BASE_DOMAIN / PLATFORM_HOST  - your apex domain
+#   * S3_BUCKET      - your Canadian-region bucket
+
+app = "sportscoachbookings-prod"
+primary_region = "yyz"
+
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[build]
+  dockerfile = "backend/Dockerfile"
+
+[deploy]
+  # Runs migrations in a throwaway machine using the new image, before traffic
+  # shifts. Uses the non-superuser scb_app role via DATABASE_URL.
+  release_command = "/app/bin/migrate"
+  strategy = "rolling"
+
+[env]
+  PHX_HOST = "sportscoachbookings.com"
+  BASE_DOMAIN = "sportscoachbookings.com"
+  PLATFORM_HOST = "sportscoachbookings.com"
+  PORT = "4000"
+  POOL_SIZE = "10"
+  ECTO_SSL = "true"
+  REPO_ROOT = "/app"
+  S3_REGION = "ca-central-1"
+  S3_BUCKET = "scb-uploads-prod"
+  S3_FORCE_PATH_STYLE = "false"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  # Zero-downtime rolling deploys require more than one warm machine so the
+  # health checks pass before the old machines are drained.
+  min_machines_running = 2
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 500
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/health/ready"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
