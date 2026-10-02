@@ -1,7 +1,7 @@
 # RFC 20260928 — Waivers: PDF/S3 stub
 
-**Owner:** wp-07 (Waivers). **Status:** temporary stub; replace the renderer when
-object storage and a PDF engine are configured.
+**Owner:** wp-07 (Waivers). **Status:** resolved 2026-09-30 — see *Resolution* below (was a temporary
+stub).
 
 ## Context
 
@@ -43,3 +43,24 @@ equivalent) are configured in this repository.
 
 - No S3/PDF dependency is added to `mix.exs` in this change.
 - No other context, `core/*`, or `docs/erd.md` is edited by wp-07.
+
+## Resolution (2026-09-30)
+
+- `PdfRenderer.Document` is now the default renderer: a pure-Elixir PDF (`pdf`
+  hex package, Helvetica, US-Letter) containing the exact signed markdown plus a
+  signature record (typed name, relationship, UTC time, IP, user agent, content
+  SHA-256, signature id). No headless browser is required. `Noop` remains for
+  pipeline-only tests.
+- `Waivers.PdfStore` (private, server-side only): `Local` for dev/test, `S3` when
+  `S3_BUCKET` is set (optionally `S3_PRIVATE_BUCKET`). Keys are
+  `<tenant_id>/waivers/<signature_id>.pdf`.
+- Both download endpoints now return `application/pdf` (`attachment`,
+  `private, no-store`) instead of JSON metadata, rendering on demand if the
+  background job has not run. The admin UI already linked directly to the URL;
+  the portal button is now a plain download link.
+- Erasure (`Privacy`) anonymizes signatures and enqueues
+  `Waivers.PdfCleanupWorker` to delete the stored objects.
+- Verified live against a local RustFS (put/get/delete); unit-tested with
+  `Req.Test`. Validate against the production provider in staging.
+- Layout limits: text only (no logo or embedded fonts); characters outside
+  Latin-1 render as `?`. Revisit if tenants need non-Latin waivers.

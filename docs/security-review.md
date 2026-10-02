@@ -110,9 +110,11 @@ Wired routes:
 Enforcement is disabled in `config/test.exs` because the ETS table is shared
 across async tests; the dedicated test enables it explicitly.
 
-**Why not Hammer/Redis:** the app is a single-region deploy with stateless web
-nodes (`docs/ops.md` §9); per-node fixed windows are enough. See §4 for the
-limitation.
+**Backends (updated 2026-09-30):** `:ets` (per node; dev/test default) and
+`:postgres` (production default; shared counters in the UNLOGGED
+`rate_limit_counters` table, database clock, atomic upsert, fails open on DB
+error). This removed the "limit multiplies with the number of machines" caveat
+without adding Redis. Set `RATE_LIMIT_BACKEND=ets` to opt out.
 
 ---
 
@@ -120,7 +122,7 @@ limitation.
 
 | Risk | Rationale |
 |---|---|
-| Rate limits are **per node**, not shared | Stateless single-region deploy; a multi-node fleet multiplies effective limits. Revisit with a Redis/Hammer backend if the fleet grows or limits need to be exact. |
+| Rate limiter **fails open** if Postgres errors | Production uses the shared Postgres backend; on a database error the request is allowed and logged, since the protected endpoints depend on the same database. The `:ets` backend (dev/test, or `RATE_LIMIT_BACKEND=ets`) is per node. Fixed windows allow up to 2x bursts at a window boundary. |
 | **CSRF**: no `protect_from_forgery` token | The API is JSON-only and cookie-authenticated. Cookies are `SameSite=Lax`, so browsers do not attach them to cross-site `POST/PUT/PATCH/DELETE`; `Plugs.VerifyOrigin` additionally rejects state-changing requests whose `Origin` is not the request host. There is no `GET`-based state change. A CSRF token scheme would require an SPA token bootstrap and is a deliberate follow-up. |
 | **Email enumeration** on registration | A duplicate email returns a `422` validation error. The endpoint is rate-limited (per IP + email). Confirmation-resend and password-reset are already generic. Low impact: it reveals account existence only, not credentials or data. |
 | Platform tables with a `tenant_id` but **no RLS**: `tenant_domains`, `notifications_delivery_refs` | Required to resolve a tenant/its domains (host) and a provider message id (inbound webhook) **before** a tenant exists in context. `tenant_domains` is listed as a platform table in `docs/conventions.md` §1; `notifications_delivery_refs` stores only `provider`, `provider_ref`, `tenant_id`, `delivery_id` and is queried only by the globally-unique `(provider, provider_ref)`. Both are asserted as explicit allow-listed exceptions by the RLS test. |
@@ -220,11 +222,12 @@ The `# sobelow_skip` markers are honoured because `.sobelow-conf` sets
 
 ## 10. Not implemented / residual work
 
-- **PIPEDA household export / deletion** (`App.Privacy`) from the wp-19 brief is
-  **not implemented** in this change: it was outside the explicit scope of the
-  execution brief (authorization, tenancy, auth/session, rate limiting,
-  webhooks, input validation, secrets/headers, dependencies, static analysis).
-  It remains an open item; the data inventory in §8 is the input it needs.
-- Rate limits are per node (see §4).
+- **PIPEDA household export / erasure** is implemented in
+  `SportsCoachBookings.Privacy` (`GET /api/portal/account/export`,
+  `POST /api/portal/account/erase`) with a portal UI (Account → Your data); the
+  per-data-class treatment is in the module doc and `e2e/tests/08-data-privacy`
+  covers it end to end. Remaining: a retention-period decision for
+  orders/payments and a written response procedure for requests that arrive by
+  email (`docs/launch-checklist.md` §6).
 - `mix dialyzer` suppression list should shrink as Core removes the
   `Ecto.Multi` helper workaround.

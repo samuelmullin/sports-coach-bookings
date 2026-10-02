@@ -1,6 +1,6 @@
 # RFC 20260928 — Customers: notifications + preferences seam
 
-**Owner:** wp-02 (Customers). **Status:** temporary stub; remove when wp-05 merges.
+**Owner:** wp-02 (Customers). **Status:** resolved 2026-09-30.
 
 ## Context
 
@@ -31,3 +31,7 @@ preference store and is **not merged**.
 ## Not changed
 
 - No `core/*`, other contexts, or `docs/erd.md` edited.
+
+## Resolution (2026-09-30)
+
+Notifications (wp-05) is merged and wired: `Customers.Notifier` calls `Notifications.deliver/3` directly (the `{:ok, :stubbed}` fallback is removed) and `config :sports_coach_bookings, :customer_preferences_module` points at `Notifications.Preferences`.

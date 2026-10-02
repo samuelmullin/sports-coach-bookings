@@ -1,7 +1,7 @@
 # RFC 20260928 — Staff email is a Notifications seam (wp-05 unmerged)
 
 **Owner affected:** wp-05 (Notifications); consumer: wp-01 (Staff).
-**Status:** stub.
+**Status:** resolved 2026-09-30.
 
 ## Context
 
@@ -27,3 +27,7 @@ delete the guard in `Staff.Notifier`.
 ## Not changed
 
 - No wp-05 code was implemented or edited.
+
+## Resolution (2026-09-30)
+
+`Staff.Notifier` now calls `Notifications.deliver/3` directly; the `staff_invite`, `staff_confirm`, and `staff_reset_password` templates are registered in `config/config.exs`. The `{:ok, :stubbed}` fallback is removed.

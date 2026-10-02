@@ -49,8 +49,10 @@ release **refuses to boot** without the required ones.
 | `S3_BUCKET` | uploads | Enables the real S3 backend; unset ⇒ local Fake. |
 | `S3_REGION` | uploads | `ca-central-1` (Canadian bucket). |
 | `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | uploads | Bucket credentials. |
-| `S3_ENDPOINT` / `S3_FORCE_PATH_STYLE` | no | Set for MinIO/R2; AWS uses virtual-hosted style. |
+| `S3_ENDPOINT` / `S3_FORCE_PATH_STYLE` | no | Set for RustFS/MinIO/R2; AWS uses virtual-hosted style. |
 | `S3_PUBLIC_BASE_URL` | no | CDN/base URL for reads. |
+| `S3_PRIVATE_BUCKET` | recommended | Private bucket for signed-waiver PDFs (minors' names, signer IPs). Never expose publicly. Unset ⇒ shares `S3_BUCKET`; with no `S3_BUCKET` PDFs go to local disk and are lost on redeploy (re-rendered on demand). |
+| `RATE_LIMIT_BACKEND` | no (`postgres`) | `ets` = per-node in-memory limits instead of the shared Postgres counters. |
 | `ERROR_REPORTER_MODULE` | no | Module with `capture_exception/4` (e.g. Sentry adapter). |
 | `ECTO_IPV6` / `DNS_CLUSTER_QUERY` | no | Multi-region clustering; unused while single-region. |
 
@@ -274,7 +276,7 @@ fly ssh console --app <<PLACEHOLDER>>-staging -C "/app/bin/seed"
 
 Locally:
 ```bash
-docker compose up -d postgres minio
+docker compose up -d postgres rustfs rustfs-init
 cd backend && mix setup          # create/migrate + seeds + assets
 mix phx.server
 # demo tenant at http://demo.localhost:4000  (admin at /admin)

@@ -1,6 +1,6 @@
 # RFC 20260928 — Tenancy branding asset storage is stubbed
 
-**Owner:** wp-01 (Tenancy). **Status:** stub; replace when S3 is configured.
+**Owner:** wp-01 (Tenancy). **Status:** S3 backend implemented (`Tenancy.Storage.S3`, selected by `S3_BUCKET`); `Fake` remains the dev/test default. Not yet verified against a live bucket.
 
 ## Context
 
