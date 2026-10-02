@@ -22,6 +22,8 @@ export {
 } from './format/datetime';
 
 export { cn } from './lib/cn';
+export { lazyNamed } from './lib/lazy';
+export { RouteFallback } from './components/RouteFallback';
 export {
   addDays,
   addMonths,

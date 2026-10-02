@@ -42,6 +42,33 @@ describe('Drawer', () => {
   });
 });
 
+// Regression: long forms in a Modal/Drawer overflowed the viewport with no way to
+// scroll to the action buttons (found by the browser e2e suite at 1280x720).
+// jsdom has no layout, so assert the structure that makes scrolling possible:
+// a flex-column container (bounded height) around a min-h-0 scrollable body.
+describe('scrollable dialog content', () => {
+  it.each([
+    [
+      'Modal',
+      <Modal key="m" open onOpenChange={() => {}} title="T">
+        <p>Body</p>
+      </Modal>,
+    ],
+    [
+      'Drawer',
+      <Drawer key="d" open onOpenChange={() => {}} title="T">
+        <p>Body</p>
+      </Drawer>,
+    ],
+  ])('%s keeps its body scrollable inside a bounded flex column', (_name, element) => {
+    render(element);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveClass('flex', 'flex-col');
+    const body = screen.getByText('Body').parentElement as HTMLElement;
+    expect(body).toHaveClass('overflow-y-auto', 'min-h-0', 'flex-1');
+  });
+});
+
 describe('ConfirmDialog', () => {
   it('calls onConfirm when the confirm button is pressed', async () => {
     const onConfirm = vi.fn();

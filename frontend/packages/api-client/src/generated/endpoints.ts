@@ -102,7 +102,9 @@ import type {
   SportsCoachBookingsWebPortalAccountPasswordResetControllerCreateBody,
   SportsCoachBookingsWebPortalAccountPasswordResetControllerUpdate200,
   SportsCoachBookingsWebPortalAccountPasswordResetControllerUpdateBody,
-  SportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow200,
+  SportsCoachBookingsWebPortalAccountPrivacyControllerErase200,
+  SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody,
+  SportsCoachBookingsWebPortalAccountPrivacyControllerExport200,
   SportsCoachBookingsWebPortalAccountRegistrationsControllerCreate201,
   SportsCoachBookingsWebPortalAccountRegistrationsControllerCreateBody,
   SportsCoachBookingsWebPortalAccountSessionControllerCreate201,
@@ -344,7 +346,6 @@ import type {
   VenueRequest,
   VenueResponse,
   WaiverCsvResponse,
-  WaiverPdfResponse,
   WaiverSignatureListResponse,
   WaiverSignatureResponse,
   WaiverTemplateListResponse,
@@ -6799,6 +6800,108 @@ export const useSportsCoachBookingsWebStaffSettingsBrandingControllerCreateUploa
       > => {
 
       const mutationOptions = getSportsCoachBookingsWebStaffSettingsBrandingControllerCreateUploadMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
+ * Primary member only; requires the account password. Refused with 409 while the household has upcoming bookings or an unpaid order. Irreversible; ends the session.
+ * @summary Permanently erase the caller's household
+ */
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse200 = {
+  data: SportsCoachBookingsWebPortalAccountPrivacyControllerErase200
+  status: 200
+}
+
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse409 = {
+  data: ErrorResponse
+  status: 409
+}
+
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse422 = {
+  data: ErrorResponse
+  status: 422
+}
+    
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponseSuccess = (sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponseError = (sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse403 | sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse409 | sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse422) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse = (sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponseSuccess | sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponseError)
+
+export const getSportsCoachBookingsWebPortalAccountPrivacyControllerEraseUrl = () => {
+
+
+  
+
+  return `/api/portal/account/erase`
+}
+
+export const sportsCoachBookingsWebPortalAccountPrivacyControllerErase = async (sportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody?: SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody, options?: RequestInit): Promise<sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalAccountPrivacyControllerEraseResponse>(getSportsCoachBookingsWebPortalAccountPrivacyControllerEraseUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalAccountPrivacyControllerEraseMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerErase>>, TError,{data: SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerErase>>, TError,{data: SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalAccountPrivacyControllerErase'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerErase>>, {data: SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalAccountPrivacyControllerErase(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalAccountPrivacyControllerEraseMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerErase>>>
+    export type SportsCoachBookingsWebPortalAccountPrivacyControllerEraseMutationBody = SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody
+    export type SportsCoachBookingsWebPortalAccountPrivacyControllerEraseMutationError = ErrorResponse
+
+    /**
+ * @summary Permanently erase the caller's household
+ */
+export const useSportsCoachBookingsWebPortalAccountPrivacyControllerErase = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerErase>>, TError,{data: SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerErase>>,
+        TError,
+        {data: SportsCoachBookingsWebPortalAccountPrivacyControllerEraseBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalAccountPrivacyControllerEraseMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -14096,96 +14199,6 @@ export const useSportsCoachBookingsWebStaffCatalogOfferingsControllerCreate = <T
     }
     
 /**
- * @summary Stub purchase guard (requires a confirmed email)
- */
-export type sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponse200 = {
-  data: SportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow200
-  status: 200
-}
-
-export type sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponse403 = {
-  data: ErrorResponse
-  status: 403
-}
-    
-export type sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponseSuccess = (sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponse200) & {
-  headers: Headers;
-};
-export type sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponseError = (sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponse403) & {
-  headers: Headers;
-};
-
-export type sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponse = (sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponseSuccess | sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponseError)
-
-export const getSportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowUrl = () => {
-
-
-  
-
-  return `/api/portal/account/purchase_guard`
-}
-
-export const sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow = async ( options?: RequestInit): Promise<sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponse> => {
-  
-  return customFetch<sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowResponse>(getSportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowUrl(),
-  {      
-    ...options,
-    method: 'POST'
-    
-    
-  }
-);}
-
-
-
-
-export const getSportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowMutationOptions = <TError = ErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow>>, TError,void, TContext> => {
-
-const mutationKey = ['sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow>>, void> = () => {
-          
-
-          return  sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow(requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type SportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow>>>
-    
-    export type SportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowMutationError = ErrorResponse
-
-    /**
- * @summary Stub purchase guard (requires a confirmed email)
- */
-export const useSportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow = <TError = ErrorResponse,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow>>,
-        TError,
-        void,
-        TContext
-      > => {
-
-      const mutationOptions = getSportsCoachBookingsWebPortalAccountPurchaseGuardControllerShowMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
-/**
  * @summary Get the current household with its members
  */
 export type sportsCoachBookingsWebPortalHouseholdHouseholdControllerShowResponse200 = {
@@ -18845,6 +18858,11 @@ export type sportsCoachBookingsWebPortalReservationsReservationsControllerConver
   status: 200
 }
 
+export type sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+
 export type sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse409 = {
   data: ErrorResponse
   status: 409
@@ -18858,7 +18876,7 @@ export type sportsCoachBookingsWebPortalReservationsReservationsControllerConver
 export type sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponseSuccess = (sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse200) & {
   headers: Headers;
 };
-export type sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponseError = (sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse409 | sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse422) & {
+export type sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponseError = (sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse403 | sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse409 | sportsCoachBookingsWebPortalReservationsReservationsControllerConvertResponse422) & {
   headers: Headers;
 };
 
@@ -19696,7 +19714,7 @@ export const useSportsCoachBookingsWebPortalOrdersCheckoutControllerCreate = <TE
  * @summary Download one of your signatures' PDF snapshot
  */
 export type sportsCoachBookingsWebPortalWaiversWaiversControllerPdfResponse200 = {
-  data: WaiverPdfResponse
+  data: Blob
   status: 200
 }
 
@@ -20567,6 +20585,103 @@ export function useSportsCoachBookingsWebPortalOrdersOrdersControllerShow<TData 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getSportsCoachBookingsWebPortalOrdersOrdersControllerShowQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * Returns accounts, players (including medical information), waivers, bookings, credits, and orders. Medical reads and the export are audited.
+ * @summary Export all data held about the caller's household
+ */
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponse200 = {
+  data: SportsCoachBookingsWebPortalAccountPrivacyControllerExport200
+  status: 200
+}
+
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponseSuccess = (sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponseError = (sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponse403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponse = (sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponseSuccess | sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponseError)
+
+export const getSportsCoachBookingsWebPortalAccountPrivacyControllerExportUrl = () => {
+
+
+  
+
+  return `/api/portal/account/export`
+}
+
+export const sportsCoachBookingsWebPortalAccountPrivacyControllerExport = async ( options?: RequestInit): Promise<sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalAccountPrivacyControllerExportResponse>(getSportsCoachBookingsWebPortalAccountPrivacyControllerExportUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebPortalAccountPrivacyControllerExportQueryKey = () => {
+    return [
+    `/api/portal/account/export`
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebPortalAccountPrivacyControllerExportQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerExport>>, TError = ErrorResponse>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerExport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebPortalAccountPrivacyControllerExportQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerExport>>> = () => sportsCoachBookingsWebPortalAccountPrivacyControllerExport(requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerExport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebPortalAccountPrivacyControllerExportQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerExport>>>
+export type SportsCoachBookingsWebPortalAccountPrivacyControllerExportQueryError = ErrorResponse
+
+
+/**
+ * @summary Export all data held about the caller's household
+ */
+
+export function useSportsCoachBookingsWebPortalAccountPrivacyControllerExport<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerExport>>, TError = ErrorResponse>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalAccountPrivacyControllerExport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebPortalAccountPrivacyControllerExportQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -24916,7 +25031,7 @@ export const useSportsCoachBookingsWebPortalAccountAccountControllerUpdateEmail 
  * @summary Download a signature's PDF snapshot
  */
 export type sportsCoachBookingsWebStaffWaiversSignaturesControllerPdfResponse200 = {
-  data: WaiverPdfResponse
+  data: Blob
   status: 200
 }
 

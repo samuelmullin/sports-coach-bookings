@@ -141,6 +141,18 @@ describe('BookingFlowPage', () => {
     expect(screen.getByText(/Sam is booked into Private Coaching/)).toBeInTheDocument();
   });
 
+  it('does not treat a player missing from the waiver status as signed', async () => {
+    useBookingData();
+    // A just-added player is not in the (cached) household waiver status yet.
+    server.use(http.get('/api/portal/waivers/status', () => HttpResponse.json({ players: [] })));
+
+    renderFlow();
+    await selectPlayer();
+
+    expect(await screen.findByText('Required waivers signed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm booking' })).toBeDisabled();
+  });
+
   it('shows a server error when credits are insufficient', async () => {
     useBookingData();
     server.use(

@@ -92,14 +92,15 @@ export function BookingsPage() {
         ) : (
           <ul className="flex flex-col gap-3">
             {bookings.map((item) => (
-              <BookingCard
-                key={item.booking.id}
-                item={item}
-                playerName={playerName(item.booking.player_id)}
-                timezone={settings.timezone}
-                onCancel={() => setCancelId(item.booking.id)}
-                onRebook={() => setRebookId(item.booking.id)}
-              />
+              <li key={item.booking.id}>
+                <BookingCard
+                  item={item}
+                  playerName={playerName(item.booking.player_id)}
+                  timezone={settings.timezone}
+                  onCancel={() => setCancelId(item.booking.id)}
+                  onRebook={() => setRebookId(item.booking.id)}
+                />
+              </li>
             ))}
           </ul>
         )}

@@ -182,7 +182,7 @@ export function SessionRosterPage() {
               const attended = entry.status === 'attended';
               const noShow = entry.status === 'no_show';
               return (
-                <Card key={entry.booking_id}>
+                <Card key={entry.booking_id} data-testid="roster-row">
                   <CardContent className="flex flex-col gap-3 pt-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-col gap-1">
@@ -226,6 +226,7 @@ export function SessionRosterPage() {
                         size="sm"
                         variant={attended ? 'primary' : 'outline'}
                         aria-label={`Mark ${name} attended`}
+                        aria-pressed={attended}
                         onClick={() =>
                           void submitAttendance([
                             { booking_id: entry.booking_id, status: 'attended' },
@@ -240,6 +241,7 @@ export function SessionRosterPage() {
                         size="sm"
                         variant={noShow ? 'danger' : 'outline'}
                         aria-label={`Mark ${name} no-show`}
+                        aria-pressed={noShow}
                         onClick={() => setNoShowTarget(entry)}
                         disabled={markAttendance.isPending}
                       >

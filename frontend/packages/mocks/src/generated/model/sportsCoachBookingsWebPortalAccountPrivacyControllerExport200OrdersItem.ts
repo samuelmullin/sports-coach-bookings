@@ -6,6 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type SportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow200 = {
-  message: string;
-};
+export type SportsCoachBookingsWebPortalAccountPrivacyControllerExport200OrdersItem = { [key: string]: unknown };

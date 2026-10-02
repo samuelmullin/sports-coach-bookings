@@ -10,11 +10,9 @@ import { Button, Card, CardContent, Checkbox, FormField, Input, useToast } from 
 import {
   playerWaiversQueryKey,
   useSignWaiver,
-  useWaiverPdf,
   useWaiverVersion,
-  waiverPdfQueryKey,
+  waiverSignaturePdfUrl,
   waiverVersionQueryKey,
-  type WaiverPdfResponse,
   type WaiverSignatureResponse,
   type WaiverVersionResponse,
 } from '../../api/endpoints';
@@ -34,26 +32,11 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function WaiverPdfButton({ signatureId }: { signatureId: string }) {
-  const query = useWaiverPdf(signatureId, {
-    query: { queryKey: waiverPdfQueryKey(signatureId), enabled: false, retry: false },
-  });
-  const { toast } = useToast();
-
-  const onClick = async () => {
-    const result = await query.refetch();
-    const payload = body<WaiverPdfResponse>(result);
-    if (payload?.download_url) {
-      window.open(payload.download_url, '_blank', 'noopener');
-    } else if (payload?.status === 'pending') {
-      toast({ title: 'Your PDF is being generated. Try again shortly.' });
-    } else {
-      toast({ title: 'The PDF is not available yet.', variant: 'danger' });
-    }
-  };
-
   return (
-    <Button variant="outline" onClick={() => void onClick()} disabled={query.isFetching}>
-      <Download className="h-4 w-4" aria-hidden="true" /> Download signed PDF
+    <Button asChild variant="outline">
+      <a href={waiverSignaturePdfUrl(signatureId)} download>
+        <Download className="h-4 w-4" aria-hidden="true" /> Download signed PDF
+      </a>
     </Button>
   );
 }
@@ -104,7 +87,13 @@ export function WaiverSignPage() {
           consent_checkbox: true,
         },
       });
-      await queryClient.invalidateQueries({ queryKey: playerWaiversQueryKey(playerId) });
+      // refetchType 'all': the player's waiver list is not mounted on this page, and
+      // without an immediate refetch it briefly shows the pre-signing state (with a
+      // "Read & sign" link that now 409s) when the customer goes back to it.
+      await queryClient.invalidateQueries({
+        queryKey: playerWaiversQueryKey(playerId),
+        refetchType: 'all',
+      });
       const signature = responseData<WaiverSignatureResponse>(result);
       setSignatureId(signature?.id ?? null);
       toast({ title: 'Waiver signed', variant: 'success' });

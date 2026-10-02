@@ -8,6 +8,7 @@ import { ProfileForm } from './ProfileForm';
 import { EmailForm } from './EmailForm';
 import { PasswordForm } from './PasswordForm';
 import { NotificationPreferencesForm } from './NotificationPreferencesForm';
+import { PrivacySection } from './PrivacySection';
 import { useCustomerAuth } from '../../auth/customer-auth';
 
 export function AccountPage() {
@@ -44,6 +45,7 @@ export function AccountPage() {
             label: 'Notifications',
             content: <NotificationPreferencesForm />,
           },
+          { value: 'privacy', label: 'Your data', content: <PrivacySection /> },
         ]}
       />
     </div>

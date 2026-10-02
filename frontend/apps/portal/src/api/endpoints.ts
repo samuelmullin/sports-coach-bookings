@@ -34,7 +34,6 @@ export type {
   WaiverVersionResponse,
   SignWaiverRequest,
   WaiverSignatureResponse,
-  WaiverPdfResponse,
   PolicySummaryResponse,
   PolicyOutcome,
 } from '@scb/api-client';
@@ -135,7 +134,6 @@ export {
   useSportsCoachBookingsWebPortalWaiversWaiversControllerPlayerIndex as usePlayerWaivers,
   useSportsCoachBookingsWebPortalWaiversWaiversControllerStatus as useHouseholdWaiverStatus,
   useSportsCoachBookingsWebPortalWaiversWaiversControllerShowVersion as useWaiverVersion,
-  useSportsCoachBookingsWebPortalWaiversWaiversControllerPdf as useWaiverPdf,
 } from '@scb/api-client';
 
 export {
@@ -244,7 +242,8 @@ export {
   useSportsCoachBookingsWebPortalAccountAccountControllerUpdateEmail as useUpdateEmail,
   useSportsCoachBookingsWebPortalAccountAccountControllerUpdatePassword as useUpdatePassword,
   useSportsCoachBookingsWebPortalAccountAccountControllerUpdatePreferences as useUpdateNotificationPreferences,
-  useSportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow as usePurchaseGuard,
+  useSportsCoachBookingsWebPortalAccountPrivacyControllerErase as useEraseHousehold,
+  getSportsCoachBookingsWebPortalAccountPrivacyControllerExportUrl as householdExportUrl,
 } from '@scb/api-client';
 
 // ---------------------------------------------------------------------------
@@ -282,7 +281,7 @@ export {
   getSportsCoachBookingsWebPortalBookingsBookingsControllerCancelPreviewQueryKey as cancelPreviewQueryKey,
   getSportsCoachBookingsWebPortalBookingsBookingsControllerRebookOptionsQueryKey as rebookOptionsQueryKey,
   getSportsCoachBookingsWebPortalWaiversWaiversControllerShowVersionQueryKey as waiverVersionQueryKey,
-  getSportsCoachBookingsWebPortalWaiversWaiversControllerPdfQueryKey as waiverPdfQueryKey,
+  getSportsCoachBookingsWebPortalWaiversWaiversControllerStatusQueryKey as householdWaiverStatusQueryKey,
   getSportsCoachBookingsWebPortalLegalDocumentsControllerIndexQueryKey as portalDocumentsQueryKey,
   getSportsCoachBookingsWebPortalLegalDocumentsControllerShowQueryKey as portalDocumentQueryKey,
 } from '@scb/api-client';

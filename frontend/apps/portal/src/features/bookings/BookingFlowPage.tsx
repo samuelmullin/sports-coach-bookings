@@ -102,8 +102,8 @@ export function BookingFlowPage() {
 
   const waiverEntry = waiverStatus?.players.find((entry) => entry.player_id === playerId);
   const requiredWaivers = waiverEntry?.waivers.filter((waiver) => waiver.required) ?? [];
-  const waiversSigned =
-    requiredWaivers.length === 0 || requiredWaivers.every((waiver) => waiver.signed);
+  // No status entry for the player means unknown, not "no waivers required".
+  const waiversSigned = Boolean(waiverEntry) && requiredWaivers.every((waiver) => waiver.signed);
   const hasContacts = (player?.emergency_contacts?.length ?? 0) > 0;
   const ageOk = player ? isAgeEligible(player, offering?.min_age, offering?.max_age) : false;
   const seatsLeft = item?.seats_left ?? session?.seats_left ?? 0;

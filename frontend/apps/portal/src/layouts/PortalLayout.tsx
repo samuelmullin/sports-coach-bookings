@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@scb/ui';
 import { Menu, X } from 'lucide-react';
-import { IconButton } from '@scb/ui';
+import { IconButton, RouteFallback } from '@scb/ui';
 import { useBranding } from '../theme/branding';
 import { useCustomerAuth } from '../auth/customer-auth';
 import { GuestCartMerge } from '../features/cart/GuestCartMerge';
@@ -159,7 +159,9 @@ export function PortalLayout() {
       <ReservationBanner />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
-        <Outlet />
+        <Suspense fallback={<RouteFallback />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       <footer className="border-t border-border bg-surface">

@@ -7,6 +7,7 @@ import { Trash2 } from 'lucide-react';
 import { applyApiFieldErrors } from '@scb/api-client';
 import { Button, Checkbox, Drawer, FormField, Input, Select, Textarea, useToast } from '@scb/ui';
 import {
+  householdWaiverStatusQueryKey,
   playersQueryKey,
   useCreateAuthorizedPickup,
   useCreateEmergencyContact,
@@ -220,6 +221,8 @@ export function PlayerWizard({
 
       await touchReservation();
       await queryClient.invalidateQueries({ queryKey: playersQueryKey() });
+      // A new player has waivers to sign; the cached household status doesn't know them yet.
+      await queryClient.invalidateQueries({ queryKey: householdWaiverStatusQueryKey() });
       toast({ title: 'Player added', variant: 'success' });
       reset(DEFAULTS);
       setStep(0);

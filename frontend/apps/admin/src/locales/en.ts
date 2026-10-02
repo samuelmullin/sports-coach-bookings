@@ -59,6 +59,7 @@ const en = {
     acceptInvite: 'Accept invitation',
     signupTitle: 'Create your coaching business',
     signupSubtitle: 'Set up your account in a few steps',
+    signupFailed: 'We could not create your account. Please try again.',
     businessName: 'Business name',
     slug: 'Web address',
     slugHint: 'Lowercase letters, numbers and hyphens',

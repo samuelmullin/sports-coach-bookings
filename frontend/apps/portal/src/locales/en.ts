@@ -25,6 +25,7 @@ const en = {
     bookings: 'Bookings',
     players: 'Players',
     household: 'Household',
+    account: 'Account',
     orders: 'Orders',
     credits: 'Sessions',
     cart: 'Cart',
