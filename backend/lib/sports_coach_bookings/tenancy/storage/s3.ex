@@ -1,6 +1,6 @@
 defmodule SportsCoachBookings.Tenancy.Storage.S3 do
   @moduledoc """
-  S3-compatible object storage backend (AWS S3, Cloudflare R2, MinIO, ...).
+  S3-compatible object storage backend (AWS S3, Cloudflare R2, RustFS, MinIO, ...).
 
   Implements `SportsCoachBookings.Tenancy.Storage` using **AWS Signature V4
   presigned PUT URLs**, so no credentials or bytes ever pass through the app.
@@ -15,7 +15,7 @@ defmodule SportsCoachBookings.Tenancy.Storage.S3 do
         region: "ca-central-1",
         access_key_id: System.get_env("S3_ACCESS_KEY_ID"),
         secret_access_key: System.get_env("S3_SECRET_ACCESS_KEY"),
-        endpoint: nil,                 # set for MinIO/R2; nil = AWS
+        endpoint: nil,                 # set for RustFS/MinIO/R2; nil = AWS
         public_base_url: nil,          # CDN/base URL for reads; defaults to the bucket URL
         presign_ttl_seconds: 900,
         force_path_style: false
@@ -158,8 +158,16 @@ defmodule SportsCoachBookings.Tenancy.Storage.S3 do
             "/#{encoded_key}"
           end
 
-        {uri.scheme || "https", uri.host, path}
+        {uri.scheme || "https", authority(uri), path}
     end
+  end
+
+  # `host[:port]`: a non-default port must be in both the URL and the signed
+  # `host` header, or a local endpoint such as http://localhost:9000 is unreachable
+  # (and its signature would not match what the server sees).
+  defp authority(%URI{host: host, port: port, scheme: scheme}) do
+    default = if scheme == "http", do: 80, else: 443
+    if port in [nil, default], do: host, else: "#{host}:#{port}"
   end
 
   defp base_url(config) do
@@ -174,9 +182,9 @@ defmodule SportsCoachBookings.Tenancy.Storage.S3 do
         bucket = fetch!(config, :bucket)
 
         if Keyword.get(config, :force_path_style, true) do
-          "#{uri.scheme || "https"}://#{uri.host}/#{bucket}"
+          "#{uri.scheme || "https"}://#{authority(uri)}/#{bucket}"
         else
-          "#{uri.scheme || "https"}://#{bucket}.#{uri.host}"
+          "#{uri.scheme || "https"}://#{bucket}.#{authority(uri)}"
         end
     end
   end
