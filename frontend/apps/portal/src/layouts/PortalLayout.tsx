@@ -1,9 +1,16 @@
 import { Suspense, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@scb/ui';
-import { Menu, X } from 'lucide-react';
-import { IconButton, RouteFallback } from '@scb/ui';
+import { ChevronDown, Menu, X } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  IconButton,
+  RouteFallback,
+} from '@scb/ui';
 import { useBranding } from '../theme/branding';
 import { useCustomerAuth } from '../auth/customer-auth';
 import { GuestCartMerge } from '../features/cart/GuestCartMerge';
@@ -25,10 +32,11 @@ export function PortalLogo() {
 export function PortalLayout() {
   const { t } = useTranslation();
   const { status, signOut } = useCustomerAuth();
+  const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const authenticated = status === 'authenticated';
 
-  const links = [
+  const primaryLinks = [
     { to: '/', label: t('nav.home') },
     { to: '/schedule', label: t('nav.schedule') },
     { to: '/packages', label: t('nav.packages') },
@@ -38,13 +46,19 @@ export function PortalLayout() {
           { to: '/bookings', label: t('nav.bookings') },
           { to: '/players', label: t('nav.players') },
           { to: '/credits', label: t('nav.credits') },
-          { to: '/orders', label: t('nav.orders') },
-          { to: '/pickups', label: t('nav.pickups') },
-          { to: '/household', label: t('nav.household') },
-          { to: '/account', label: t('nav.account') },
         ]
       : []),
   ];
+  // Less-used destinations live in a menu so the header never wraps.
+  const accountLinks = authenticated
+    ? [
+        { to: '/orders', label: t('nav.orders') },
+        { to: '/pickups', label: t('nav.pickups') },
+        { to: '/household', label: t('nav.household') },
+        { to: '/account', label: t('nav.account') },
+      ]
+    : [];
+  const links = [...primaryLinks, ...accountLinks];
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -53,15 +67,15 @@ export function PortalLayout() {
           <NavLink to="/" aria-label={t('nav.home')}>
             <PortalLogo />
           </NavLink>
-          <nav className="hidden items-center gap-1 md:flex md:flex-wrap" aria-label="Main">
-            {links.map((link) => (
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+            {primaryLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 end={link.to === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-md px-3 py-2 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     isActive && 'text-primary',
                   )
                 }
@@ -69,13 +83,33 @@ export function PortalLayout() {
                 {link.label}
               </NavLink>
             ))}
+            {accountLinks.length > 0 ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className={cn(
+                    'flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    accountLinks.some((link) => pathname.startsWith(link.to)) && 'text-primary',
+                  )}
+                >
+                  {t('nav.myAccount')}
+                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {accountLinks.map((link) => (
+                    <DropdownMenuItem key={link.to} asChild>
+                      <NavLink to={link.to}>{link.label}</NavLink>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
           </nav>
           <div className="hidden items-center gap-2 md:flex">
             {authenticated ? (
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="text-sm text-muted-foreground hover:text-foreground"
+                className="whitespace-nowrap text-sm text-muted-foreground hover:text-foreground"
               >
                 {t('common.signOut')}
               </button>

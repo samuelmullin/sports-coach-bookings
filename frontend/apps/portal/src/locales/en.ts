@@ -26,6 +26,7 @@ const en = {
     players: 'Players',
     household: 'Household',
     account: 'Account',
+    myAccount: 'My account',
     orders: 'Orders',
     credits: 'Sessions',
     cart: 'Cart',
