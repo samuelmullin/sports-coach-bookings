@@ -108,9 +108,8 @@ config :sports_coach_bookings,
        :inventory_order_source,
        SportsCoachBookings.Commerce
 
-# WP-13: resolves a drop-in booking hold (created by wp-14 Bookings) to its
-# offering, price, and household. WP-14 points this at its own implementation.
-# See SportsCoachBookings.Commerce.BookingHoldSource.
+# Resolves a drop-in booking hold (created by Bookings) to its offering, price,
+# and household. See SportsCoachBookings.Commerce.BookingHoldSource.
 config :sports_coach_bookings,
        :commerce_booking_hold_source,
        SportsCoachBookings.Bookings.HoldSource

@@ -185,7 +185,7 @@ defmodule SportsCoachBookings.Factory do
   def player_factory do
     %Player{
       tenant_id: TenantContext.get_tenant_id(),
-      household_id: Ecto.UUID.generate(),
+      household_id: insert(:household).id,
       first_name: "Sam",
       last_name: "Player #{sequence(:player_seq, & &1)}",
       date_of_birth: ~D[2015-05-01],

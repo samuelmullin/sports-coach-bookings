@@ -7,6 +7,7 @@ defmodule SportsCoachBookingsWeb.Staff.Waivers.SignaturesController do
   action_fallback SportsCoachBookingsWeb.FallbackController
 
   alias SportsCoachBookings.Waivers
+  alias SportsCoachBookingsWeb.PdfResponse
   alias SportsCoachBookingsWeb.Waivers.Helpers
   alias SportsCoachBookingsWeb.WaiversJSON
 
@@ -14,7 +15,6 @@ defmodule SportsCoachBookingsWeb.Staff.Waivers.SignaturesController do
 
   alias SportsCoachBookingsWeb.Schemas.Waivers.{
     WaiverCsvResponse,
-    WaiverPdfResponse,
     WaiverSignatureListResponse
   }
 
@@ -74,7 +74,7 @@ defmodule SportsCoachBookingsWeb.Staff.Waivers.SignaturesController do
     summary: "Download a signature's PDF snapshot",
     parameters: [id: [in: :path, type: :string, required: true]],
     responses: [
-      ok: {"PDF metadata", "application/json", WaiverPdfResponse},
+      ok: {"Signed waiver PDF", "application/pdf", PdfResponse.schema()},
       not_found: {"Not found", "application/json", ErrorResponse}
     ]
   )
@@ -82,8 +82,9 @@ defmodule SportsCoachBookingsWeb.Staff.Waivers.SignaturesController do
   @doc "GET /api/staff/waivers/signatures/:id/pdf"
   def pdf(conn, %{"id" => id}) do
     with :ok <- Helpers.authorize(conn, :download_pdf, :waiver_signature),
-         {:ok, signature} <- Waivers.fetch_signature(id) do
-      json(conn, WaiversJSON.pdf(signature))
+         {:ok, signature} <- Waivers.fetch_signature(id),
+         {:ok, pdf} <- Waivers.pdf_binary(signature) do
+      PdfResponse.send_pdf(conn, pdf, "waiver-#{signature.id}.pdf")
     end
   end
 end

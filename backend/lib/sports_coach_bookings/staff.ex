@@ -116,7 +116,7 @@ defmodule SportsCoachBookings.Staff do
     plaintext
   end
 
-  @doc "Emails confirmation instructions (no-op until WP-05 is merged)."
+  @doc "Emails confirmation instructions."
   @spec deliver_confirmation_instructions(StaffUser.t()) :: :ok
   def deliver_confirmation_instructions(%StaffUser{} = staff_user) do
     plaintext = create_confirm_token(staff_user)

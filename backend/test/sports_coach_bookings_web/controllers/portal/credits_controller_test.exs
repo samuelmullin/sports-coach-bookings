@@ -25,7 +25,7 @@ defmodule SportsCoachBookingsWeb.Portal.CreditsControllerTest do
   end
 
   test "shows the caller's own household balance, lots, and ledger", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
 
     {:ok, _lot} =
       Credits.grant_complimentary(nil, household, %{amount: 4, note: "goodwill"})

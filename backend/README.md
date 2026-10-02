@@ -6,7 +6,7 @@ Phoenix JSON API + OTP release. See `../00-shared-context.md`,
 ## Local development
 
 ```bash
-docker compose up -d postgres minio   # from the repo root
+docker compose up -d postgres rustfs rustfs-init   # from the repo root
 mix setup                              # deps, create/migrate, seeds, assets
 mix phx.server                         # http://demo.localhost:4000
 ```

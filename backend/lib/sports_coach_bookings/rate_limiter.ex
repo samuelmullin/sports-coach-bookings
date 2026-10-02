@@ -1,13 +1,13 @@
 defmodule SportsCoachBookings.RateLimiter do
   @moduledoc """
-  A small ETS-backed fixed-window rate limiter (WP-19).
+  A small fixed-window rate limiter (WP-19) with two interchangeable backends,
+  chosen by `config :sports_coach_bookings, :rate_limit_backend`:
 
-  Chosen over adding a dependency: the app only needs per-IP / per-account
-  fixed-window counters, and an ETS table owned by a supervised process is
-  enough for a single-node deploy (see `docs/ops.md` §9 — the web nodes are
-  stateless, so rate limits are per node; this is documented as an accepted
-  limitation). Hammer or a Redis-backed limiter would be the choice if the app
-  becomes multi-node with shared limits.
+    * `:ets` (default; dev/test) — in-process counters, **per node**. With N
+      machines the effective limit is N times higher and resets independently.
+    * `:postgres` (production default, see `config/runtime.exs`) — counters in
+      the `rate_limit_counters` table via
+      `SportsCoachBookings.RateLimiter.Postgres`, shared by every machine.
 
   Counters are keyed by an arbitrary binary (the plug builds keys such as
   `"ip:203.0.113.4"` and `"acct:user@example.com"`). A request is allowed only
@@ -16,6 +16,8 @@ defmodule SportsCoachBookings.RateLimiter do
   """
 
   use GenServer
+
+  alias SportsCoachBookings.RateLimiter.Postgres
 
   @table __MODULE__
   @prune_interval_ms 60_000
@@ -28,6 +30,10 @@ defmodule SportsCoachBookings.RateLimiter do
   def start_link(_opts \\ []) do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
+
+  @doc "The active backend: `:ets` or `:postgres`."
+  @spec backend() :: :ets | :postgres
+  def backend, do: Application.get_env(:sports_coach_bookings, :rate_limit_backend, :ets)
 
   @doc "Whether enforcement is enabled (config: `:rate_limiting_enabled`)."
   @spec enabled?() :: boolean()
@@ -50,7 +56,7 @@ defmodule SportsCoachBookings.RateLimiter do
     window_ms = window_seconds * 1_000
 
     Enum.reduce(keys, :ok, fn key, acc ->
-      case check(key, now, window_ms, limit) do
+      case check(backend(), key, now, window_ms, limit) do
         :ok -> acc
         {:error, retry_after_ms} -> merge_deny(acc, retry_after_ms)
       end
@@ -61,6 +67,7 @@ defmodule SportsCoachBookings.RateLimiter do
   @spec reset() :: :ok
   def reset do
     if :ets.whereis(@table) != :undefined, do: :ets.delete_all_objects(@table)
+    if backend() == :postgres, do: Postgres.reset()
     :ok
   end
 
@@ -89,6 +96,7 @@ defmodule SportsCoachBookings.RateLimiter do
   @impl true
   def handle_info(:prune, state) do
     prune(System.monotonic_time(:millisecond) - @max_window_ms)
+    if backend() == :postgres, do: Postgres.prune(div(@max_window_ms, 1_000))
     schedule_prune()
     {:noreply, state}
   end
@@ -97,7 +105,10 @@ defmodule SportsCoachBookings.RateLimiter do
 
   ## Internals
 
-  defp check(key, now, window_ms, limit) do
+  defp check(:postgres, key, _now, window_ms, limit),
+    do: Postgres.check(key, limit, div(window_ms, 1_000))
+
+  defp check(:ets, key, now, window_ms, limit) do
     case :ets.lookup(@table, key) do
       [{^key, _count, started_at}] when now - started_at < window_ms ->
         new = :ets.update_counter(@table, key, {2, 1})

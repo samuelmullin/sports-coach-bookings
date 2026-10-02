@@ -158,7 +158,7 @@ defmodule SportsCoachBookingsWeb.Portal.ReservationsControllerTest do
     tenant: tenant,
     venue: venue
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     s = session(venue, offering)
     player = player(household)
@@ -192,7 +192,7 @@ defmodule SportsCoachBookingsWeb.Portal.ReservationsControllerTest do
     tenant: tenant,
     venue: venue
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 0)
     s = session(venue, offering)
     player = player(household)

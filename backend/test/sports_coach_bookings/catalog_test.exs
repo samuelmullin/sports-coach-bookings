@@ -237,7 +237,7 @@ defmodule SportsCoachBookings.CatalogTest do
     test "record_redemption is idempotent" do
       discount = insert(:discount, tenant_id: tenant_id())
       order = Ecto.UUID.generate()
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       Repo.with_tenant_tx(fn ->
         Catalog.Pricing.record_redemption(discount.id, household, order)

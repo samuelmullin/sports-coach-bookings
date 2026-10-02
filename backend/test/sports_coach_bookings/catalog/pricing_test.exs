@@ -156,7 +156,7 @@ defmodule SportsCoachBookings.Catalog.PricingTest do
 
     test "household_limit_reached" do
       discount = insert(:discount, code: "HH", per_household_limit: 1)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       Repo.with_tenant_tx(fn ->
         Pricing.record_redemption(discount.id, household, Ecto.UUID.generate())
@@ -171,7 +171,7 @@ defmodule SportsCoachBookings.Catalog.PricingTest do
     test "is idempotent for the same discount and order" do
       discount = insert(:discount)
       order = Ecto.UUID.generate()
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       Repo.with_tenant_tx(fn -> Pricing.record_redemption(discount.id, household, order) end)
       Repo.with_tenant_tx(fn -> Pricing.record_redemption(discount.id, household, order) end)

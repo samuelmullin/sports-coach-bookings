@@ -455,7 +455,8 @@ defmodule SportsCoachBookingsWeb.Router do
         put "/password", AccountController, :update_password
         get "/notification_preferences", AccountController, :preferences
         patch "/notification_preferences", AccountController, :update_preferences
-        post "/purchase_guard", PurchaseGuardController, :show
+        get "/export", PrivacyController, :export
+        post "/erase", PrivacyController, :erase
       end
 
       scope "/household", Household do

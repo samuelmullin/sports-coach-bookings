@@ -8,6 +8,9 @@ defmodule SportsCoachBookingsWeb.Portal.Bookings.BookingsController do
 
   alias SportsCoachBookings.Bookings
   alias SportsCoachBookings.Bookings.Policy
+  alias SportsCoachBookings.Core.CustomerActor
+  alias SportsCoachBookings.Customers
+  alias SportsCoachBookings.Customers.CustomerUser
   alias SportsCoachBookingsWeb.BookingsJSON
   alias SportsCoachBookingsWeb.Schemas.Bookings, as: S
   alias SportsCoachBookingsWeb.Schemas.ErrorResponse
@@ -51,6 +54,7 @@ defmodule SportsCoachBookingsWeb.Portal.Bookings.BookingsController do
     attrs = body(params)
 
     with :ok <- Policy.authorize(actor, :book, :booking),
+         :ok <- require_confirmed(actor),
          {:ok, booking} <-
            Bookings.book(actor, attrs["player_id"], attrs["session_id"], method: attrs["method"]) do
       conn |> put_status(:created) |> json(BookingsJSON.booking(booking))
@@ -136,6 +140,11 @@ defmodule SportsCoachBookingsWeb.Portal.Bookings.BookingsController do
       conn |> put_status(:created) |> json(BookingsJSON.booking(booking))
     end
   end
+
+  defp require_confirmed(%CustomerActor{customer_user: %CustomerUser{} = user}),
+    do: Customers.require_confirmed(user)
+
+  defp require_confirmed(_actor), do: :ok
 
   defp actor(conn), do: conn.assigns[:current_customer_actor]
 

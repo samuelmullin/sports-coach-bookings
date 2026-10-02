@@ -290,35 +290,6 @@
         "title": "PolicySimulationRequest",
         "type": "object"
       },
-      "WaiverPdfResponse": {
-        "properties": {
-          "download_url": {
-            "nullable": true,
-            "type": "string"
-          },
-          "pdf_key": {
-            "nullable": true,
-            "type": "string"
-          },
-          "signature_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "pending",
-              "ready"
-            ],
-            "type": "string"
-          }
-        },
-        "required": [
-          "signature_id",
-          "status"
-        ],
-        "title": "WaiverPdfResponse",
-        "type": "object"
-      },
       "ReorderRequest": {
         "properties": {
           "ids": {
@@ -9515,6 +9486,116 @@
         ]
       }
     },
+    "/api/portal/account/erase": {
+      "post": {
+        "callbacks": {},
+        "description": "Primary member only; requires the account password. Refused with 409 while the household has upcoming bookings or an unpaid order. Irreversible; ends the session.",
+        "operationId": "SportsCoachBookingsWeb.Portal.Account.PrivacyController.erase",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "confirm": {
+                    "description": "Must be the literal ERASE",
+                    "enum": [
+                      "ERASE"
+                    ],
+                    "type": "string"
+                  },
+                  "password": {
+                    "description": "The primary member's current password",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "password",
+                  "confirm"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Erasure",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accounts": {
+                      "type": "integer"
+                    },
+                    "carts": {
+                      "type": "integer"
+                    },
+                    "feedback": {
+                      "type": "integer"
+                    },
+                    "players": {
+                      "type": "integer"
+                    },
+                    "reservations": {
+                      "type": "integer"
+                    },
+                    "scrubbed_messages": {
+                      "type": "integer"
+                    },
+                    "waiver_pdfs": {
+                      "description": "Stored waiver PDFs queued for deletion",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "players",
+                    "accounts"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Erased"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden or wrong password"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Erasure blocked"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Confirmation missing"
+          }
+        },
+        "summary": "Permanently erase the caller's household",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
     "/api/staff/catalog/venues/{id}": {
       "get": {
         "callbacks": {},
@@ -17878,47 +17959,6 @@
         ]
       }
     },
-    "/api/portal/account/purchase_guard": {
-      "post": {
-        "callbacks": {},
-        "operationId": "SportsCoachBookingsWeb.Portal.Account.PurchaseGuardController.show",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Confirmed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Email unconfirmed"
-          }
-        },
-        "summary": "Stub purchase guard (requires a confirmed email)",
-        "tags": [
-          "portal"
-        ]
-      }
-    },
     "/api/portal/household": {
       "get": {
         "callbacks": {},
@@ -22048,6 +22088,16 @@
             },
             "description": "Bookings"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Email unconfirmed"
+          },
           "409": {
             "content": {
               "application/json": {
@@ -22695,13 +22745,15 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
+              "application/pdf": {
                 "schema": {
-                  "$ref": "#/components/schemas/WaiverPdfResponse"
+                  "description": "A PDF document",
+                  "format": "binary",
+                  "type": "string"
                 }
               }
             },
-            "description": "PDF metadata"
+            "description": "Signed waiver PDF"
           },
           "403": {
             "content": {
@@ -23453,6 +23505,95 @@
           }
         },
         "summary": "Get one of the caller household's orders",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
+    "/api/portal/account/export": {
+      "get": {
+        "callbacks": {},
+        "description": "Returns accounts, players (including medical information), waivers, bookings, credits, and orders. Medical reads and the export are audited.",
+        "operationId": "SportsCoachBookingsWeb.Portal.Account.PrivacyController.export",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "bookings": {
+                      "description": "Booking history",
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "credit_ledger": {
+                      "description": "Credit ledger entries",
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "credit_lots": {
+                      "description": "Credit lots",
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "generated_at": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "household": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "orders": {
+                      "description": "Orders with lines",
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "players": {
+                      "description": "Each player with profile, contacts, pickups, medical info, waivers, shared feedback",
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "generated_at",
+                    "household",
+                    "players"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Export"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Export all data held about the caller's household",
         "tags": [
           "portal"
         ]
@@ -28761,13 +28902,15 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
+              "application/pdf": {
                 "schema": {
-                  "$ref": "#/components/schemas/WaiverPdfResponse"
+                  "description": "A PDF document",
+                  "format": "binary",
+                  "type": "string"
                 }
               }
             },
-            "description": "PDF metadata"
+            "description": "Signed waiver PDF"
           },
           "404": {
             "content": {

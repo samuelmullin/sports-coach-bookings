@@ -27,7 +27,7 @@ defmodule SportsCoachBookingsWeb.Staff.OrdersControllerTest do
   end
 
   test "creates an offline order", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant()
 
     body =
@@ -50,7 +50,7 @@ defmodule SportsCoachBookingsWeb.Staff.OrdersControllerTest do
   end
 
   test "lists and shows orders", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant()
 
     {:ok, order} =
@@ -79,7 +79,7 @@ defmodule SportsCoachBookingsWeb.Staff.OrdersControllerTest do
   end
 
   test "refunds a line of a paid order", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant()
 
     {:ok, order} =
@@ -105,7 +105,7 @@ defmodule SportsCoachBookingsWeb.Staff.OrdersControllerTest do
   end
 
   test "a coach may not refund or create offline orders", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant()
 
     {:ok, order} =

@@ -1438,24 +1438,29 @@ defmodule SportsCoachBookings.Bookings do
   defp filter_scope(rows, nil), do: rows
   defp filter_scope(rows, :all), do: rows
 
+  # Upcoming: the session is still ahead AND the booking is live (held/confirmed).
+  # A cancelled booking for a future session is history, not an upcoming seat.
   defp filter_scope(rows, :upcoming) do
     rows
     |> Enum.filter(fn row ->
       case row.session do
         nil -> false
-        session -> DateTime.compare(session.starts_at, now()) != :lt
+        session -> not booking_terminal?(row.booking) and not session_started?(session)
       end
     end)
     |> Enum.sort_by(fn row -> row.session.starts_at end, DateTime)
   end
 
+  # Past: the session has finished OR the booking is terminal (cancelled,
+  # attended, no-show), whichever comes first.
   defp filter_scope(rows, :past) do
     rows
     |> Enum.filter(fn row ->
-      case row.session do
-        nil -> booking_terminal?(row.booking)
-        session -> DateTime.compare(session.ends_at, now()) == :lt
-      end
+      booking_terminal?(row.booking) or
+        case row.session do
+          nil -> false
+          session -> DateTime.compare(session.ends_at, now()) == :lt
+        end
     end)
     |> Enum.sort_by(
       fn row -> if(row.session, do: row.session.starts_at, else: row.booking.inserted_at) end,
@@ -1464,6 +1469,8 @@ defmodule SportsCoachBookings.Bookings do
   end
 
   defp filter_scope(rows, _scope), do: rows
+
+  defp session_started?(session), do: DateTime.compare(session.starts_at, now()) == :lt
 
   defp booking_terminal?(%Booking{status: status}),
     do: status in [:cancelled, :attended, :no_show]
