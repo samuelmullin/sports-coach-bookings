@@ -1,0 +1,17 @@
+{
+  "name": "sports-coach-bookings-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "reset-db": "./scripts/reset-db.sh",
+    "test": "playwright test",
+    "test:fresh": "pnpm reset-db && playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}
