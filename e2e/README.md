@@ -14,6 +14,9 @@ frontend unit tests use MSW; this suite is what proves the pieces work together.
 | `06-club-signup` | Create a club (tenant), owner confirmation email, the club's own host |
 | `07-password-reset` | Customer and staff reset links |
 | `08-data-privacy` | PIPEDA export download, erasure (wrong password, blocked by an upcoming booking, success), waiver records anonymized |
+| `09-accessibility` | Automated WCAG 2 A/AA checks over representative public, customer and admin routes; mobile drawer focus trap/restoration |
+| `10-session-parties` | Two-household invite/accept, previous partner, resend/revoke, hold cutoff, organizer-funded guest, public-to-private conversion, operator-approved private request and decision email |
+| `11-hosted-website` | Owner edits and publishes the hosted site; public content, tenant-aware robots/sitemap, contact submission/email, and inbox resolution |
 
 ## Running locally
 

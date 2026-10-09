@@ -19,7 +19,8 @@ any checklist as project status.
 - `backend/`: Phoenix 1.8 JSON API, Ecto/Postgres, Oban, Swoosh, OpenAPI.
   Tenant/staff/customer auth, catalog, scheduling, reservations, bookings,
   commerce/Stripe, credits, players, waivers, inventory, feedback,
-  notifications/broadcasts, security checks, and ops endpoints are implemented.
+  notifications/broadcasts, hosted marketing sites, security checks, and ops
+  endpoints are implemented.
 - `frontend/apps/admin`: owner/admin/coach React SPA.
 - `frontend/apps/portal`: customer React SPA.
 - `frontend/packages/api-client`: Orval-generated API client.
@@ -28,6 +29,34 @@ any checklist as project status.
 - `docs/openapi.json`: generated API contract (currently about 269 operations).
 - Backend journey tests live in `backend/test/e2e`. Browser journeys (Playwright,
   real SPAs + Phoenix + Postgres) live in `e2e/`; see `e2e/README.md`.
+
+## Session booking model
+
+Offerings use independently configured **public** and **private** booking modes;
+`format` remains only as a backwards-compatible marketing classification. Each
+mode has its own maximum players, players-per-coach ratio, and complete
+per-player money/credit tiers. Private capacity is the customer's selected tier
+and may exceed the public maximum.
+
+When enabled, a booked customer can invite a previous accepted partner or an
+email address. Split-payment invitations reserve one seat for the configured
+period (48 hours by default) but cannot start inside that horizon;
+organizer-funded seats are still allowed. Empty public occurrences can be
+converted to household-exclusive private occurrences, and customers can submit
+operator-reviewed requests for new private occurrences. See
+`docs/rfcs/20261002-public-private-session-parties.md` before changing these
+flows.
+
+## Hosted marketing sites
+
+Each tenant has a structured draft/publish website editor and contact inbox in
+the admin SPA. The public portal supplies home, programs/schedule, about,
+coaches, testimonials, gallery, sponsors, FAQ, and contact pages while reusing
+the live catalog, accounts, and checkout. Images use tenant storage; public
+links are restricted to internal or HTTP(S) destinations; robots and sitemaps
+are tenant-aware. Read `docs/rfcs/20261003-hosted-marketing-sites.md` before
+changing this feature. Custom domains use `tenant_domains` but are manually
+commissioned for MVP using `docs/ops.md` §3.1.
 
 ## Commands
 
@@ -68,11 +97,14 @@ pnpm test          # reuse the existing e2e database
 If non-interactive shells cannot find Erlang/Elixir, initialise asdf or put the
 asdf shims and selected Erlang/Elixir `bin` directories on `PATH`.
 
-Verified on 2026-10-01: frontend typecheck, lint, 180 tests, and production
-build pass (no bundle-size warnings; both apps are code-split); backend format,
-compile with warnings-as-errors, Credo strict, Dialyzer, Sobelow, and 880 tests
-(including 5 properties) pass; the 14 Playwright journeys in `e2e/` pass from a
-fresh database and on a re-run.
+Verified on 2026-10-03: backend strict compile, format, Credo, and 911 tests pass
+(5 properties; the live-storage test is skipped in the ordinary suite); frontend
+typecheck, lint, 197 tests, and production build pass. Earlier the same day,
+Dialyzer, Sobelow, the live RustFS integration test, all 17 pre-existing
+Playwright journeys from a fresh database, and the production container/Unicode
+PDF path also passed. The hosted-site Playwright journey also passes from a
+fresh database; the complete 18-journey suite has not yet been rerun as one
+batch.
 
 ## Development environment notes
 
@@ -102,31 +134,22 @@ fresh database and on a re-run.
 
 Done since the last review (2026-09-30): booking/convert confirmation guard,
 `players.household_id` FK, PIPEDA export/erasure (API + portal UI), waiver PDFs
-(real renderer, private store, download endpoints), browser e2e suite, SPA
-code-splitting, stale-scaffolding cleanup, shared Postgres rate limiting, and a
-batch of defects the e2e suite exposed (see git history / the e2e README).
+(branded Unicode browser renderer in production, private store, downloads),
+browser e2e plus automated WCAG coverage, SPA code-splitting, stale-scaffolding
+cleanup, exact shared sliding-window rate limiting, a live RustFS CI round trip,
+an RLS-without-GUC regression helper, and a batch of defects the e2e suite
+exposed (see git history / the e2e README).
 
 1. **Production operations are not commissioned.** Fly/S3/DNS/contacts/backup
    drill/error-reporting values are placeholders and need a human: work through
    `docs/launch-checklist.md`.
-2. **S3 paths are not yet validated against the production provider.** They
-   work against local RustFS (`docker compose up -d rustfs rustfs-init`); CI has
-   no S3 server. Validate in staging (checklist §2).
+2. **S3 paths are not yet validated against the production provider.** CI and
+   local development exercise RustFS, but provider-specific policy/CORS/CDN
+   behaviour must be validated in staging (checklist §2).
 3. **Retention and response policy for PIPEDA requests** need a business
    decision (checklist §6); the code retains orders/payments/ledger by design.
-4. **Waiver PDF limits:** text-only layout, no logo/custom fonts; characters
-   outside Latin-1 render as `?`. Revisit for non-Latin or branded waivers.
-5. **Accessibility/UX audit.** Several defects were found only by driving the
-   real UI (unscrollable drawer, `<ul>` with non-`<li>` children, stale-cache
-   states). A broader pass is worthwhile: remaining `<ul>` usages, the portal
-   nav wrapping at 1280px, and tab/drawer focus order.
-6. **Test-environment blind spot.** `put_tenant` sets the RLS GUC for the whole
-   sandbox transaction, which hides code that queries tenant tables outside
-   `Repo.with_tenant_tx` (this hid a bug where coaches could not see their own
-   players). Consider a test helper that runs selected paths without the GUC.
-7. **Rate limiter bursts.** Fixed windows allow up to 2x at a boundary; the
-   Postgres backend fails open on database errors (documented in the security
-   review).
-
+4. **Custom domains are manually commissioned.** The host mapping exists, but
+   DNS ownership, certificates, cutover, and renewal monitoring follow
+   `docs/ops.md` §3.1 until lifecycle automation is justified.
 Treat `docs/security-review.md` accepted risks as decisions to re-evaluate at
 production-readiness review, not permanent guarantees.

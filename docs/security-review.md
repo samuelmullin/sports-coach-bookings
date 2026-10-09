@@ -22,7 +22,7 @@ regression test.
 | Authorization | Every controller action traced to its context `.Policy`; added an actor-matrix controller test |
 | Tenancy / RLS | Catalogued every table with a `tenant_id`; asserted `ENABLE`/`FORCE` RLS + a policy via `pg_class`/`pg_policies`; reviewed every `skip_tenant: true` |
 | Auth / session | Reviewed password hashing, token lifetime + single-use, confirmation/reset, cookie flags, session fixation, enumeration, invite brute-force |
-| Rate limiting | Implemented the wp-01/wp-02 hook (`Plugs.RateLimit`) with an ETS limiter and wired it to the unauthenticated/sensitive routes |
+| Rate limiting | Implemented the wp-01/wp-02 hook (`Plugs.RateLimit`) with exact sliding-window ETS/Postgres backends and wired it to the unauthenticated/sensitive routes |
 | Webhooks | Reviewed Stripe + Svix signature verification over the raw body, the replay window, and idempotency; tests already cover tampered payloads and replays |
 | Input validation | Upload type/size/sniffing, SVG sanitisation, mass-assignment, raw SQL, SSRF, open redirect |
 | Secrets / headers | Searched for secrets in code/config; added security headers, cookie flags, log filtering |
@@ -41,7 +41,7 @@ Severity uses P1 (critical) … P4 (informational). All P1/P2 findings are fixed
 
 | # | Sev | Area | Finding | Fix |
 |---|---|---|---|---|
-| 1 | **P1** | Rate limiting | `Plugs.RateLimit` was a no-op, so login, signup, password reset, invite acceptance and webhooks were unthrottled (credential stuffing, email bombing, invite-token brute force) | Implemented `SportsCoachBookings.RateLimiter` (ETS fixed window) and wired the plug into the auth, signup, invite, checkout, discount and webhook pipelines |
+| 1 | **P1** | Rate limiting | `Plugs.RateLimit` was a no-op, so login, signup, password reset, invite acceptance and webhooks were unthrottled (credential stuffing, email bombing, invite-token brute force) | Implemented `SportsCoachBookings.RateLimiter` (exact sliding window; shared Postgres backend in production, serialized ETS backend in dev/test) and wired the plug into the auth, signup, invite, checkout, discount and webhook pipelines |
 | 2 | **P2** | Dependencies | `mint 1.10.1` had 1 HIGH + 2 MEDIUM advisories (HPACK cookie memory exhaustion, oversized-frame buffering, response smuggling) | `mix deps.update mint` → `1.11.0`; `mix hex.audit` clean |
 | 3 | **P2** | Headers | No `Content-Security-Policy`, `X-Frame-Options` or `X-Content-Type-Options` on responses (clickjacking, MIME sniffing) | Added `SportsCoachBookingsWeb.Plugs.SecurityHeaders` at the endpoint (CSP `default-src 'self'`, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, nosniff, referrer-policy, permissions-policy). HSTS is set by `force_ssl` in prod |
 | 4 | **P2** | Auth/session | Session cookies did not set `Secure` (only the prod `force_ssl` redirect) and did not renew the session id on login (fixation) | Cookie options now set `http_only: true`, `secure: true` in prod, `SameSite=Lax`; `Staff.Auth`/`Portal.Auth` call `configure_session(renew: true)` on login |
@@ -81,11 +81,11 @@ tenant picker self-read) and is documented at each site.
 
 ## 3. Rate limiting approach
 
-**Choice: an in-app ETS fixed-window limiter, no new dependency.**
+**Choice: an exact sliding-window limiter, no new service dependency.**
 
-- `SportsCoachBookings.RateLimiter` — a supervised process owns one public ETS
-  table; `hit(keys, limit, window)` increments each key and denies when any key
-  is over its limit. Stale windows are pruned every minute.
+- `SportsCoachBookings.RateLimiter` — a supervised process owns one ETS table
+  and serializes checks; `hit(keys, limit, window)` retains exact hit timestamps,
+  atomically admits all keys or none, and returns the oldest hit's expiry.
 - `SportsCoachBookingsWeb.Plugs.RateLimit` — reads the config, builds keys and
   halts `429` with the standard error envelope (`too_many_requests`) and a
   `Retry-After` header.
@@ -106,15 +106,16 @@ Wired routes:
 | `:rate_limit_discount` | staff catalog (discount validation/reorder/writes) | 120 / 60s |
 | `:rate_limit_webhook` | Stripe + Resend webhooks | 300 / 60s per IP |
 
-`test/security/rate_limit_test.exs` covers the limiter and an end-to-end `429`.
+`test/security/rate_limit_test.exs` covers the limiter, the former
+window-boundary double-burst case, and an end-to-end `429`.
 Enforcement is disabled in `config/test.exs` because the ETS table is shared
 across async tests; the dedicated test enables it explicitly.
 
-**Backends (updated 2026-09-30):** `:ets` (per node; dev/test default) and
-`:postgres` (production default; shared counters in the UNLOGGED
-`rate_limit_counters` table, database clock, atomic upsert, fails open on DB
-error). This removed the "limit multiplies with the number of machines" caveat
-without adding Redis. Set `RATE_LIMIT_BACKEND=ets` to opt out.
+**Backends (updated 2026-10-02):** `:ets` (per node; dev/test default) and
+`:postgres` (production default; shared events in the UNLOGGED
+`rate_limit_events` table, database clock, transaction-scoped advisory lock).
+The Postgres backend fails closed on database errors. This keeps limits exact
+across machines without adding Redis. Set `RATE_LIMIT_BACKEND=ets` to opt out.
 
 ---
 
@@ -122,12 +123,11 @@ without adding Redis. Set `RATE_LIMIT_BACKEND=ets` to opt out.
 
 | Risk | Rationale |
 |---|---|
-| Rate limiter **fails open** if Postgres errors | Production uses the shared Postgres backend; on a database error the request is allowed and logged, since the protected endpoints depend on the same database. The `:ets` backend (dev/test, or `RATE_LIMIT_BACKEND=ets`) is per node. Fixed windows allow up to 2x bursts at a window boundary. |
 | **CSRF**: no `protect_from_forgery` token | The API is JSON-only and cookie-authenticated. Cookies are `SameSite=Lax`, so browsers do not attach them to cross-site `POST/PUT/PATCH/DELETE`; `Plugs.VerifyOrigin` additionally rejects state-changing requests whose `Origin` is not the request host. There is no `GET`-based state change. A CSRF token scheme would require an SPA token bootstrap and is a deliberate follow-up. |
 | **Email enumeration** on registration | A duplicate email returns a `422` validation error. The endpoint is rate-limited (per IP + email). Confirmation-resend and password-reset are already generic. Low impact: it reveals account existence only, not credentials or data. |
 | Platform tables with a `tenant_id` but **no RLS**: `tenant_domains`, `notifications_delivery_refs` | Required to resolve a tenant/its domains (host) and a provider message id (inbound webhook) **before** a tenant exists in context. `tenant_domains` is listed as a platform table in `docs/conventions.md` §1; `notifications_delivery_refs` stores only `provider`, `provider_ref`, `tenant_id`, `delivery_id` and is queried only by the globally-unique `(provider, provider_ref)`. Both are asserted as explicit allow-listed exceptions by the RLS test. |
 | S3 uploads cannot be content-sniffed by the app | Presigned PUTs send bytes straight to S3; the app only sees the declared `Content-Type`. The bucket must enforce the content type and block executables; the signed header and private bucket policy are the control (the local Fake store sniffs bytes). |
-| Sobelow `XSS.SendResp` / `Traversal` / `RCE` skips | `email_preview_controller` is dev-only; the unsubscribe page interpolates constants only; SPA `send_file` is boundary-checked; notification EEx templates and release seeds are developer-authored, never user input. Each has an inline `# sobelow_skip` with the reason. |
+| Sobelow `XSS.SendResp` / `Traversal` / `RCE` skips | `email_preview_controller` is dev-only; the unsubscribe page interpolates constants only; SPA `send_file` is boundary-checked; the local waiver PDF store expands every key and rejects paths outside its configured root; notification EEx templates and release seeds are developer-authored, never user input. Each has an inline `# sobelow_skip` with the reason. |
 | Dialyzer `.dialyzer_ignore.exs` | Only `:call_without_opaque` for the Ecto `Multi` helpers in 7 context files — a known Dialyxir false positive caused by `Ecto.Multi.t/0` opacity. Runtime is exercised by the suite. Removing the helpers is a Core change (`docs/rfcs/20260928-core-tenant-tx-multi.md`). |
 
 ---
@@ -138,9 +138,9 @@ Run from `backend/` (`export PATH="$HOME/.asdf/shims:$PATH"`).
 
 | Gate | Command | Result |
 |---|---|---|
-| Tests | `mix test` | `Result: 752 passed (5 properties, 747 tests)` |
+| Tests | `mix test` | `Result: 885 passed (5 properties, 880 tests), 1 skipped` (the skipped live-S3 test runs separately in CI) |
 | Format | `mix format --check-formatted` | exit 0 (clean) |
-| Credo | `mix credo --strict` | `found no issues` (528 files, 4357 mods/funs) |
+| Credo | `mix credo --strict` | `found no issues` (592 files, 4759 mods/funs) |
 | Sobelow | `mix sobelow --config` | `... SCAN COMPLETE ...`, exit 0; accepted findings carry `# sobelow_skip` and are in §4 |
 | Dialyzer | `mix dialyzer` | `Total errors: 47, Skipped: 47, Unnecessary Skips: 0` → `done (passed successfully)`, exit 0 |
 | Precommit | `mix precommit` | compile `--warnings-as-errors` + `deps.unlock --unused` + format + credo + test all green |

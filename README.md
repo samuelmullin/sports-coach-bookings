@@ -1,6 +1,6 @@
 # Agent Briefs — SportsCoachBookings
 
-> **Status (2026-09-30):** these briefs describe the original execution plan. The MVP they specify is implemented; see `AGENTS.md` for the current state, commands, and the prioritized list of remaining gaps. The execution-order and dependency tables below are kept as historical context.
+> **Status (2026-10-02):** these briefs describe the original execution plan. The MVP they specify is implemented; see `AGENTS.md` for the current state, commands, and the prioritized list of remaining gaps. The execution-order and dependency tables below are kept as historical context.
 
 Hand each agent **two files**: `00-shared-context.md` (always) and its own brief.
 Once WP-00 has merged, also point agents at `docs/erd.md` and `docs/conventions.md` in the repo.
@@ -67,7 +67,7 @@ Product name: **SportsCoachBookings** (OTP app `:sports_coach_bookings`, modules
 - [x] wp-15 Coach backend
 - [x] wp-16 Transactional emails
 - [x] wp-17 Broadcasts
-- [ ] wp-18 E2E tests _(backend journey tests exist in `backend/test/e2e`; browser-level Playwright coverage is still open)_
+- [x] wp-18 E2E tests _(backend journeys plus Playwright coverage of the real SPAs/API/Postgres stack)_
 - [x] wp-19 Security review
 - [ ] wp-20 Ops _(code and runbooks done; production values/alerting/backup drills are placeholders)_
 - [x] fe-01 Admin UI

@@ -108,6 +108,32 @@ Local values live in `.env` (gitignored); see `.env.example`.
 
 ---
 
+### 3.1 Commission a tenant custom domain (MVP)
+
+Custom domains are support-managed. Do this in staging first.
+
+1. Ask the customer for the exact hostname (prefer `www.example.com`) and have
+   them publish a temporary TXT ownership record supplied by the operator.
+2. Verify that TXT record, then provision the hostname certificate on the Fly
+   app with `fly certs add <hostname> --app <app>`. Give the customer the CNAME
+   or A/AAAA records printed by Fly; do not ask them to switch traffic yet.
+3. Insert the lower-case hostname into `tenant_domains` for the intended tenant.
+   Keep the platform subdomain as the primary/fallback mapping. This is a
+   platform operation and must not be exposed as a tenant-supplied ID write.
+4. Before DNS cutover, test with an explicit `Host` header that `/`,
+   `/api/portal/website`, `/robots.txt`, `/sitemap.xml`, login, schedule, and
+   checkout all resolve to the right tenant. Confirm another tenant's content
+   cannot be returned through the new host.
+5. Wait until `fly certs show <hostname> --app <app>` reports ready, then have
+   the customer switch DNS. Re-run the checks over HTTPS and retain their old
+   site until DNS TTLs expire.
+6. Record the tenant, hostname, verifier, certificate state, cutover time, and
+   rollback DNS target in the launch log. Certificate and DNS monitoring are a
+   human responsibility until lifecycle automation is implemented.
+
+Rollback is recoverable: point DNS back to the old host and remove the mapping
+only after traffic has drained. Do not delete the tenant or published content.
+
 ## 4. Deploy
 
 ### Staging (automatic)
@@ -316,4 +342,4 @@ Seeds are **idempotent** (`Repo.get_by(Tenant, slug: "demo")`). Never run
 | `FLY_API_TOKEN(_STAGING)` | GitHub repo secrets | For `deploy.yml`. |
 | Error reporter adapter module | `ERROR_REPORTER_MODULE` | e.g. a Sentry adapter. |
 | Backup restore drill log | §6 | Record once completed. |
-| S3 upload round-trip verification | staging | Storage.S3 is unverified in CI. |
+| Production S3 upload round-trip verification | staging | CI verifies both buckets against RustFS; staging must verify the chosen provider and policies. |

@@ -66,8 +66,8 @@ tick off. Do staging first, then production.
       the retention period for financial records with your accountant.
 - [ ] **Response procedure** for access/deletion requests that arrive by email
       (who, how fast; PIPEDA expects a response within 30 days).
-- [ ] Review `docs/security-review.md` §4 accepted risks (CSRF approach, email
-      enumeration on signup, rate limiter fixed windows) before go-live.
+- [ ] Review `docs/security-review.md` §4 accepted risks (CSRF approach and
+      email enumeration on signup) before go-live.
 
 ## 7. Final verification
 

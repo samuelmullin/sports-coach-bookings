@@ -1,6 +1,6 @@
 # RFC 20260928 — Tenancy branding asset storage is stubbed
 
-**Owner:** wp-01 (Tenancy). **Status:** S3 backend implemented (`Tenancy.Storage.S3`, selected by `S3_BUCKET`); `Fake` remains the dev/test default. Not yet verified against a live bucket.
+**Owner:** wp-01 (Tenancy). **Status:** resolved — S3 backend implemented (`Tenancy.Storage.S3`, selected by `S3_BUCKET`); `Fake` remains the dev/test default. Presigned uploads are verified against RustFS in CI; the selected production provider still requires staging validation.
 
 ## Context
 
@@ -30,8 +30,8 @@ rasterise SVGs.
 
 ## Production follow-up
 
-- Implement an S3-compatible `Storage` impl (presigned PUT, public read URL)
-  and set `:tenancy_storage`.
+- Validate the presigned upload and public-read policy against the selected
+  production provider in staging.
 - Rasterise SVGs at upload (or in an Oban job) rather than trusting rejection.
 
 ## Not changed
