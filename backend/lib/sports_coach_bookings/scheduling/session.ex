@@ -16,6 +16,7 @@ defmodule SportsCoachBookings.Scheduling.Session do
 
   @statuses [:scheduled, :cancelled, :completed]
   @visibilities [:public, :hidden]
+  @access_modes [:public, :private]
 
   schema "sessions" do
     field :tenant_id, :binary_id
@@ -37,6 +38,9 @@ defmodule SportsCoachBookings.Scheduling.Session do
     field :notes_staff, :string
     field :cancel_reason, :string
     field :show_coaches, :boolean, default: true
+    field :access_mode, Ecto.Enum, values: @access_modes, default: :public
+    field :party_size, :integer
+    field :exclusive_household_id, :binary_id
 
     belongs_to :series, SessionSeries, type: :binary_id
     has_many :session_coaches, SessionCoach
@@ -51,6 +55,10 @@ defmodule SportsCoachBookings.Scheduling.Session do
   @doc "Visibilities a session can hold."
   @spec visibilities() :: [atom()]
   def visibilities, do: @visibilities
+
+  @doc "Booking access modes."
+  @spec access_modes() :: [atom()]
+  def access_modes, do: @access_modes
 
   @doc "Number of seats currently taken (confirmed + held)."
   @spec occupancy(t()) :: non_neg_integer()
@@ -75,6 +83,9 @@ defmodule SportsCoachBookings.Scheduling.Session do
       :notes_public,
       :notes_staff,
       :show_coaches,
+      :access_mode,
+      :party_size,
+      :exclusive_household_id,
       :series_id
     ])
     |> Ecto.Changeset.validate_required([
@@ -86,6 +97,7 @@ defmodule SportsCoachBookings.Scheduling.Session do
       :capacity
     ])
     |> Ecto.Changeset.validate_number(:capacity, greater_than_or_equal_to: 1)
+    |> Ecto.Changeset.validate_number(:party_size, greater_than_or_equal_to: 1)
     |> validate_time_span()
   end
 
@@ -101,9 +113,13 @@ defmodule SportsCoachBookings.Scheduling.Session do
       :title_override,
       :notes_public,
       :notes_staff,
-      :show_coaches
+      :show_coaches,
+      :access_mode,
+      :party_size,
+      :exclusive_household_id
     ])
     |> Ecto.Changeset.validate_number(:capacity, greater_than_or_equal_to: 1)
+    |> Ecto.Changeset.validate_number(:party_size, greater_than_or_equal_to: 1)
     |> validate_time_span()
     |> validate_capacity_vs_bookings()
   end

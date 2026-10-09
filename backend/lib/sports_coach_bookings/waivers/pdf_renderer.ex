@@ -3,10 +3,10 @@ defmodule SportsCoachBookings.Waivers.PdfRenderer do
   Renders a signed waiver to a PDF snapshot and stores it, returning the object
   storage key.
 
-  No PDF renderer or object storage is configured in this repository yet, so the
-  default implementation is `SportsCoachBookings.Waivers.PdfRenderer.Noop`,
-  which returns a deterministic key without producing a file. A real renderer
-  (for example ChromicPDF + S3) can be dropped in by setting
+  Development and tests default to `SportsCoachBookings.Waivers.PdfRenderer.Document`
+  (a lightweight pure-Elixir PDF). Production selects the Chrome-backed
+  `Browser` renderer for Unicode, logos, tenant colours, and branded fonts.
+  `Noop` remains for tests that only exercise the job pipeline; select a renderer with
   `config :sports_coach_bookings, :waiver_pdf_renderer, MyRenderer`.
 
   See `docs/rfcs/20260928-waivers-pdf-stub.md`.
@@ -22,7 +22,7 @@ defmodule SportsCoachBookings.Waivers.PdfRenderer do
     Application.get_env(
       :sports_coach_bookings,
       :waiver_pdf_renderer,
-      SportsCoachBookings.Waivers.PdfRenderer.Noop
+      SportsCoachBookings.Waivers.PdfRenderer.Document
     )
   end
 end

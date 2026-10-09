@@ -14,7 +14,7 @@ defmodule SportsCoachBookings.PlayersTest do
   defp player_attrs(overrides \\ %{}) do
     Map.merge(
       %{
-        "household_id" => Ecto.UUID.generate(),
+        "household_id" => insert(:household).id,
         "first_name" => "Alex",
         "last_name" => "Morgan",
         "date_of_birth" => ~D[2015-05-01]
@@ -34,8 +34,15 @@ defmodule SportsCoachBookings.PlayersTest do
       assert job.args["payload"]["player_id"] == player.id
     end
 
-    test "keeps household as an opaque id (no households table)" do
-      household_id = Ecto.UUID.generate()
+    test "rejects a household that does not exist" do
+      assert {:error, changeset} =
+               Players.create_player(nil, player_attrs(%{"household_id" => Ecto.UUID.generate()}))
+
+      assert %{household_id: ["does not exist"]} = errors_on(changeset)
+    end
+
+    test "stores the household id" do
+      household_id = insert(:household).id
 
       assert {:ok, player} =
                Players.create_player(nil, player_attrs(%{"household_id" => household_id}))
@@ -169,7 +176,7 @@ defmodule SportsCoachBookings.PlayersTest do
 
   describe "list_for_household/1" do
     test "returns only that household's players" do
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       {:ok, _a} = Players.create_player(nil, player_attrs(%{"household_id" => household}))
       {:ok, _b} = Players.create_player(nil, player_attrs())
 

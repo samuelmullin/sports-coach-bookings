@@ -1,6 +1,6 @@
 # RFC 20260928 — Core RLS policies: guard against an empty tenant GUC
 
-**Owner:** wp-00 (Core). **Status:** open; found by wp-02.
+**Owner:** wp-00 (Core). **Status:** resolved — `NULLIF(current_setting('app.tenant_id', true), '')` is in `Core.Migration` and migration `20260928140000_core_rls_nullif_empty_guc`.
 
 ## Context
 

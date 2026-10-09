@@ -22,6 +22,8 @@ export {
 } from './format/datetime';
 
 export { cn } from './lib/cn';
+export { lazyNamed } from './lib/lazy';
+export { RouteFallback } from './components/RouteFallback';
 export {
   addDays,
   addMonths,
@@ -36,7 +38,9 @@ export {
 } from './lib/calendar-grid';
 
 export {
+  FONT_OPTIONS,
   applyTheme,
+  fontStack,
   neutralTheme,
   platformTheme,
   tenantThemeA,
@@ -45,6 +49,12 @@ export {
 } from './theme/theme';
 export type { ThemeTokens } from './theme/theme';
 
+export {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './components/DropdownMenu';
 export { Button, buttonVariants } from './components/Button';
 export type { ButtonProps } from './components/Button';
 export { IconButton } from './components/IconButton';

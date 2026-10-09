@@ -29,7 +29,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
     venue: venue,
     owner: owner
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -47,7 +47,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "a household manager books their own player", %{venue: venue, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -66,7 +66,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   test "rejects booking another household's player", %{venue: venue, tenant: tenant} do
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
-    player = player(Ecto.UUID.generate())
+    player = player(insert(:household).id)
 
     actor =
       CustomerActor.new(
@@ -81,7 +81,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   ## Gates
 
   test "waiver gate blocks booking until signed", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 0)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -115,7 +115,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   test "age gate blocks an ineligible player", %{venue: venue, owner: owner} do
     offering = insert(:offering, min_age: 7, max_age: 10, credit_cost: 0)
     session = session(venue, offering, at(3), 5)
-    player = player(Ecto.UUID.generate(), ~D[2021-01-01])
+    player = player(insert(:household).id, ~D[2021-01-01])
     {:ok, _} = Credits.grant_complimentary(nil, player.household_id, %{amount: 1})
 
     assert {:error, {:age_restricted, _message, %{min_age: 7}}} =
@@ -123,7 +123,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "duplicate booking is rejected", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -136,7 +136,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "overlapping session is rejected", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     first = session(venue, offering, at(3), 5)
     second = session(venue, offering, at(3), 5)
@@ -150,7 +150,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "booking window rejects too-late and too-early", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1, bookable_until_minutes_before: 60)
     late = session(venue, offering, DateTime.add(at(0), 30, :minute), 5)
     player = player(household)
@@ -168,8 +168,8 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   test "a full session is rejected with :session_full", %{venue: venue, owner: owner} do
     offering = insert(:offering, credit_cost: 0)
     session = session(venue, offering, at(3), 1)
-    p1 = player(Ecto.UUID.generate())
-    p2 = player(Ecto.UUID.generate())
+    p1 = player(insert(:household).id)
+    p2 = player(insert(:household).id)
 
     assert {:ok, %Booking{}} = Bookings.book(owner, p1.id, session.id, :comp)
     assert {:error, :session_full} = Bookings.book(owner, p2.id, session.id, :comp)
@@ -178,7 +178,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   ## Cancel
 
   test "cancel returns credits when the policy tier allows", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -193,7 +193,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "late cancel forfeits credits", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1, bookable_until_minutes_before: 30)
     session = session(venue, offering, DateTime.add(at(0), 2, :hour), 5)
     player = player(household)
@@ -206,7 +206,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "a free-change window from a reschedule returns credits", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1, bookable_until_minutes_before: 30)
     session = session(venue, offering, DateTime.add(at(0), 2, :hour), 5)
     player = player(household)
@@ -222,7 +222,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "staff override returns credits and is audited", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1, bookable_until_minutes_before: 30)
     session = session(venue, offering, DateTime.add(at(0), 2, :hour), 5)
     player = player(household)
@@ -249,7 +249,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "a customer cannot override the cancellation outcome", %{venue: venue, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -271,7 +271,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "cancel preview reports the outcome without applying it", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -288,7 +288,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   ## Attendance
 
   test "no_show applies the policy outcome", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -303,7 +303,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "attended is recorded", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -321,7 +321,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
     venue: venue,
     owner: owner
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -336,7 +336,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   ## Rebook
 
   test "rebook moves credits without a second debit", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     source = session(venue, offering, at(3), 5)
     target = session(venue, offering, at(4), 5)
@@ -359,7 +359,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "rebook honours the max-rebooks limit", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     player = player(household)
     {:ok, _} = Credits.grant_complimentary(nil, household, %{amount: 5})
@@ -383,7 +383,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
     venue: venue,
     owner: owner
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, drop_in_price: 10_000)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -402,7 +402,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "order.paid confirmation is idempotent", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, drop_in_price: 10_000)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -431,7 +431,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "order.expired releases the hold", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, drop_in_price: 10_000)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -452,7 +452,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
   end
 
   test "partial card refund is applied on cancel", %{venue: venue, owner: owner} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, drop_in_price: 10_000)
     session = session(venue, offering, at(3), 5)
     player = player(household)
@@ -492,7 +492,7 @@ defmodule SportsCoachBookings.Bookings.BookingTest do
     # observable at the DB level. We still hammer the exact atomic path
     # (`Bookings.book` → lock + adjust) and assert exactly capacity succeed.
     offering = insert(:offering, credit_cost: 0)
-    players = for _ <- 1..50, do: player(Ecto.UUID.generate())
+    players = for _ <- 1..50, do: player(insert(:household).id)
 
     for run <- 1..20 do
       session = session(venue, offering, at(3 + run), 5)

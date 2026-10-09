@@ -3,7 +3,7 @@ defmodule SportsCoachBookingsWeb.Plugs.RateLimit do
   Rate-limits a request by client IP and, optionally, an account identifier
   (e.g. the submitted email) plus the resolved tenant.
 
-  Enforcement uses `SportsCoachBookings.RateLimiter` (ETS, fixed window). The
+  Enforcement uses `SportsCoachBookings.RateLimiter` (exact sliding window). The
   hook point was left by wp-01/wp-02 (see
   `docs/rfcs/20260928-customers-rate-limit-hook.md`); wp-19 implements it.
 

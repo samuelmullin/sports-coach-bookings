@@ -241,7 +241,7 @@ defmodule SportsCoachBookingsWeb.Staff.FeedbackControllerTest do
   defp create_player do
     {:ok, player} =
       Players.create_player(nil, %{
-        household_id: Ecto.UUID.generate(),
+        household_id: insert(:household).id,
         first_name: "Test",
         last_name: "Player #{System.unique_integer([:positive])}",
         date_of_birth: ~D[2015-05-01]

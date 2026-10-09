@@ -56,10 +56,13 @@ export function PlayersPage() {
     (waiverStatus?.players ?? []).map((entry) => [entry.player_id, entry]),
   );
 
+  // A player missing from the waiver status is *unknown* (e.g. just added, status
+  // not refreshed yet), not "nothing required": never show unknown as signed.
   const waiversSigned = (player: PlayerResponse) => {
     const entry = waiverByPlayer.get(player.id);
-    const required = entry?.waivers.filter((waiver) => waiver.required) ?? [];
-    return required.length === 0 || required.every((waiver) => waiver.signed);
+    if (!entry) return false;
+    const required = entry.waivers.filter((waiver) => waiver.required);
+    return required.every((waiver) => waiver.signed);
   };
 
   const isReady = (player: PlayerResponse) => {

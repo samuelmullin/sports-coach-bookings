@@ -392,6 +392,18 @@ by wp-01's own migration; see Ambiguities.
 | active | boolean | no | `true` | archive instead of delete when referenced |
 | position | integer | no | `0` | reorderable |
 | image_key | string | yes | — | |
+| public_enabled | boolean | no | `true` | occurrence may be sold as a shared/public session |
+| public_max_players | integer | no | `1` | maximum public capacity |
+| public_players_per_coach | integer | no | `1` | public staffing ratio; enforced after coaches are assigned |
+| public_price_tiers | jsonb | no | `{}` | complete map from party size `1..public_max_players` to per-player `price` and `credit_cost` |
+| private_enabled | boolean | no | `false` | occurrence may be sold as an exclusive/private session |
+| private_max_players | integer | no | `1` | maximum private capacity; may exceed the public maximum |
+| private_players_per_coach | integer | no | `1` | required private staffing ratio |
+| private_price_tiers | jsonb | no | `{}` | complete map from party size `1..private_max_players` to per-player `price` and `credit_cost` |
+| allow_invite_reservations | boolean | no | `false` | booked customers may invite and fund additional players |
+| invite_hold_hours | integer | no | `48` | split-payment seat hold duration; no split hold begins inside this horizon |
+| allow_private_conversion | boolean | no | `false` | empty public occurrence may become private |
+| allow_private_requests | boolean | no | `false` | customers may request a new operator-approved private occurrence |
 | inserted_at | utc_datetime_usec | no | now | |
 | updated_at | utc_datetime_usec | no | now | |
 
@@ -1033,6 +1045,9 @@ not say on which table it lives (likely `players`).
 | held_count | integer | no | `0` | written only by wp-14 |
 | status | string | no | `scheduled` | Ecto enum `scheduled | cancelled | completed` |
 | visibility | string | no | `public` | Ecto enum `public | hidden` (hidden = staff-only bookable) |
+| access_mode | string | no | `public` | Ecto enum `public | private`; private rows are visible only to the owning household |
+| party_size | integer | yes | — | selected tier size and capacity for a private party |
+| exclusive_household_id | uuid | yes | — | owning household for a private occurrence |
 | title_override | string | yes | — | |
 | notes_public | text | yes | — | |
 | notes_staff | text | yes | — | |
@@ -1244,8 +1259,10 @@ not say on which table it lives (likely `players`).
 | id | uuid | no | UUIDv7 | PK |
 | tenant_id | uuid | no | — | FK tenants |
 | session_id | uuid | no | — | cross-context (Scheduling) |
-| player_id | uuid | no | — | cross-context (Players) |
+| player_id | uuid | yes | — | cross-context (Players); null only for an organizer-funded invitation awaiting assignment |
 | household_id | uuid | no | — | cross-context (Customers) |
+| session_invitation_id | uuid | yes | — | invitation that created this seat |
+| beneficiary_household_id | uuid | yes | — | invitee household after an organizer-funded seat is claimed |
 | booked_by | ? | no | — | AMBIGUITY: customer user or staff — shape not specified |
 | status | string | no | `held` | Ecto enum `held | confirmed | cancelled | attended | no_show` |
 | payment_method | string | no | — | Ecto enum `credits | paid | comp` |
@@ -1259,6 +1276,60 @@ not say on which table it lives (likely `players`).
 | cancelled_at | utc_datetime_usec | yes | — | |
 | cancel_outcome | jsonb | yes | — | outcome applied |
 | free_change_until | utc_datetime_usec | yes | — | set on `session.rescheduled`; see Ambiguities |
+| inserted_at | utc_datetime_usec | no | now | |
+| updated_at | utc_datetime_usec | no | now | |
+
+### session_invitations
+
+- **Owner:** wp-14. **Tenancy:** tenant-owned (RLS). Stores only a SHA-256 token
+  hash; the raw acceptance token is returned once and sent by email.
+- **Indexes:** unique `(tenant_id, token_hash)`, `(tenant_id, session_id,
+  status)`, organizer and invitee household history indexes.
+
+| Column | Type | Null | Default | Notes |
+|---|---|---|---|---|
+| id | uuid | no | UUIDv7 | PK |
+| tenant_id | uuid | no | — | FK tenants |
+| session_id | uuid | no | — | cross-context (Scheduling) |
+| organizer_household_id | uuid | no | — | inviting household |
+| organizer_email | citext | yes | — | inviter snapshot used for reciprocal partner history; null only for pre-migration rows |
+| invitee_household_id | uuid | yes | — | set on acceptance |
+| invitee_player_id | uuid | yes | — | set on acceptance |
+| email | citext | no | — | acceptance is restricted to this authenticated email |
+| token_hash | binary | no | — | SHA-256 of opaque token |
+| status | string | no | `pending` | `pending | accepted | declined | expired | cancelled` |
+| payment_mode | string | no | — | `split | organizer` |
+| seat_status | string | no | `reserved` | `reserved | purchased | released` |
+| expires_at | utc_datetime_usec | yes | — | split-payment holds only |
+| accepted_at | utc_datetime_usec | yes | — | |
+| declined_at | utc_datetime_usec | yes | — | |
+| booking_id | uuid | yes | — | held/funded booking when applicable |
+| resend_count | integer | no | `0` | increments whenever the token is rotated and the email is resent |
+| last_sent_at | utc_datetime_usec | yes | — | initial or most recent invitation delivery time |
+| inserted_at | utc_datetime_usec | no | now | |
+| updated_at | utc_datetime_usec | no | now | |
+
+### private_session_requests
+
+- **Owner:** wp-14. **Tenancy:** tenant-owned (RLS). Customer request for an
+  operator to approve an empty occurrence as a private session.
+- **Indexes:** `(tenant_id, status, inserted_at)`, `(tenant_id, household_id,
+  inserted_at)`.
+
+| Column | Type | Null | Default | Notes |
+|---|---|---|---|---|
+| id | uuid | no | UUIDv7 | PK |
+| tenant_id | uuid | no | — | FK tenants |
+| offering_id | uuid | no | — | cross-context (Catalog) |
+| household_id | uuid | no | — | requesting household |
+| player_count | integer | no | — | selected private price tier, at most `private_max_players` |
+| preferred_times | utc_datetime_usec[] | no | `{}` | customer-supplied preferences |
+| notes | text | yes | — | |
+| status | string | no | `pending` | `pending | approved | declined | cancelled` |
+| reviewed_by_id | uuid | yes | — | staff user |
+| reviewed_at | utc_datetime_usec | yes | — | |
+| session_id | uuid | yes | — | assigned occurrence on approval |
+| decline_reason | text | yes | — | |
 | inserted_at | utc_datetime_usec | no | now | |
 | updated_at | utc_datetime_usec | no | now | |
 
@@ -1436,6 +1507,20 @@ first.
 
 The polymorphic columns (`cart_lines.ref_id`, `order_lines.ref_id`, `discount`
 target `target_id`) cannot carry a single FK by design.
+
+### website_sites
+
+One row per tenant. `draft_content` and `published_content` are structured JSONB
+documents; publishing copies the complete draft atomically. `enabled` gates the
+public API, robots policy, and sitemap. **PK:** `id`. **FK:** `tenant_id` →
+`tenants.id`. **Indexes:** `unique(tenant_id)`. **RLS:** tenant-owned.
+
+### website_contact_submissions
+
+Tenant-scoped public marketing inquiries with contact details, message, status
+(`new`, `read`, `resolved`), and `resolved_at`. **PK:** `id`. **FK:**
+`tenant_id` → `tenants.id`. **Indexes:** `(tenant_id, inserted_at)`. **RLS:**
+tenant-owned.
 
 ---
 

@@ -1,7 +1,7 @@
 # RFC 20260928 — `Commerce.any_paid_orders?/0` stub
 
 **Owner affected:** wp-13 (Commerce); consumer: wp-01 (Tenancy).
-**Status:** temporary stub.
+**Status:** resolved (wp-13 merged; see the status update below).
 
 ## Context
 

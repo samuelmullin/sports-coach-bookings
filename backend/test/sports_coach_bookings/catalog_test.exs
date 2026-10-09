@@ -64,6 +64,7 @@ defmodule SportsCoachBookings.CatalogTest do
                })
 
       assert offering.slug == "mini-kickers"
+      assert offering.public_price_tiers["1"]["credit_cost"] == 1
       assert [^offering] = Catalog.list_offerings(%{age: 5})
       assert Catalog.list_offerings(%{age: 9}) == []
       assert [^offering] = Catalog.list_offerings(%{format: :group})
@@ -237,7 +238,7 @@ defmodule SportsCoachBookings.CatalogTest do
     test "record_redemption is idempotent" do
       discount = insert(:discount, tenant_id: tenant_id())
       order = Ecto.UUID.generate()
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       Repo.with_tenant_tx(fn ->
         Catalog.Pricing.record_redemption(discount.id, household, order)

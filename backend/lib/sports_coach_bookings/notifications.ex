@@ -31,6 +31,7 @@ defmodule SportsCoachBookings.Notifications do
   alias SportsCoachBookings.Notifications.Preferences
   alias SportsCoachBookings.Notifications.Suppressions
   alias SportsCoachBookings.Notifications.Templates
+  alias SportsCoachBookings.Notifications.Templates.Helpers
   alias SportsCoachBookings.Notifications.UnsubscribeToken
   alias SportsCoachBookings.Repo
   alias SportsCoachBookings.Tenancy
@@ -222,7 +223,7 @@ defmodule SportsCoachBookings.Notifications do
   @spec unsubscribe_url(map()) :: String.t()
   def unsubscribe_url(%{} = data) do
     token = UnsubscribeToken.sign(data)
-    "#{tenant_base_url(data[:tenant_id])}/unsubscribe/#{token}"
+    Helpers.tenant_url(data[:tenant_id], "/unsubscribe/#{token}")
   end
 
   ## Internal: persistence
@@ -396,28 +397,6 @@ defmodule SportsCoachBookings.Notifications do
     end
   end
 
-  defp tenant_base_url(nil), do: app_url()
-
-  defp tenant_base_url(tenant_id) do
-    case Tenancy.get_tenant(tenant_id) do
-      %{slug: slug} -> "#{scheme()}://#{slug}.#{base_domain()}"
-      _ -> app_url()
-    end
-  end
-
-  defp app_url do
-    Application.get_env(
-      :sports_coach_bookings,
-      :notifications_app_url,
-      "https://sportscoachbookings.com"
-    )
-  end
-
-  defp scheme, do: Application.get_env(:sports_coach_bookings, :notifications_url_scheme, "https")
-
-  defp base_domain,
-    do: Application.get_env(:sports_coach_bookings, :base_domain, "sportscoachbookings.com")
-
   ## Internal: recipients / assigns / validation
 
   defp recipients_from_assigns(assigns) do
@@ -564,6 +543,37 @@ defmodule SportsCoachBookings.Notifications do
   defp maybe_preload(delivery), do: Repo.preload(delivery, :message)
 
   defp fetch(map, key), do: Map.get(map, key) || Map.get(map, to_string(key))
+
+  ## Privacy erasure
+
+  @doc """
+  Scrubs the given email addresses from delivery and broadcast-recipient
+  records. The rows are kept (delivery counts and provider references matter for
+  reconciliation) but no longer identify anyone. The suppression list is left
+  untouched on purpose: erasing a bounced address from it would allow re-mailing.
+  Called by `SportsCoachBookings.Privacy`.
+  """
+  @spec scrub_emails([binary()]) :: non_neg_integer()
+  def scrub_emails([]), do: 0
+
+  def scrub_emails(emails) do
+    read(fn ->
+      {deliveries, _} =
+        Repo.update_all(from(d in Delivery, where: d.email in ^emails),
+          set: [email: "erased@erased.invalid"]
+        )
+
+      {recipients, _} =
+        Repo.update_all(
+          from(r in SportsCoachBookings.Notifications.Broadcasts.BroadcastRecipient,
+            where: r.email in ^emails
+          ),
+          set: [email: "erased@erased.invalid"]
+        )
+
+      deliveries + recipients
+    end)
+  end
 
   defp read(fun) do
     case Repo.with_tenant_tx(fun) do

@@ -566,8 +566,8 @@ defmodule SportsCoachBookings.Inventory do
 
   @doc """
   Pickup status for a household, using `Inventory.OrderSource` for its order
-  line ids. Returns `[Fulfillment.t()]`. Commerce (wp-13) supplies the ids once
-  merged; until then the stub returns `[]`.
+  line ids. Returns `[Fulfillment.t()]`. Commerce supplies the ids through the
+  configured `:inventory_order_source`.
   """
   @spec pickup_status_for_household(binary()) :: [Fulfillment.t()]
   def pickup_status_for_household(household_id) when is_binary(household_id) do

@@ -767,6 +767,23 @@ defmodule SportsCoachBookings.Feedback do
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
+  ## Privacy erasure
+
+  @doc """
+  Permanently deletes all feedback (and its revisions) written about the given
+  players. Returns the number of feedback rows removed. Called by
+  `SportsCoachBookings.Privacy`.
+  """
+  @spec erase_for_players([binary()]) :: non_neg_integer()
+  def erase_for_players([]), do: 0
+
+  def erase_for_players(player_ids) do
+    read(fn ->
+      {count, _} = Repo.delete_all(from f in SessionFeedback, where: f.player_id in ^player_ids)
+      count
+    end)
+  end
+
   defp read(fun) do
     case Repo.with_tenant_tx(fun) do
       {:ok, result} -> result

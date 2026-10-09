@@ -70,11 +70,25 @@ defmodule SportsCoachBookings.Bookings.CoachAccess do
     if MapSet.size(coach_session_ids) == 0 do
       false
     else
-      Booking
-      |> where([b], b.player_id == ^player_id and b.status in [:held, :confirmed, :attended])
-      |> Repo.all()
-      |> Enum.any?(fn booking -> MapSet.member?(coach_session_ids, booking.session_id) end)
+      booked_session_ids(player_id)
+      |> Enum.any?(&MapSet.member?(coach_session_ids, &1))
     end
+  end
+
+  # Runs in a tenant transaction: this is called from controllers/contexts that are
+  # not themselves inside one, and without the tenant GUC row-level security hides
+  # every booking, which made coaches invisible to their own players.
+  defp booked_session_ids(player_id) do
+    {:ok, ids} =
+      Repo.with_tenant_tx(fn ->
+        Repo.all(
+          from b in Booking,
+            where: b.player_id == ^player_id and b.status in [:held, :confirmed, :attended],
+            select: b.session_id
+        )
+      end)
+
+    ids
   end
 
   defp coach_sessions(membership_id, from, to) do

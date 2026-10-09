@@ -30,7 +30,12 @@ defmodule SportsCoachBookings.Waivers.PdfWorker do
     end
   end
 
-  defp render(signature) do
+  @doc """
+  Renders `signature`'s PDF and records its key. Runs in the caller's tenant
+  transaction; also used to render on demand when a download beats the job.
+  """
+  @spec render(WaiverSignature.t()) :: {:ok, WaiverSignature.t()} | {:error, term()}
+  def render(signature) do
     with {:ok, key} <- PdfRenderer.impl().render(signature) do
       signature
       |> Ecto.Changeset.change(pdf_key: key)

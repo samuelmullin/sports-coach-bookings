@@ -27,6 +27,27 @@ defmodule SportsCoachBookings.Ops.Storage.S3Test do
     assert url =~ ~r/X-Amz-Signature=[0-9a-f]{64}\z/
   end
 
+  # Regression: a custom endpoint's port (RustFS/MinIO on :9000) was dropped from
+  # the URL, making local S3-compatible servers unreachable.
+  test "a custom endpoint keeps its non-default port in the URL" do
+    now = ~U[2026-10-01 00:00:00Z]
+    config = Keyword.merge(@config, endpoint: "http://localhost:9000", force_path_style: true)
+
+    url = S3.presigned_url(:get, "tenant/logo.png", config, 60, now)
+
+    assert String.starts_with?(url, "http://localhost:9000/")
+  end
+
+  test "default ports are omitted from the URL" do
+    now = ~U[2026-10-01 00:00:00Z]
+
+    config =
+      Keyword.merge(@config, endpoint: "https://s3.example.com:443", force_path_style: true)
+
+    assert S3.presigned_url(:get, "k", config, 60, now)
+           |> String.starts_with?("https://s3.example.com/")
+  end
+
   test "presign_put returns the storage behaviour's map shape" do
     Application.put_env(:sports_coach_bookings, S3, @config)
     on_exit(fn -> Application.delete_env(:sports_coach_bookings, S3) end)

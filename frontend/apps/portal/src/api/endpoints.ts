@@ -34,7 +34,6 @@ export type {
   WaiverVersionResponse,
   SignWaiverRequest,
   WaiverSignatureResponse,
-  WaiverPdfResponse,
   PolicySummaryResponse,
   PolicyOutcome,
 } from '@scb/api-client';
@@ -80,6 +79,8 @@ export type { SportsCoachBookingsWebPortalBookingsBookingsControllerCancelPrevie
 export type { SportsCoachBookingsWebPortalBookingsBookingsControllerCancelPreview200Outcome as CancelOutcome } from '@scb/api-client';
 export type { SportsCoachBookingsWebPortalBookingsBookingsControllerRebookOptions200 as RebookOptions } from '@scb/api-client';
 export type { SportsCoachBookingsWebPortalBookingsBookingsControllerRebookOptions200SessionsItem as RebookSession } from '@scb/api-client';
+export type { SportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation200 as SessionInvitation } from '@scb/api-client';
+export type { SportsCoachBookingsWebPortalBookingsBookingsControllerPartners200DataItem as InvitationPartner } from '@scb/api-client';
 
 export type { SportsCoachBookingsWebPortalOrdersOrdersControllerIndex200DataItem as OrderSummary } from '@scb/api-client';
 export type { SportsCoachBookingsWebPortalOrdersOrdersControllerShow200 as OrderDetail } from '@scb/api-client';
@@ -102,6 +103,9 @@ export type { SportsCoachBookingsWebPortalAccountAccountControllerShow200 as Acc
 export type { SportsCoachBookingsWebPortalAccountAccountControllerShow200CustomerUser as CustomerUser } from '@scb/api-client';
 export type { SportsCoachBookingsWebPortalAccountAccountControllerPreferences200 as NotificationPreferences } from '@scb/api-client';
 export type { SportsCoachBookingsWebPortalFeedbackFeedbackControllerIndex200DataItem as FeedbackEntry } from '@scb/api-client';
+export type { SportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests200DataItem as PrivateSessionRequest } from '@scb/api-client';
+export type { SportsCoachBookingsWebPortalWebsiteControllerShow200 as PublishedWebsite } from '@scb/api-client';
+export type { SportsCoachBookingsWebPortalWebsiteControllerContactBody as WebsiteContactRequest } from '@scb/api-client';
 
 // ---------------------------------------------------------------------------
 // Query hooks
@@ -135,7 +139,6 @@ export {
   useSportsCoachBookingsWebPortalWaiversWaiversControllerPlayerIndex as usePlayerWaivers,
   useSportsCoachBookingsWebPortalWaiversWaiversControllerStatus as useHouseholdWaiverStatus,
   useSportsCoachBookingsWebPortalWaiversWaiversControllerShowVersion as useWaiverVersion,
-  useSportsCoachBookingsWebPortalWaiversWaiversControllerPdf as useWaiverPdf,
 } from '@scb/api-client';
 
 export {
@@ -151,6 +154,10 @@ export {
   useSportsCoachBookingsWebPortalBookingsBookingsControllerIndex as useBookings,
   useSportsCoachBookingsWebPortalBookingsBookingsControllerCancelPreview as useCancelPreview,
   useSportsCoachBookingsWebPortalBookingsBookingsControllerRebookOptions as useRebookOptions,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerInvitations as useSessionInvitations,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerPartners as useInvitationPartners,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation as useSessionInvitation,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests as usePrivateSessionRequests,
 } from '@scb/api-client';
 
 export {
@@ -182,6 +189,12 @@ export {
 
 export { useSportsCoachBookingsWebPortalBrandingControllerShow as useBranding } from '@scb/api-client';
 
+export {
+  useSportsCoachBookingsWebPortalWebsiteControllerShow as useWebsite,
+  useSportsCoachBookingsWebPortalWebsiteControllerContact as useSubmitWebsiteContact,
+  getSportsCoachBookingsWebPortalWebsiteControllerShowQueryKey as websiteQueryKey,
+} from '@scb/api-client';
+
 // ---------------------------------------------------------------------------
 // Mutation hooks
 // ---------------------------------------------------------------------------
@@ -210,6 +223,12 @@ export {
   useSportsCoachBookingsWebPortalBookingsBookingsControllerCreate as useCreateBooking,
   useSportsCoachBookingsWebPortalBookingsBookingsControllerCancel as useCancelBooking,
   useSportsCoachBookingsWebPortalBookingsBookingsControllerRebook as useRebookBooking,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerInvite as useInviteToSession,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation as useAcceptSessionInvitation,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate as useConvertSessionPrivate,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate as useRequestPrivateSession,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation as useCancelSessionInvitation,
+  useSportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation as useResendSessionInvitation,
 } from '@scb/api-client';
 
 export {
@@ -244,7 +263,8 @@ export {
   useSportsCoachBookingsWebPortalAccountAccountControllerUpdateEmail as useUpdateEmail,
   useSportsCoachBookingsWebPortalAccountAccountControllerUpdatePassword as useUpdatePassword,
   useSportsCoachBookingsWebPortalAccountAccountControllerUpdatePreferences as useUpdateNotificationPreferences,
-  useSportsCoachBookingsWebPortalAccountPurchaseGuardControllerShow as usePurchaseGuard,
+  useSportsCoachBookingsWebPortalAccountPrivacyControllerErase as useEraseHousehold,
+  getSportsCoachBookingsWebPortalAccountPrivacyControllerExportUrl as householdExportUrl,
 } from '@scb/api-client';
 
 // ---------------------------------------------------------------------------
@@ -282,7 +302,7 @@ export {
   getSportsCoachBookingsWebPortalBookingsBookingsControllerCancelPreviewQueryKey as cancelPreviewQueryKey,
   getSportsCoachBookingsWebPortalBookingsBookingsControllerRebookOptionsQueryKey as rebookOptionsQueryKey,
   getSportsCoachBookingsWebPortalWaiversWaiversControllerShowVersionQueryKey as waiverVersionQueryKey,
-  getSportsCoachBookingsWebPortalWaiversWaiversControllerPdfQueryKey as waiverPdfQueryKey,
+  getSportsCoachBookingsWebPortalWaiversWaiversControllerStatusQueryKey as householdWaiverStatusQueryKey,
   getSportsCoachBookingsWebPortalLegalDocumentsControllerIndexQueryKey as portalDocumentsQueryKey,
   getSportsCoachBookingsWebPortalLegalDocumentsControllerShowQueryKey as portalDocumentQueryKey,
 } from '@scb/api-client';

@@ -102,6 +102,7 @@ function renderFlow() {
   return renderWithProviders(
     <Routes>
       <Route path="/book/:sessionId" element={<BookingFlowPage />} />
+      <Route path="/cart" element={<p>Cart page</p>} />
     </Routes>,
     { route: '/book/session-1' },
   );
@@ -141,6 +142,18 @@ describe('BookingFlowPage', () => {
     expect(screen.getByText(/Sam is booked into Private Coaching/)).toBeInTheDocument();
   });
 
+  it('does not treat a player missing from the waiver status as signed', async () => {
+    useBookingData();
+    // A just-added player is not in the (cached) household waiver status yet.
+    server.use(http.get('/api/portal/waivers/status', () => HttpResponse.json({ players: [] })));
+
+    renderFlow();
+    await selectPlayer();
+
+    expect(await screen.findByText('Required waivers signed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm booking' })).toBeDisabled();
+  });
+
   it('shows a server error when credits are insufficient', async () => {
     useBookingData();
     server.use(
@@ -164,5 +177,39 @@ describe('BookingFlowPage', () => {
     expect(
       await screen.findByText('This player does not have enough eligible sessions.'),
     ).toBeInTheDocument();
+  });
+
+  it('defaults to drop-in with a visible price when the household has no sessions', async () => {
+    useBookingData();
+    server.use(http.get('/api/portal/credits', () => HttpResponse.json({ data: [] })));
+
+    renderFlow();
+    await selectPlayer();
+
+    expect(await screen.findByRole('button', { name: 'Continue to payment' })).toBeEnabled();
+    expect(screen.getByText('Price')).toBeInTheDocument();
+    expect(screen.getByText(/90\.00/)).toBeInTheDocument();
+  });
+
+  it('holds a drop-in, adds it to the cart and goes to payment instead of claiming a booking', async () => {
+    useBookingData();
+    server.use(http.get('/api/portal/credits', () => HttpResponse.json({ data: [] })));
+    const post = vi.fn(() =>
+      HttpResponse.json({ ...booking, status: 'held', payment_method: 'paid' }, { status: 201 }),
+    );
+    const cartPost = vi.fn(() => HttpResponse.json({ data: { id: 'line-1' } }, { status: 201 }));
+    server.use(
+      http.post('/api/portal/bookings', post),
+      http.post('/api/portal/cart/lines', cartPost),
+    );
+
+    renderFlow();
+    await selectPlayer();
+    await userEvent.click(await screen.findByRole('button', { name: 'Continue to payment' }));
+
+    expect(await screen.findByText('Cart page')).toBeInTheDocument();
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(cartPost).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("You're booked!")).not.toBeInTheDocument();
   });
 });

@@ -7,6 +7,8 @@ defmodule SportsCoachBookings.Security.RateLimitTest do
   use SportsCoachBookingsWeb.ConnCase, async: false
 
   alias SportsCoachBookings.RateLimiter
+  alias SportsCoachBookings.RateLimiter.Postgres
+  alias SportsCoachBookings.Repo
 
   setup do
     RateLimiter.reset()
@@ -38,12 +40,91 @@ defmodule SportsCoachBookings.Security.RateLimitTest do
     test "a request is denied when any key is over its limit" do
       assert RateLimiter.hit(["ip:full"], 1, 60) == :ok
       assert {:error, _} = RateLimiter.hit(["ip:full", "acct:fresh@example.com"], 1, 60)
+      assert RateLimiter.hit(["acct:fresh@example.com"], 1, 60) == :ok
     end
 
     test "reset clears the counters" do
       assert RateLimiter.hit(["ip:x"], 1, 60) == :ok
       RateLimiter.reset()
       assert RateLimiter.hit(["ip:x"], 1, 60) == :ok
+    end
+  end
+
+  describe "RateLimiter.hit/3 with the Postgres backend" do
+    setup do
+      previous = Application.get_env(:sports_coach_bookings, :rate_limit_backend)
+      Application.put_env(:sports_coach_bookings, :rate_limit_backend, :postgres)
+      RateLimiter.reset()
+
+      on_exit(fn ->
+        if previous,
+          do: Application.put_env(:sports_coach_bookings, :rate_limit_backend, previous),
+          else: Application.delete_env(:sports_coach_bookings, :rate_limit_backend)
+      end)
+
+      :ok
+    end
+
+    test "allows up to the limit and then denies with a retry window" do
+      for _ <- 1..3, do: assert(RateLimiter.hit(["ip:pg"], 3, 60) == :ok)
+      assert {:error, retry_after} = RateLimiter.hit(["ip:pg"], 3, 60)
+      assert retry_after in 1..60
+    end
+
+    test "keys are independent and any over-limit key denies the request" do
+      assert RateLimiter.hit(["ip:a"], 1, 60) == :ok
+      assert {:error, _} = RateLimiter.hit(["ip:a"], 1, 60)
+      assert RateLimiter.hit(["ip:b"], 1, 60) == :ok
+      assert {:error, _} = RateLimiter.hit(["ip:a", "acct:fresh"], 1, 60)
+      assert RateLimiter.hit(["acct:fresh"], 1, 60) == :ok
+    end
+
+    test "a new sliding window starts once the old hit has expired (database clock)" do
+      assert RateLimiter.hit(["ip:old"], 1, 60) == :ok
+      assert {:error, _} = RateLimiter.hit(["ip:old"], 1, 60)
+
+      Repo.query!(
+        "UPDATE rate_limit_events SET hit_at = hit_at - interval '2 minutes' WHERE key = 'ip:old'"
+      )
+
+      assert RateLimiter.hit(["ip:old"], 1, 60) == :ok
+    end
+
+    test "counters are shared between processes (i.e. between machines)" do
+      assert RateLimiter.hit(["ip:shared"], 2, 60) == :ok
+
+      results =
+        for _ <- 1..2 do
+          Task.async(fn -> RateLimiter.hit(["ip:shared"], 2, 60) end)
+        end
+        |> Task.await_many()
+
+      assert Enum.count(results, &(&1 == :ok)) == 1
+      assert Enum.count(results, &match?({:error, _}, &1)) == 1
+    end
+
+    test "prune removes only stale counters" do
+      assert RateLimiter.hit(["ip:stale"], 5, 60) == :ok
+      assert RateLimiter.hit(["ip:fresh"], 5, 60) == :ok
+
+      Repo.query!(
+        "UPDATE rate_limit_events SET hit_at = hit_at - interval '5 hours' WHERE key = 'ip:stale'"
+      )
+
+      assert Postgres.prune(4 * 3600) == 1
+      assert {:error, _} = RateLimiter.hit(["ip:fresh"], 1, 60)
+    end
+
+    test "does not allow a double burst at an arbitrary window boundary" do
+      for _ <- 1..3, do: assert(RateLimiter.hit(["ip:boundary"], 3, 60) == :ok)
+
+      Repo.query!(
+        "UPDATE rate_limit_events SET hit_at = hit_at - interval '59 seconds' " <>
+          "WHERE key = 'ip:boundary'"
+      )
+
+      assert {:error, retry_after} = RateLimiter.hit(["ip:boundary"], 3, 60)
+      assert retry_after in 1..2
     end
   end
 

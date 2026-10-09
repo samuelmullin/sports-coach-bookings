@@ -22,7 +22,7 @@ import {
   type BrandingUpload,
 } from '../../api/endpoints';
 import { body, errorMessage, responseData } from '../shared/api-utils';
-import { useToast } from '@scb/ui';
+import { FONT_OPTIONS, Select, useToast } from '@scb/ui';
 import { contrastWarning } from './contrast';
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex colour like #15803d');
@@ -49,7 +49,7 @@ const DEFAULTS: FormValues = {
   accent_color: '#f59e0b',
   background_color: '#f8fafc',
   text_color: '#0f172a',
-  font_family: 'Inter, sans-serif',
+  font_family: 'inter',
   email_footer_text: '',
   instagram: '',
   facebook: '',
@@ -209,7 +209,18 @@ export function BrandingEditor() {
               ))}
             </div>
             <FormField label="Font family">
-              <Input {...register('font_family')} />
+              <Controller
+                control={control}
+                name="font_family"
+                render={({ field }) => (
+                  <Select
+                    aria-label="Font family"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    options={FONT_OPTIONS}
+                  />
+                )}
+              />
             </FormField>
           </CardContent>
         </Card>

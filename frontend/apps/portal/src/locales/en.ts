@@ -25,10 +25,13 @@ const en = {
     bookings: 'Bookings',
     players: 'Players',
     household: 'Household',
+    account: 'Account',
+    myAccount: 'My account',
     orders: 'Orders',
     credits: 'Sessions',
     cart: 'Cart',
     pickups: 'Pickups',
+    privateRequests: 'Private requests',
   },
   schedule: {
     subtitle: 'Find a session and book your player in.',

@@ -33,9 +33,13 @@ defmodule SportsCoachBookingsWeb.Portal.Players.PlayersController do
     actor = conn.assigns[:current_customer_actor]
 
     with :ok <- Policy.authorize(actor, :list, :player) do
-      %{data: data, next_cursor: cursor} = Players.page_for_household(actor.household_id, params)
+      %{data: data, next_cursor: cursor} =
+        Players.page_for_household(actor.household_id, params, preload: [:emergency_contacts])
 
-      json(conn, PlayersJSON.collection(Enum.map(data, &PlayersJSON.player/1), cursor))
+      json(
+        conn,
+        PlayersJSON.collection(Enum.map(data, &PlayersJSON.player_with_contacts/1), cursor)
+      )
     end
   end
 

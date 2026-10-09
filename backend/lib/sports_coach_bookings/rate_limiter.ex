@@ -1,21 +1,24 @@
 defmodule SportsCoachBookings.RateLimiter do
   @moduledoc """
-  A small ETS-backed fixed-window rate limiter (WP-19).
+  An exact sliding-window rate limiter (WP-19) with two interchangeable backends,
+  chosen by `config :sports_coach_bookings, :rate_limit_backend`:
 
-  Chosen over adding a dependency: the app only needs per-IP / per-account
-  fixed-window counters, and an ETS table owned by a supervised process is
-  enough for a single-node deploy (see `docs/ops.md` §9 — the web nodes are
-  stateless, so rate limits are per node; this is documented as an accepted
-  limitation). Hammer or a Redis-backed limiter would be the choice if the app
-  becomes multi-node with shared limits.
+    * `:ets` (default; dev/test) — in-process hit histories, **per node**. With N
+      machines the effective limit is N times higher and resets independently.
+    * `:postgres` (production default, see `config/runtime.exs`) — hit histories
+      in the `rate_limit_events` table via
+      `SportsCoachBookings.RateLimiter.Postgres`, shared by every machine.
 
-  Counters are keyed by an arbitrary binary (the plug builds keys such as
+  Histories are keyed by an arbitrary binary (the plug builds keys such as
   `"ip:203.0.113.4"` and `"acct:user@example.com"`). A request is allowed only
-  when **every** key is under its limit. Stale windows are pruned by the
-  owning process.
+  when **every** key is under its limit. Unlike a fixed window, the limiter
+  cannot admit a double burst across an arbitrary clock boundary. Stale hits
+  are pruned by the owning process.
   """
 
   use GenServer
+
+  alias SportsCoachBookings.RateLimiter.Postgres
 
   @table __MODULE__
   @prune_interval_ms 60_000
@@ -28,6 +31,10 @@ defmodule SportsCoachBookings.RateLimiter do
   def start_link(_opts \\ []) do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
+
+  @doc "The active backend: `:ets` or `:postgres`."
+  @spec backend() :: :ets | :postgres
+  def backend, do: Application.get_env(:sports_coach_bookings, :rate_limit_backend, :ets)
 
   @doc "Whether enforcement is enabled (config: `:rate_limiting_enabled`)."
   @spec enabled?() :: boolean()
@@ -46,28 +53,31 @@ defmodule SportsCoachBookings.RateLimiter do
   def hit(keys, limit, window_seconds)
       when is_list(keys) and is_integer(limit) and limit > 0 and is_integer(window_seconds) and
              window_seconds > 0 do
-    now = System.monotonic_time(:millisecond)
-    window_ms = window_seconds * 1_000
+    result = check(backend(), Enum.uniq(keys), window_seconds * 1_000, limit)
 
-    Enum.reduce(keys, :ok, fn key, acc ->
-      case check(key, now, window_ms, limit) do
-        :ok -> acc
-        {:error, retry_after_ms} -> merge_deny(acc, retry_after_ms)
-      end
-    end)
+    case result do
+      :ok -> :ok
+      {:error, retry_after_ms} -> {:error, max(1, div(retry_after_ms, 1_000))}
+    end
   end
 
   @doc "Clears all counters. Used by tests."
   @spec reset() :: :ok
   def reset do
     if :ets.whereis(@table) != :undefined, do: :ets.delete_all_objects(@table)
+    if backend() == :postgres, do: Postgres.reset()
     :ok
   end
 
-  @doc "Deletes counters whose window started before `cutoff_ms`."
+  @doc "Deletes ETS hit histories whose newest hit is before `cutoff_ms`."
   @spec prune(integer()) :: non_neg_integer()
   def prune(cutoff_ms) do
-    :ets.select_delete(@table, [{{:"$1", :"$2", :"$3"}, [{:<, :"$3", cutoff_ms}], [true]}])
+    @table
+    |> :ets.tab2list()
+    |> Enum.count(fn
+      {key, [newest | _]} when newest < cutoff_ms -> :ets.delete(@table, key)
+      _ -> false
+    end)
   end
 
   ## GenServer
@@ -89,6 +99,7 @@ defmodule SportsCoachBookings.RateLimiter do
   @impl true
   def handle_info(:prune, state) do
     prune(System.monotonic_time(:millisecond) - @max_window_ms)
+    if backend() == :postgres, do: Postgres.prune(div(@max_window_ms, 1_000))
     schedule_prune()
     {:noreply, state}
   end
@@ -97,27 +108,47 @@ defmodule SportsCoachBookings.RateLimiter do
 
   ## Internals
 
-  defp check(key, now, window_ms, limit) do
-    case :ets.lookup(@table, key) do
-      [{^key, _count, started_at}] when now - started_at < window_ms ->
-        new = :ets.update_counter(@table, key, {2, 1})
+  defp check(:postgres, keys, window_ms, limit),
+    do: Postgres.check_many(keys, limit, div(window_ms, 1_000))
 
-        if new > limit do
-          {:error, window_ms - (now - started_at)}
-        else
-          :ok
-        end
+  defp check(:ets, keys, window_ms, limit),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:check_many, keys, System.monotonic_time(:millisecond), window_ms, limit}
+      )
 
-      _ ->
-        :ets.insert(@table, {key, 1, now})
-        :ok
+  @impl true
+  def handle_call({:check_many, keys, now, window_ms, limit}, _from, state) do
+    cutoff = now - window_ms
+
+    histories =
+      Map.new(keys, fn key ->
+        hits =
+          case :ets.lookup(@table, key) do
+            [{^key, existing}] -> Enum.take_while(existing, &(&1 > cutoff))
+            [] -> []
+          end
+
+        :ets.insert(@table, {key, hits})
+        {key, hits}
+      end)
+
+    retries =
+      for {_key, hits} <- histories,
+          length(hits) >= limit,
+          oldest = List.last(hits),
+          do: max(1, oldest + window_ms - now)
+
+    case retries do
+      [] ->
+        Enum.each(histories, fn {key, hits} -> :ets.insert(@table, {key, [now | hits]}) end)
+        {:reply, :ok, state}
+
+      values ->
+        {:reply, {:error, Enum.max(values)}, state}
     end
   end
-
-  defp merge_deny(:ok, retry_after_ms), do: {:error, max(1, div(retry_after_ms, 1_000))}
-
-  defp merge_deny({:error, existing}, retry_after_ms),
-    do: {:error, max(existing, max(1, div(retry_after_ms, 1_000)))}
 
   defp schedule_prune, do: Process.send_after(self(), :prune, @prune_interval_ms)
 end

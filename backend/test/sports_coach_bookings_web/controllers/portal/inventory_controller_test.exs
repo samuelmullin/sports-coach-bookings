@@ -112,7 +112,7 @@ defmodule SportsCoachBookingsWeb.Portal.InventoryControllerTest do
           status: :ready_for_pickup
         )
 
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       body =
         conn

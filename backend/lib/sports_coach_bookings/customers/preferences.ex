@@ -2,13 +2,13 @@ defmodule SportsCoachBookings.Customers.Preferences do
   @moduledoc """
   Notification-preference seam for customer users.
 
-  WP-05 (`SportsCoachBookings.Notifications.Preferences`) owns the real
-  preference store and is not merged. Until it lands, this module returns
-  documented defaults and accepts (but ignores) updates. When WP-05 ships, set
+  `SportsCoachBookings.Notifications.Preferences` owns the preference store and
+  is wired in via
 
       config :sports_coach_bookings, :customer_preferences_module, Notifications.Preferences
 
-  and this module delegates. See
+  When no module is configured (a bare unit-test environment) this returns
+  documented defaults and accepts, but ignores, updates. See
   `docs/rfcs/20260928-customers-notifications-seam.md`.
   """
 
@@ -16,7 +16,7 @@ defmodule SportsCoachBookings.Customers.Preferences do
 
   @default %{marketing_opt_in: false, operational: true, transactional: true}
 
-  @doc "The customer's notification preferences (defaults until WP-05 is merged)."
+  @doc "The customer's notification preferences (defaults when no store is configured)."
   @spec get(CustomerUser.t()) :: map()
   def get(%CustomerUser{} = customer_user) do
     case delegate_module() do

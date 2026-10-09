@@ -81,17 +81,6 @@ defmodule SportsCoachBookingsWeb.WaiversJSON do
     }
   end
 
-  @doc "Serialises the PDF metadata for a signature."
-  @spec pdf(WaiverSignature.t()) :: map()
-  def pdf(signature) do
-    %{
-      signature_id: signature.id,
-      pdf_key: signature.pdf_key,
-      status: if(signature.pdf_key, do: "ready", else: "pending"),
-      download_url: nil
-    }
-  end
-
   @doc "Wraps a list of serialised rows in the pagination envelope."
   @spec collection([map()], String.t() | nil) :: map()
   def collection(data, next_cursor \\ nil), do: %{data: data, next_cursor: next_cursor}

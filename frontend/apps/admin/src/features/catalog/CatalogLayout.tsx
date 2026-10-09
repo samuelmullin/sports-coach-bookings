@@ -6,6 +6,7 @@ const TABS = [
   { to: '/catalog/offerings', label: 'Offerings' },
   { to: '/catalog/packages', label: 'Packages' },
   { to: '/catalog/discounts', label: 'Discounts' },
+  { to: '/catalog/private-requests', label: 'Private requests' },
 ];
 
 export function CatalogLayout() {

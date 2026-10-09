@@ -14,6 +14,7 @@ import {
 import { body, errorMessage } from '../shared/api-utils';
 import { QueryState } from '../shared/QueryState';
 import { PageHeader } from '../shared/PageHeader';
+import { readReturnTo } from '../shared/return-to';
 import { usePortalSettings } from '../shared/extras';
 import { PlayerBasicsForm, PlayerProfileForm } from './PlayerProfileSection';
 import { EmergencyContactsSection } from './EmergencyContactsSection';
@@ -27,6 +28,7 @@ export function PlayerDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get('tab') ?? 'profile';
   const navigate = useNavigate();
+  const returnTo = readReturnTo();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const settings = usePortalSettings();
@@ -53,6 +55,13 @@ export function PlayerDetailPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {returnTo ? (
+        <Button asChild size="sm" className="self-start">
+          <Link to={returnTo}>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to your booking
+          </Link>
+        </Button>
+      ) : null}
       <Button asChild variant="ghost" size="sm" className="self-start">
         <Link to="/players">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to players

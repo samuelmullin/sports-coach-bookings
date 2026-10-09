@@ -225,7 +225,7 @@ defmodule SportsCoachBookings.FeedbackTest do
       actor = coach_actor(tenant, membership)
       offering = insert(:offering)
       _session = booked_session(venue, offering, membership, -1)
-      stranger = create_player(Ecto.UUID.generate())
+      stranger = create_player(insert(:household).id)
 
       assert {:error, :forbidden} = Feedback.coach_player(actor, stranger.id)
     end
@@ -303,7 +303,7 @@ defmodule SportsCoachBookings.FeedbackTest do
       insert(:session_coach, session: session, membership_id: membership.id)
     end
 
-    player = create_player(Ecto.UUID.generate())
+    player = create_player(insert(:household).id)
 
     insert(:booking,
       session_id: session.id,

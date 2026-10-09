@@ -33,6 +33,19 @@ defmodule SportsCoachBookingsWeb.PlayersJSON do
     }
   end
 
+  @doc """
+  Serialises a player for list views, adding the emergency contacts when they
+  were preloaded. The portal needs them to tell whether a player is bookable
+  without one request per player; medical values are still never included.
+  """
+  @spec player_with_contacts(Player.t()) :: map()
+  def player_with_contacts(%Player{emergency_contacts: contacts} = player)
+      when is_list(contacts) do
+    player |> player() |> Map.put(:emergency_contacts, Enum.map(contacts, &emergency_contact/1))
+  end
+
+  def player_with_contacts(player), do: player(player)
+
   @doc "Serialises a player with profile, contacts, and pickups (never medical)."
   @spec player_detail(Player.t()) :: map()
   def player_detail(player) do

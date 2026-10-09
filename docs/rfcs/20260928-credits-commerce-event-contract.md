@@ -2,7 +2,7 @@
 
 **Owner:** wp-12 (Credits). **Consumers:** wp-13 (Commerce), wp-14 (Bookings),
 wp-16 (notifications).
-**Status:** proposed; Credits side implemented, Commerce is stubbed until merged.
+**Status:** implemented (Credits, Commerce, and Bookings are all merged).
 
 ## Context
 

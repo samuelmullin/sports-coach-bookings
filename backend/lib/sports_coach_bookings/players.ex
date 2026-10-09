@@ -84,12 +84,21 @@ defmodule SportsCoachBookings.Players do
     end)
   end
 
-  @doc "Paginates a household's players. Returns `%{data: [...], next_cursor: ...}`."
-  @spec page_for_household(binary(), map() | keyword()) ::
+  @doc """
+  Paginates a household's players. Returns `%{data: [...], next_cursor: ...}`.
+
+  Options: `:preload` — associations to load on each player (e.g.
+  `[:emergency_contacts]`), so list views need no per-player requests.
+  """
+  @spec page_for_household(binary(), map() | keyword(), keyword()) ::
           %{data: [Player.t()], next_cursor: binary() | nil}
-  def page_for_household(household_id, params \\ %{}) do
+  def page_for_household(household_id, params \\ %{}, opts \\ []) do
     read(fn ->
-      query = from p in Player, where: p.household_id == ^household_id
+      query =
+        from p in Player,
+          where: p.household_id == ^household_id,
+          preload: ^Keyword.get(opts, :preload, [])
+
       {rows, cursor} = Pagination.paginate(query, params)
       %{data: rows, next_cursor: cursor}
     end)
@@ -585,12 +594,44 @@ defmodule SportsCoachBookings.Players do
     # internal `:__set_tenant__` step returns `:ok` instead of `{:ok, _}`); see
     # docs/rfcs/20260928-core-tenant-tx-multi.md. Run the multi in a nested
     # transaction that already has the tenant GUC set.
-    case Repo.with_tenant_tx(fn -> Repo.transaction(multi) end) do
-      {:ok, {:ok, changes}} -> {:ok, Map.fetch!(changes, key)}
-      {:ok, {:error, ^key, %Ecto.Changeset{} = changeset, _changes}} -> {:error, changeset}
-      {:ok, {:error, _step, reason, _changes}} -> {:error, reason}
+    #
+    # A failed inner multi (including a DB constraint violation, which poisons
+    # the outer transaction) is passed out via `rollback/1` so its changeset
+    # survives instead of collapsing to a bare `:rollback`.
+    result =
+      Repo.with_tenant_tx(fn ->
+        case Repo.transaction(multi) do
+          {:ok, changes} -> changes
+          {:error, _step, _reason, _changes} = failure -> Repo.rollback(failure)
+        end
+      end)
+
+    case result do
+      {:ok, changes} -> {:ok, Map.fetch!(changes, key)}
+      {:error, {:error, ^key, %Ecto.Changeset{} = changeset, _changes}} -> {:error, changeset}
+      {:error, {:error, _step, reason, _changes}} -> {:error, reason}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  ## Privacy erasure
+
+  @doc """
+  Permanently deletes every player in a household.
+
+  Profiles, emergency contacts, authorized pickups, and the encrypted medical
+  info are removed by the `ON DELETE CASCADE` foreign keys. Returns the deleted
+  player ids so other contexts can erase their own player-keyed data. Called by
+  `SportsCoachBookings.Privacy`, which supplies the surrounding transaction and
+  audit record.
+  """
+  @spec erase_household_players(binary()) :: [binary()]
+  def erase_household_players(household_id) do
+    read(fn ->
+      ids = Repo.all(from p in Player, where: p.household_id == ^household_id, select: p.id)
+      Repo.delete_all(from p in Player, where: p.id in ^ids)
+      ids
+    end)
   end
 
   defp read(fun) do

@@ -50,6 +50,18 @@ defmodule SportsCoachBookingsWeb.CatalogJSON do
       active: offering.active,
       position: offering.position,
       image_key: offering.image_key,
+      public_enabled: offering.public_enabled,
+      public_max_players: offering.public_max_players,
+      public_players_per_coach: offering.public_players_per_coach,
+      public_price_tiers: offering.public_price_tiers,
+      private_enabled: offering.private_enabled,
+      private_max_players: offering.private_max_players,
+      private_players_per_coach: offering.private_players_per_coach,
+      private_price_tiers: offering.private_price_tiers,
+      allow_invite_reservations: offering.allow_invite_reservations,
+      invite_hold_hours: offering.invite_hold_hours,
+      allow_private_conversion: offering.allow_private_conversion,
+      allow_private_requests: offering.allow_private_requests,
       inserted_at: datetime(offering.inserted_at),
       updated_at: datetime(offering.updated_at)
     }
