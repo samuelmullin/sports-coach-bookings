@@ -79,6 +79,19 @@ tenant picker self-read) and is documented at each site.
 
 ---
 
+### Addendum — 2026-10-08 review of session parties and hosted sites
+
+| # | Sev | Area | Finding | Fix |
+|---|---|---|---|---|
+| 13 | P2 | Abuse | Invite, resend and private-request routes had no rate limit; no cap on pending invitations, resends, or pending private requests (email relay and seat-hogging) | `:rate_limit_outreach` pipeline (20/h); max 10 pending invitations and 3 resends per invitation; max 5 pending private requests per household |
+| 14 | P3 | Input | Hosted-site content was stored unvalidated; link rules lived only in the SPA | `Websites.Content` validates size, depth, string length, link targets (site paths or http(s); `//` rejected) and tenant-scoped asset keys on every draft write; `SiteLink` also rejects `//` |
+| 15 | P3 | Input | Private-request `notes`, `preferred_times`, `decline_reason` unbounded | Length/count validations |
+| 16 | P4 | Spam | Public contact form had only an IP rate limit | Hidden honeypot field; filled submissions are acknowledged and discarded |
+| 17 | Info | Dependencies | `mix hex.audit` reports Cloak 1.1.4 (AES-CTR forgery) and cloak_ecto 1.3.0 (PBKDF2 field) | Not affected: the vault uses `Cloak.Ciphers.AES.GCM` and no PBKDF2 field. Upgrade when fixed releases ship |
+
+The waiver PDF logo URL is built from the platform storage host plus a tenant
+key, so a tenant cannot make Chromium fetch an arbitrary host.
+
 ## 3. Rate limiting approach
 
 **Choice: an exact sliding-window limiter, no new service dependency.**
