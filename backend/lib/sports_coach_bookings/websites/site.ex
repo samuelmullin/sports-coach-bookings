@@ -3,6 +3,8 @@ defmodule SportsCoachBookings.Websites.Site do
 
   use SportsCoachBookings.Core.TenantSchema
 
+  alias SportsCoachBookings.Websites.Content
+
   @type t :: %__MODULE__{}
 
   schema "website_sites" do
@@ -31,8 +33,20 @@ defmodule SportsCoachBookings.Websites.Site do
       :draft_content,
       :published_content
     ])
+    |> validate_content(:draft_content)
     |> Ecto.Changeset.unique_constraint(:tenant_id,
       name: :website_sites_tenant_unique_index
     )
+  end
+
+  defp validate_content(changeset, field) do
+    tenant_id = Ecto.Changeset.get_field(changeset, :tenant_id)
+
+    Ecto.Changeset.validate_change(changeset, field, fn _field, content ->
+      case Content.validate(content, tenant_id) do
+        :ok -> []
+        {:error, message} -> [{field, message}]
+      end
+    end)
   end
 end

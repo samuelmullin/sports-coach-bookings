@@ -66,4 +66,26 @@ defmodule SportsCoachBookingsWeb.Portal.WebsiteControllerTest do
 
     assert json_response(response, 422)["error"]["details"]["fields"]["subject"]
   end
+
+  test "a filled honeypot is accepted silently and nothing is stored", %{
+    conn: conn,
+    tenant: tenant
+  } do
+    response =
+      conn
+      |> with_host(tenant.slug)
+      |> put_req_header("content-type", "application/json")
+      |> post(
+        "/api/portal/website/contact",
+        Jason.encode!(%{
+          name: "Bot",
+          email: "bot@example.test",
+          website: "http://spam.example",
+          message: "Buy cheap watches from our store today."
+        })
+      )
+
+    assert json_response(response, 201)
+    assert SportsCoachBookings.Websites.page_contact_submissions().data == []
+  end
 end

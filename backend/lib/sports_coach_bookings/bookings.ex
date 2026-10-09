@@ -50,6 +50,8 @@ defmodule SportsCoachBookings.Bookings do
   @hold_minutes 30
   @attendance_window_days 7
   @free_change_days 7
+  @max_pending_invitations 10
+  @max_resends 3
   @active_statuses [:held, :confirmed, :attended]
   @roster_statuses [:held, :confirmed, :attended, :no_show]
 
@@ -1787,6 +1789,7 @@ defmodule SportsCoachBookings.Bookings do
          :ok <- check_mode_capacity(session, offering),
          :ok <- check_staffing(session, offering),
          :ok <- ensure_unique_pending_invite(session_id, email),
+         :ok <- ensure_pending_invite_quota(actor.household_id),
          :ok <- ensure_reservation_window(payment_mode, session, offering),
          {:ok, result} <-
            create_invitation(actor, email, payment_mode, method, session, offering) do
@@ -1890,6 +1893,7 @@ defmodule SportsCoachBookings.Bookings do
     with %SessionInvitation{} <- invitation,
          :ok <- ensure_invitation_organizer(actor, invitation),
          :ok <- ensure_pending_invitation(invitation),
+         :ok <- ensure_resend_quota(invitation),
          {:ok, session} <- fetch_session_required(invitation.session_id),
          {:ok, offering} <- fetch_offering_required(session.offering_id),
          {token, token_hash} = invitation_token(),
@@ -2121,6 +2125,29 @@ defmodule SportsCoachBookings.Bookings do
   end
 
   defp ensure_invitation_capacity(session), do: check_capacity(session)
+
+  # Bounds how many seats and outbound emails one household can tie up at once.
+  defp ensure_pending_invite_quota(household_id) do
+    pending =
+      Repo.aggregate(
+        from(i in SessionInvitation,
+          where: i.organizer_household_id == ^household_id and i.status == :pending
+        ),
+        :count
+      )
+
+    if pending >= @max_pending_invitations,
+      do:
+        {:error,
+         {:too_many_invitations,
+          "You have too many pending invitations. Wait for replies or cancel some first."}},
+      else: :ok
+  end
+
+  defp ensure_resend_quota(%SessionInvitation{resend_count: count}) when count >= @max_resends,
+    do: {:error, {:too_many_resends, "This invitation has been resent too many times"}}
+
+  defp ensure_resend_quota(_invitation), do: :ok
 
   defp ensure_unique_pending_invite(session_id, email) do
     if Repo.exists?(

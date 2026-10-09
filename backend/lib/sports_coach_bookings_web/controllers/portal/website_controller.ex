@@ -43,11 +43,28 @@ defmodule SportsCoachBookingsWeb.Portal.WebsiteController do
   def contact(conn, params) do
     attrs = Map.get(params, "contact", params)
 
-    with :ok <- Policy.authorize(nil, :create, :contact_submission),
-         {:ok, submission} <- Websites.create_contact_submission(attrs) do
+    with :ok <- Policy.authorize(nil, :create, :contact_submission) do
+      create_contact(conn, attrs, honeypot_filled?(attrs))
+    end
+  end
+
+  # Bots fill every field. Pretend success without storing or notifying.
+  defp create_contact(conn, _attrs, true) do
+    conn |> put_status(:created) |> json(%{accepted: true})
+  end
+
+  defp create_contact(conn, attrs, false) do
+    with {:ok, submission} <- Websites.create_contact_submission(attrs) do
       conn
       |> put_status(:created)
       |> json(SportsCoachBookingsWeb.WebsitesJSON.contact_submission(submission))
+    end
+  end
+
+  defp honeypot_filled?(attrs) do
+    case Map.get(attrs, "website") do
+      value when is_binary(value) -> String.trim(value) != ""
+      _value -> false
     end
   end
 end

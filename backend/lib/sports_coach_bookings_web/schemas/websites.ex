@@ -48,7 +48,13 @@ defmodule SportsCoachBookingsWeb.Schemas.Websites do
         phone: %Schema{type: :string, nullable: true, maxLength: 40},
         company: %Schema{type: :string, nullable: true, maxLength: 160},
         subject: %Schema{type: :string, nullable: true, maxLength: 160},
-        message: %Schema{type: :string, minLength: 10, maxLength: 5_000}
+        message: %Schema{type: :string, minLength: 10, maxLength: 5_000},
+        website: %Schema{
+          type: :string,
+          nullable: true,
+          maxLength: 200,
+          description: "Honeypot: real visitors never fill this in."
+        }
       },
       required: [:name, :email, :message]
     }
@@ -58,7 +64,7 @@ defmodule SportsCoachBookingsWeb.Schemas.Websites do
     %Schema{
       type: :object,
       properties:
-        Map.merge(contact_request().properties, %{
+        Map.merge(Map.delete(contact_request().properties, :website), %{
           id: %Schema{type: :string, format: :uuid},
           status: %Schema{type: :string, enum: ["new", "read", "resolved"]},
           resolved_at: %Schema{type: :string, format: :"date-time", nullable: true},

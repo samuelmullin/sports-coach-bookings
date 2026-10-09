@@ -25510,6 +25510,12 @@
                     "maxLength": 160,
                     "nullable": true,
                     "type": "string"
+                  },
+                  "website": {
+                    "description": "Honeypot: real visitors never fill this in.",
+                    "maxLength": 200,
+                    "nullable": true,
+                    "type": "string"
                   }
                 },
                 "required": [

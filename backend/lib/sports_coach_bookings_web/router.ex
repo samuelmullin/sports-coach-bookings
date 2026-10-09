@@ -104,6 +104,11 @@ defmodule SportsCoachBookingsWeb.Router do
     plug SportsCoachBookingsWeb.Plugs.RateLimit, keys: [:discount], limit: 120, window: 60
   end
 
+  # Invitations and private-session requests send email to third parties.
+  pipeline :rate_limit_outreach do
+    plug SportsCoachBookingsWeb.Plugs.RateLimit, keys: [:outreach], limit: 20, window: 3600
+  end
+
   pipeline :rate_limit_contact do
     plug SportsCoachBookingsWeb.Plugs.RateLimit, keys: [:contact], limit: 10, window: 3600
   end
@@ -591,6 +596,13 @@ defmodule SportsCoachBookingsWeb.Router do
       get "/orders/:id", OrdersController, :show
     end
 
+    scope "/portal/bookings", SportsCoachBookingsWeb.Portal.Bookings do
+      pipe_through [:portal_session, :require_customer, :rate_limit_outreach]
+
+      post "/invitations/:id/resend", BookingsController, :resend_invitation
+      post "/sessions/:session_id/invitations", BookingsController, :invite
+    end
+
     # WP-14: portal bookings (book, list, cancel preview/cancel, rebook).
     scope "/portal/bookings", SportsCoachBookingsWeb.Portal.Bookings do
       pipe_through [:portal_session, :require_customer]
@@ -604,8 +616,6 @@ defmodule SportsCoachBookingsWeb.Router do
       get "/invitations", BookingsController, :invitations
       get "/invitation-partners", BookingsController, :partners
       delete "/invitations/:id", BookingsController, :cancel_invitation
-      post "/invitations/:id/resend", BookingsController, :resend_invitation
-      post "/sessions/:session_id/invitations", BookingsController, :invite
       post "/session_invitations/:token/accept", BookingsController, :accept_invitation
       post "/sessions/:session_id/convert-private", BookingsController, :convert_private
       get "/private-session-requests", BookingsController, :private_requests

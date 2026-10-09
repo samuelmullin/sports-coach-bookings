@@ -49,6 +49,37 @@ defmodule SportsCoachBookings.WebsitesTest do
     assert Websites.published_site().content["hero"]["image_url"] =~ "hero.jpg"
   end
 
+  test "draft content rejects unsafe links, foreign asset keys, and oversized payloads", %{
+    actor: actor
+  } do
+    for bad <- ["javascript:alert(1)", "//evil.example", "data:text/html,x", "ftp://x.example"] do
+      assert {:error, %Ecto.Changeset{errors: [draft_content: _]}} =
+               Websites.update_draft(actor, %{
+                 "content" => %{"hero" => %{"primary_cta_url" => bad}}
+               })
+    end
+
+    assert {:error, %Ecto.Changeset{}} =
+             Websites.update_draft(actor, %{
+               "content" => %{"hero" => %{"image_key" => "#{Ecto.UUID.generate()}/hero.jpg"}}
+             })
+
+    assert {:error, %Ecto.Changeset{}} =
+             Websites.update_draft(actor, %{
+               "content" => %{"story" => %{"body" => String.duplicate("x", 6_000)}}
+             })
+
+    assert {:ok, _site} =
+             Websites.update_draft(actor, %{
+               "content" => %{
+                 "hero" => %{
+                   "primary_cta_url" => "/schedule",
+                   "secondary_cta_url" => "https://example.com/a"
+                 }
+               }
+             })
+  end
+
   test "contact submissions validate, publish an event, and can be resolved", %{actor: actor} do
     assert {:error, changeset} =
              Websites.create_contact_submission(%{

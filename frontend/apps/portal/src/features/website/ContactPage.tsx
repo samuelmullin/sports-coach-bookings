@@ -15,6 +15,8 @@ const schema = z.object({
   company: z.string(),
   subject: z.string(),
   message: z.string().min(10, 'Please include a little more detail'),
+  // Honeypot: hidden from people, filled in by bots.
+  website: z.string().optional(),
 });
 type Values = z.infer<typeof schema>;
 
@@ -29,7 +31,15 @@ export function ContactPage() {
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', email: '', phone: '', company: '', subject: '', message: '' },
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      company: '',
+      subject: '',
+      message: '',
+      website: '',
+    },
   });
   const onSubmit = handleSubmit(async (values) => {
     setFailure(undefined);
@@ -63,6 +73,12 @@ export function ContactPage() {
           <Card>
             <CardContent className="pt-6">
               <form className="grid gap-4" onSubmit={onSubmit} noValidate>
+                <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                  <label>
+                    Leave this field empty
+                    <input type="text" tabIndex={-1} autoComplete="off" {...register('website')} />
+                  </label>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField label="Name" error={errors.name?.message}>
                     <Input {...register('name')} />

@@ -11,7 +11,7 @@ export function SiteLink({
   children: ReactNode;
 }) {
   if (!href) return null;
-  if (href.startsWith('/'))
+  if (href.startsWith('/') && !href.startsWith('//'))
     return (
       <Link to={href} className={className}>
         {children}

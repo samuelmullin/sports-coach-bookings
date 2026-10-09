@@ -31,4 +31,10 @@ export type SportsCoachBookingsWebPortalWebsiteControllerContactBody = {
    * @nullable
    */
   subject?: string | null;
+  /**
+   * Honeypot: real visitors never fill this in.
+   * @maxLength 200
+   * @nullable
+   */
+  website?: string | null;
 };

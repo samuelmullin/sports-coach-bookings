@@ -330,6 +330,46 @@ defmodule SportsCoachBookings.Bookings.InvitationsTest do
     end
   end
 
+  test "resending an invitation is capped", ctx do
+    inviter = household_actor(ctx.tenant)
+    inviter_player = player(inviter.household_id)
+    session = session(ctx, days_from_now(4), 2)
+
+    {:ok, _} = Credits.grant_complimentary(nil, inviter.household_id, %{amount: 2})
+    assert {:ok, %Booking{}} = Bookings.book(inviter, inviter_player.id, session.id, :credits)
+
+    assert {:ok, %{invitation: invitation}} =
+             Bookings.invite(inviter, session.id, %{
+               email: "friend@example.com",
+               payment_mode: :split
+             })
+
+    for _ <- 1..3, do: assert({:ok, _} = Bookings.resend_invitation(inviter, invitation.id))
+
+    assert {:error, {:too_many_resends, _message}} =
+             Bookings.resend_invitation(inviter, invitation.id)
+  end
+
+  test "a household cannot hold unlimited pending invitations", ctx do
+    inviter = household_actor(ctx.tenant)
+    inviter_player = player(inviter.household_id)
+    {:ok, _} = Credits.grant_complimentary(nil, inviter.household_id, %{amount: 20})
+
+    results =
+      for n <- 1..11 do
+        session = session(ctx, days_from_now(4 + n), 2)
+        assert {:ok, %Booking{}} = Bookings.book(inviter, inviter_player.id, session.id, :credits)
+
+        Bookings.invite(inviter, session.id, %{
+          email: "friend#{n}@example.com",
+          payment_mode: :split
+        })
+      end
+
+    assert Enum.count(results, &match?({:ok, _}, &1)) == 10
+    assert {:error, {:too_many_invitations, _message}} = List.last(results)
+  end
+
   defp household_actor(tenant) do
     household = insert(:household)
     user = insert(:customer_user)
