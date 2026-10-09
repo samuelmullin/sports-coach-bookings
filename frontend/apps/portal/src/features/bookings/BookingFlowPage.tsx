@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarPlus, CheckCircle2, XCircle } from 'lucide-react';
+import { useSportsCoachBookingsWebPortalAccountConfirmationsControllerResend as useResendConfirmation } from '@scb/api-client';
 import { Badge, Button, Card, CardContent, RadioGroup, useToast } from '@scb/ui';
+import { useOptionalCustomerAuth } from '../../auth/customer-auth';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   bookingsQueryKey,
@@ -18,7 +20,7 @@ import {
   type PlayerResponse,
   type SessionListItem,
 } from '../../api/endpoints';
-import { errorCode, errorMessage, listItems } from '../shared/api-utils';
+import { errorCode, errorMessage, listItems, responseData } from '../shared/api-utils';
 import { friendlyError } from '../shared/errors';
 import { QueryState } from '../shared/QueryState';
 import { PageHeader } from '../shared/PageHeader';
@@ -26,6 +28,9 @@ import { PlayerSelect } from '../shared/PlayerSelect';
 import { VenueTime, TimezoneNote } from '../shared/VenueTime';
 import { usePortalSettings } from '../shared/extras';
 import { isAgeEligible } from '../shared/age';
+import { Money } from '../shared/Money';
+import { clearReturnTo, setReturnTo } from '../shared/return-to';
+import { useAddToCart } from '../cart/useCart';
 
 function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -54,6 +59,11 @@ function icsDataUrl(item: SessionListItem, title: string): string | undefined {
 export function BookingFlowPage() {
   const { sessionId = '' } = useParams<{ sessionId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
+  const addToCart = useAddToCart();
+  const customerUser = useOptionalCustomerAuth()?.customerUser;
+  const emailUnconfirmed = customerUser?.confirmed === false;
+  const resendConfirmation = useResendConfirmation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const settings = usePortalSettings();
@@ -87,7 +97,7 @@ export function BookingFlowPage() {
     undefined;
 
   const [playerId, setPlayerId] = useState<string | undefined>();
-  const [method, setMethod] = useState<'credits' | 'paid'>('credits');
+  const [chosenMethod, setChosenMethod] = useState<'credits' | 'paid' | undefined>();
   const [confirmed, setConfirmed] = useState(false);
 
   const player = players.find((candidate) => candidate.id === playerId);
@@ -125,9 +135,21 @@ export function BookingFlowPage() {
   const bookable = item?.bookable ?? false;
 
   const hasCredits = eligibleCreditTotal >= creditCost;
+  // Default to sessions only when the household can actually spend them.
+  const method: 'credits' | 'paid' =
+    chosenMethod === 'paid' || !hasCredits ? 'paid' : (chosenMethod ?? 'credits');
+  const dropInPrice = pricingTier?.price ?? offering?.drop_in_price ?? offeringFull?.drop_in_price;
+  const bookingPath = `/book/${sessionId}`;
+  useEffect(() => clearReturnTo(), []);
 
   const canSubmit =
-    Boolean(player) && bookable && seatsLeft > 0 && ageOk && waiversSigned && hasContacts;
+    Boolean(player) &&
+    bookable &&
+    seatsLeft > 0 &&
+    ageOk &&
+    waiversSigned &&
+    hasContacts &&
+    !emailUnconfirmed;
 
   const checks = [
     { label: 'Age eligible', ok: Boolean(player) && ageOk, fix: `/players/${playerId}` },
@@ -152,7 +174,16 @@ export function BookingFlowPage() {
       });
       await queryClient.invalidateQueries({ queryKey: bookingsQueryKey() });
       await queryClient.invalidateQueries({ queryKey: creditsQueryKey() });
-      void result;
+      if (method === 'paid') {
+        // A paid booking is only a timed hold until the order is paid.
+        const held = responseData<{ id?: string }>(result);
+        if (held?.id) {
+          await addToCart.mutateAsync({ data: { type: 'drop_in', ref_id: held.id, quantity: 1 } });
+          toast({ title: 'Seat held — complete payment to confirm', variant: 'success' });
+          navigate('/cart');
+          return;
+        }
+      }
       toast({ title: 'Booking confirmed', variant: 'success' });
       setConfirmed(true);
     } catch (error) {
@@ -219,6 +250,32 @@ export function BookingFlowPage() {
             />
             <TimezoneNote timezone={item.venue?.timezone ?? settings.timezone} />
 
+            {emailUnconfirmed ? (
+              <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-4 text-sm">
+                  <p>
+                    Confirm your email to finish booking. We sent a link to{' '}
+                    <strong>{customerUser?.email}</strong>.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={resendConfirmation.isPending || resendConfirmation.isSuccess}
+                    onClick={() =>
+                      void resendConfirmation
+                        .mutateAsync({ data: { email: customerUser?.email ?? '' } })
+                        .then(() => toast({ title: 'Confirmation email sent', variant: 'success' }))
+                        .catch((error: unknown) =>
+                          toast({ title: errorMessage(error), variant: 'danger' }),
+                        )
+                    }
+                  >
+                    {resendConfirmation.isSuccess ? 'Email sent' : 'Resend email'}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : null}
+
             <Card>
               <CardContent className="flex flex-col gap-3 pt-4">
                 <label className="flex flex-col gap-1 text-sm">
@@ -255,6 +312,7 @@ export function BookingFlowPage() {
                           <Link
                             className="ml-auto text-xs font-medium text-primary hover:underline"
                             to={check.fix}
+                            onClick={() => setReturnTo(bookingPath)}
                           >
                             Fix
                           </Link>
@@ -272,7 +330,7 @@ export function BookingFlowPage() {
                 <RadioGroup
                   label="Payment method"
                   value={method}
-                  onValueChange={(value) => setMethod(value as 'credits' | 'paid')}
+                  onValueChange={(value) => setChosenMethod(value as 'credits' | 'paid')}
                   options={[
                     {
                       value: 'credits',
@@ -316,9 +374,14 @@ export function BookingFlowPage() {
                   </div>
                 ) : null}
                 {method === 'paid' ? (
-                  <p className="text-xs text-muted-foreground">
-                    Drop-in pricing is confirmed at checkout.
-                  </p>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Price</span>
+                    {typeof dropInPrice === 'number' ? (
+                      <Money amountMinor={dropInPrice} className="font-medium" />
+                    ) : (
+                      <span>Confirmed at checkout</span>
+                    )}
+                  </div>
                 ) : null}
                 <p className="text-xs text-muted-foreground">
                   By booking you agree to the club's cancellation policy.
@@ -329,9 +392,13 @@ export function BookingFlowPage() {
             <div className="flex flex-wrap gap-2">
               <Button
                 onClick={() => void onSubmit()}
-                disabled={!canSubmit || createBooking.isPending}
+                disabled={!canSubmit || createBooking.isPending || addToCart.isPending}
               >
-                {createBooking.isPending ? 'Booking…' : 'Confirm booking'}
+                {createBooking.isPending || addToCart.isPending
+                  ? 'Booking…'
+                  : method === 'paid'
+                    ? 'Continue to payment'
+                    : 'Confirm booking'}
               </Button>
               <Button asChild variant="outline">
                 <Link to="/schedule">Cancel</Link>

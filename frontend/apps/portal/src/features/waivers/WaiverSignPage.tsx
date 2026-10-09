@@ -19,6 +19,7 @@ import {
 import { body, errorMessage, responseData } from '../shared/api-utils';
 import { QueryState } from '../shared/QueryState';
 import { PageHeader } from '../shared/PageHeader';
+import { readReturnTo } from '../shared/return-to';
 import { Markdown } from '../shared/Markdown';
 import { DocumentModal } from '../shared/DocumentModal';
 
@@ -47,6 +48,7 @@ export function WaiverSignPage() {
     versionId: string;
   }>();
   const navigate = useNavigate();
+  const returnTo = readReturnTo();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const versionQuery = useWaiverVersion(versionId, {
@@ -113,6 +115,7 @@ export function WaiverSignPage() {
         <Card>
           <CardContent className="flex flex-wrap items-center gap-3 pt-4">
             <WaiverPdfButton signatureId={signatureId} />
+            {returnTo ? <Button onClick={() => navigate(returnTo)}>Continue booking</Button> : null}
             <Button variant="outline" onClick={() => navigate(`/players/${playerId}`)}>
               Back to player
             </Button>

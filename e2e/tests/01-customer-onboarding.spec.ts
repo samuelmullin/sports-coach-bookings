@@ -36,7 +36,7 @@ test.describe('customer onboarding', () => {
       await expect(page.getByRole('alert')).toHaveCount(0);
     });
 
-    await test.step('add a player through the five-step wizard', async () => {
+    await test.step('add a player with just the two required steps', async () => {
       await page.goto('/players');
       await page.getByRole('button', { name: 'Add player' }).first().click();
       const dialog = page.getByRole('dialog');
@@ -46,21 +46,11 @@ test.describe('customer onboarding', () => {
       await dialog.getByLabel('Date of birth').fill('2015-06-01');
       await dialog.getByRole('button', { name: 'Continue' }).click();
 
-      await expect(dialog.getByText('Step 2 of 5')).toBeVisible();
-      await dialog.getByRole('button', { name: 'Continue' }).click();
-
-      await expect(dialog.getByText('Step 3 of 5')).toBeVisible();
+      await expect(dialog.getByText('Step 2 of 2')).toBeVisible();
       await dialog.getByLabel('Name').fill('Grandma Onboard');
       await dialog.getByLabel('Phone').fill('9025550177');
       await dialog.getByLabel('Relationship').fill('Grandmother');
-      await dialog.getByRole('button', { name: 'Continue' }).click();
-
-      await expect(dialog.getByText('Step 4 of 5')).toBeVisible();
-      await dialog.getByRole('button', { name: 'Continue' }).click();
-
-      await expect(dialog.getByText('Step 5 of 5')).toBeVisible();
-      await dialog.getByLabel('Allergies').fill('Peanuts');
-      await dialog.getByRole('button', { name: 'Finish' }).click();
+      await dialog.getByRole('button', { name: 'Save player' }).click();
 
       await expect(dialog).toBeHidden();
       const card = page.getByRole('listitem').filter({ hasText: 'Sky Onboard' });

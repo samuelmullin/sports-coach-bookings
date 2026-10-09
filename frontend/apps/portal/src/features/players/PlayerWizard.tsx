@@ -55,7 +55,10 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const STEPS = ['Basics', 'Soccer profile', 'Emergency contacts', 'Pickups', 'Medical'] as const;
+// Only the first two steps are needed to book; the rest are optional and can
+// also be completed later from the player's page.
+const STEPS = ['Basics', 'Emergency contact', 'Soccer profile', 'Pickups', 'Medical'] as const;
+const REQUIRED_STEPS = 2;
 
 const DEFAULTS: FormValues = {
   first_name: '',
@@ -122,8 +125,8 @@ export function PlayerWizard({
   const next = async () => {
     const fieldsToValidate: (keyof FormValues)[][] = [
       ['first_name', 'last_name', 'date_of_birth'],
-      [],
       ['contacts'],
+      [],
       [],
       [],
     ];
@@ -242,7 +245,11 @@ export function PlayerWizard({
       open={open}
       onOpenChange={onOpenChange}
       title="Add a player"
-      description={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
+      description={
+        step < REQUIRED_STEPS
+          ? `Step ${step + 1} of ${REQUIRED_STEPS}: ${STEPS[step]}`
+          : `Optional details: ${STEPS[step]}`
+      }
       footer={
         <>
           {step > 0 ? (
@@ -250,13 +257,29 @@ export function PlayerWizard({
               Back
             </Button>
           ) : null}
-          {step < STEPS.length - 1 ? (
-            <Button onClick={() => void next()}>Continue</Button>
-          ) : (
-            <Button onClick={() => void onSubmit()} disabled={submitting}>
-              {submitting ? 'Saving…' : 'Finish'}
-            </Button>
-          )}
+          {step === 0 ? <Button onClick={() => void next()}>Continue</Button> : null}
+          {step === REQUIRED_STEPS - 1 ? (
+            <>
+              <Button variant="outline" onClick={() => void next()}>
+                Add more details
+              </Button>
+              <Button onClick={() => void onSubmit()} disabled={submitting}>
+                {submitting ? 'Saving…' : 'Save player'}
+              </Button>
+            </>
+          ) : null}
+          {step >= REQUIRED_STEPS ? (
+            <>
+              {step < STEPS.length - 1 ? (
+                <Button variant="outline" onClick={() => void next()}>
+                  Next
+                </Button>
+              ) : null}
+              <Button onClick={() => void onSubmit()} disabled={submitting}>
+                {submitting ? 'Saving…' : 'Save player'}
+              </Button>
+            </>
+          ) : null}
         </>
       }
     >
@@ -283,7 +306,7 @@ export function PlayerWizard({
           </>
         ) : null}
 
-        {step === 1 ? (
+        {step === 2 ? (
           <>
             <FormField label="Club" error={errors.home_club?.message}>
               <Input {...register('home_club')} />
@@ -335,7 +358,7 @@ export function PlayerWizard({
           </>
         ) : null}
 
-        {step === 2 ? (
+        {step === 1 ? (
           <>
             {errors.contacts?.message ? (
               <p role="alert" className="text-sm font-medium text-danger">
