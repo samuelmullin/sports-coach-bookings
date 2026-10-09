@@ -40,6 +40,7 @@ defmodule SportsCoachBookings.Security.RateLimitTest do
     test "a request is denied when any key is over its limit" do
       assert RateLimiter.hit(["ip:full"], 1, 60) == :ok
       assert {:error, _} = RateLimiter.hit(["ip:full", "acct:fresh@example.com"], 1, 60)
+      assert RateLimiter.hit(["acct:fresh@example.com"], 1, 60) == :ok
     end
 
     test "reset clears the counters" do
@@ -75,14 +76,15 @@ defmodule SportsCoachBookings.Security.RateLimitTest do
       assert {:error, _} = RateLimiter.hit(["ip:a"], 1, 60)
       assert RateLimiter.hit(["ip:b"], 1, 60) == :ok
       assert {:error, _} = RateLimiter.hit(["ip:a", "acct:fresh"], 1, 60)
+      assert RateLimiter.hit(["acct:fresh"], 1, 60) == :ok
     end
 
-    test "a new window starts once the old one has expired (database clock)" do
+    test "a new sliding window starts once the old hit has expired (database clock)" do
       assert RateLimiter.hit(["ip:old"], 1, 60) == :ok
       assert {:error, _} = RateLimiter.hit(["ip:old"], 1, 60)
 
       Repo.query!(
-        "UPDATE rate_limit_counters SET window_started_at = window_started_at - interval '2 minutes' WHERE key = 'ip:old'"
+        "UPDATE rate_limit_events SET hit_at = hit_at - interval '2 minutes' WHERE key = 'ip:old'"
       )
 
       assert RateLimiter.hit(["ip:old"], 1, 60) == :ok
@@ -106,11 +108,23 @@ defmodule SportsCoachBookings.Security.RateLimitTest do
       assert RateLimiter.hit(["ip:fresh"], 5, 60) == :ok
 
       Repo.query!(
-        "UPDATE rate_limit_counters SET window_started_at = window_started_at - interval '5 hours' WHERE key = 'ip:stale'"
+        "UPDATE rate_limit_events SET hit_at = hit_at - interval '5 hours' WHERE key = 'ip:stale'"
       )
 
       assert Postgres.prune(4 * 3600) == 1
       assert {:error, _} = RateLimiter.hit(["ip:fresh"], 1, 60)
+    end
+
+    test "does not allow a double burst at an arbitrary window boundary" do
+      for _ <- 1..3, do: assert(RateLimiter.hit(["ip:boundary"], 3, 60) == :ok)
+
+      Repo.query!(
+        "UPDATE rate_limit_events SET hit_at = hit_at - interval '59 seconds' " <>
+          "WHERE key = 'ip:boundary'"
+      )
+
+      assert {:error, retry_after} = RateLimiter.hit(["ip:boundary"], 3, 60)
+      assert retry_after in 1..2
     end
   end
 

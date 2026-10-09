@@ -10,6 +10,7 @@ defmodule SportsCoachBookings.Waivers.PdfStore.Local do
   @behaviour SportsCoachBookings.Waivers.PdfStore
 
   @impl true
+  # sobelow_skip ["Traversal.FileModule"] — path/1 expands and rejects keys outside root.
   def put(key, pdf) do
     with {:ok, path} <- path(key),
          :ok <- File.mkdir_p(Path.dirname(path)) do
@@ -18,6 +19,7 @@ defmodule SportsCoachBookings.Waivers.PdfStore.Local do
   end
 
   @impl true
+  # sobelow_skip ["Traversal.FileModule"] — path/1 expands and rejects keys outside root.
   def get(key) do
     with {:ok, path} <- path(key) do
       case File.read(path) do
@@ -29,6 +31,7 @@ defmodule SportsCoachBookings.Waivers.PdfStore.Local do
   end
 
   @impl true
+  # sobelow_skip ["Traversal.FileModule"] — path/1 expands and rejects keys outside root.
   def delete(key) do
     with {:ok, path} <- path(key) do
       case File.rm(path) do

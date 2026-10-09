@@ -38,6 +38,18 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Chrome-backed waiver rendering preserves Unicode, tenant colours/fonts, and
+# logos. The runtime image installs Chromium and Noto's broad Unicode fonts.
+config :sports_coach_bookings,
+       :waiver_pdf_renderer,
+       SportsCoachBookings.Waivers.PdfRenderer.Browser
+
+config :sports_coach_bookings, ChromicPDF,
+  chrome_executable: "/usr/bin/chromium",
+  no_sandbox: true,
+  disable_scripts: true,
+  session_pool: [size: 1, timeout: 15_000, checkout_timeout: 15_000]
+
 # WP-20: one JSON object per line, including request_id/tenant_id, so the Fly
 # log drain and error trackers can index fields without a parsing pipeline.
 config :logger, :default_formatter, format: {SportsCoachBookings.Logger.Formatter, :format}

@@ -91,7 +91,8 @@ config :sports_coach_bookings, :event_subscribers, %{
   "booking.attended" => [SportsCoachBookings.Notifications.Subscribers.EventSubscriber],
   "booking.no_show" => [SportsCoachBookings.Notifications.Subscribers.EventSubscriber],
   "feedback.submitted" => [SportsCoachBookings.Notifications.Subscribers.EventSubscriber],
-  "stock.low" => [SportsCoachBookings.Notifications.Subscribers.EventSubscriber]
+  "stock.low" => [SportsCoachBookings.Notifications.Subscribers.EventSubscriber],
+  "website.contact_submitted" => [SportsCoachBookings.Websites.ContactSubmittedSubscriber]
 }
 
 # WP-12: how long a credit returned after its original lot expired stays valid
@@ -229,6 +230,10 @@ config :sports_coach_bookings, :notification_templates, %{
   customer_reset_password: SportsCoachBookings.Notifications.Templates.CustomerResetPassword,
   customer_email_change: SportsCoachBookings.Notifications.Templates.CustomerEmailChange,
   household_invite: SportsCoachBookings.Notifications.Templates.HouseholdInvite,
+  session_invite: SportsCoachBookings.Notifications.Templates.SessionInvite,
+  private_session_request_reviewed:
+    SportsCoachBookings.Notifications.Templates.PrivateSessionRequestReviewed,
+  website_contact_submitted: SportsCoachBookings.Notifications.Templates.WebsiteContactSubmitted,
   staff_invite: SportsCoachBookings.Notifications.Templates.StaffInvite,
   staff_confirm: SportsCoachBookings.Notifications.Templates.StaffConfirm,
   staff_reset_password: SportsCoachBookings.Notifications.Templates.StaffResetPassword,

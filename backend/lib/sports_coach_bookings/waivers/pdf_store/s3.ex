@@ -9,8 +9,9 @@ defmodule SportsCoachBookings.Waivers.PdfStore.S3 do
   is used and its policy must not allow public reads of the `<tenant_id>/waivers/`
   prefixes. `:req_options` (tests only) are merged into every `Req` request.
 
-  > Only request construction is covered by tests (via `Req.Test`); there is no
-  > live bucket in CI. Validate a put/get/delete round-trip in staging.
+  Request construction is covered with `Req.Test`, and CI performs a live
+  put/get/delete round trip against RustFS. Validate the production provider in
+  staging as well.
   """
 
   @behaviour SportsCoachBookings.Waivers.PdfStore

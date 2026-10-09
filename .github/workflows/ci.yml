@@ -26,6 +26,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      rustfs:
+        image: rustfs/rustfs:latest
+        env:
+          RUSTFS_ACCESS_KEY: rustfsadmin
+          RUSTFS_SECRET_KEY: rustfsadmin
+          RUSTFS_VOLUMES: /data
+          RUSTFS_ADDRESS: ":9000"
+        ports:
+          - 9000:9000
 
     steps:
       - uses: actions/checkout@v4
@@ -85,6 +94,30 @@ jobs:
         env:
           MIX_ENV: test
         run: mix test
+
+      - name: Create object-storage test buckets
+        env:
+          AWS_ACCESS_KEY_ID: rustfsadmin
+          AWS_SECRET_ACCESS_KEY: rustfsadmin
+          AWS_DEFAULT_REGION: us-east-1
+          S3_ENDPOINT: http://localhost:9000
+          S3_BUCKET: scb-uploads
+          S3_PRIVATE_BUCKET: scb-private
+        run: ./infra/rustfs/create-buckets.sh
+
+      - name: Test live S3-compatible storage round trips
+        working-directory: backend
+        env:
+          MIX_ENV: test
+          S3_INTEGRATION: "1"
+          S3_BUCKET: scb-uploads
+          S3_PRIVATE_BUCKET: scb-private
+          S3_REGION: us-east-1
+          S3_ACCESS_KEY_ID: rustfsadmin
+          S3_SECRET_ACCESS_KEY: rustfsadmin
+          S3_ENDPOINT: http://localhost:9000
+          S3_FORCE_PATH_STYLE: "true"
+        run: mix test test/sports_coach_bookings/ops/storage/s3_integration_test.exs
 
       - name: OpenAPI drift check
         working-directory: backend

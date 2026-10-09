@@ -20,9 +20,9 @@ defmodule SportsCoachBookings.Tenancy.Storage.S3 do
         presign_ttl_seconds: 900,
         force_path_style: false
 
-  > **Not verified against a live bucket in this repo.** There are no S3
-  > credentials in CI/dev, so only the URL-shape/signing tests run. The human
-  > deployer must validate an upload round-trip in staging (see `docs/ops.md`).
+  CI performs public and private object round trips against RustFS. The human
+  deployer must still validate the configured production provider in staging
+  (see `docs/ops.md`).
   """
 
   @behaviour SportsCoachBookings.Tenancy.Storage
