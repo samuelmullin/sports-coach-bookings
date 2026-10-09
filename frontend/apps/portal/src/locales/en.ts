@@ -31,6 +31,7 @@ const en = {
     credits: 'Sessions',
     cart: 'Cart',
     pickups: 'Pickups',
+    privateRequests: 'Private requests',
   },
   schedule: {
     subtitle: 'Find a session and book your player in.',

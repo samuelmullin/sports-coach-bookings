@@ -29,7 +29,8 @@ export type SportsCoachBookingsWebPortalReservationsReservationsControllerConver
   order_line_id?: string | null;
   paid_amount?: number;
   payment_method: SportsCoachBookingsWebPortalReservationsReservationsControllerConvert200BookingsItemPaymentMethod;
-  player_id: string;
+  /** @nullable */
+  player_id?: string | null;
   rebook_count?: number;
   /** @nullable */
   rebooked_from_id?: string | null;

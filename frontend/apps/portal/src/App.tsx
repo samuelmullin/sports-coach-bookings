@@ -5,6 +5,16 @@ import { RequireAnonymous, RequireCustomerAuth } from './auth/guards';
 import { PortalLayout } from './layouts/PortalLayout';
 
 const HomePage = lazyNamed(() => import('./features/home/HomePage'), 'HomePage');
+const AboutPage = lazyNamed(() => import('./features/website/AboutPage'), 'AboutPage');
+const CoachesPage = lazyNamed(() => import('./features/website/CoachesPage'), 'CoachesPage');
+const TestimonialsPage = lazyNamed(
+  () => import('./features/website/TestimonialsPage'),
+  'TestimonialsPage',
+);
+const GalleryPage = lazyNamed(() => import('./features/website/GalleryPage'), 'GalleryPage');
+const SponsorsPage = lazyNamed(() => import('./features/website/SponsorsPage'), 'SponsorsPage');
+const FaqPage = lazyNamed(() => import('./features/website/FaqPage'), 'FaqPage');
+const ContactPage = lazyNamed(() => import('./features/website/ContactPage'), 'ContactPage');
 const SchedulePage = lazyNamed(() => import('./features/catalog/SchedulePage'), 'SchedulePage');
 const SessionDetailPage = lazyNamed(
   () => import('./features/catalog/SessionDetailPage'),
@@ -35,13 +45,17 @@ const WaiverSignPage = lazyNamed(
   'WaiverSignPage',
 );
 const BookingsPage = lazyNamed(() => import('./features/bookings/BookingsPage'), 'BookingsPage');
+const PrivateSessionRequestsPage = lazyNamed(
+  () => import('./features/bookings/PrivateSessionRequestsPage'),
+  'PrivateSessionRequestsPage',
+);
 const BookingFlowPage = lazyNamed(
   () => import('./features/bookings/BookingFlowPage'),
   'BookingFlowPage',
 );
-const OfferingRedirect = lazyNamed(
-  () => import('./features/reservations/OfferingScheduleRoute'),
-  'OfferingRedirect',
+const OfferingDetailPage = lazyNamed(
+  () => import('./features/catalog/OfferingDetailPage'),
+  'OfferingDetailPage',
 );
 const OfferingScheduleRoute = lazyNamed(
   () => import('./features/reservations/OfferingScheduleRoute'),
@@ -81,6 +95,10 @@ const AcceptHouseholdInvitePage = lazyNamed(
   () => import('./pages/auth/AcceptHouseholdInvitePage'),
   'AcceptHouseholdInvitePage',
 );
+const AcceptSessionInvitePage = lazyNamed(
+  () => import('./pages/auth/AcceptSessionInvitePage'),
+  'AcceptSessionInvitePage',
+);
 
 export function AppRoutes() {
   return (
@@ -88,9 +106,16 @@ export function AppRoutes() {
       <Routes>
         <Route element={<PortalLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutPage />} />
+          <Route path="coaches" element={<CoachesPage />} />
+          <Route path="testimonials" element={<TestimonialsPage />} />
+          <Route path="gallery" element={<GalleryPage />} />
+          <Route path="sponsors" element={<SponsorsPage />} />
+          <Route path="faq" element={<FaqPage />} />
+          <Route path="contact" element={<ContactPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="sessions/:sessionId" element={<SessionDetailPage />} />
-          <Route path="offerings/:offeringId" element={<OfferingRedirect />} />
+          <Route path="offerings/:offeringId" element={<OfferingDetailPage />} />
           <Route path="offerings/:offeringId/schedule" element={<OfferingScheduleRoute />} />
           <Route path="packages" element={<PackagesPage />} />
           <Route path="packages/:packageId" element={<PackageDetailPage />} />
@@ -110,6 +135,7 @@ export function AppRoutes() {
             <Route path="players/:playerId" element={<PlayerDetailPage />} />
             <Route path="players/:playerId/waivers/:versionId/sign" element={<WaiverSignPage />} />
             <Route path="bookings" element={<BookingsPage />} />
+            <Route path="private-session-requests" element={<PrivateSessionRequestsPage />} />
             <Route path="book/:sessionId" element={<BookingFlowPage />} />
             <Route path="reservations/:id/complete" element={<ReservationCompletePage />} />
             <Route path="orders" element={<OrdersPage />} />
@@ -133,6 +159,7 @@ export function AppRoutes() {
         <Route path="reset-password" element={<PortalResetPasswordPage />} />
         <Route path="confirm-email" element={<PortalConfirmEmailPage />} />
         <Route path="accept-invite/:token" element={<AcceptHouseholdInvitePage />} />
+        <Route path="session-invites/:token" element={<AcceptSessionInvitePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

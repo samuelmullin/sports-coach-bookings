@@ -29,6 +29,7 @@ const en = {
     waivers: 'Waivers',
     inventory: 'Inventory',
     messaging: 'Messaging',
+    website: 'Website',
     team: 'Team',
     feedback: 'Feedback',
     settings: 'Settings',

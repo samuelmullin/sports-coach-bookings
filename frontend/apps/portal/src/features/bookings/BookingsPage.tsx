@@ -16,6 +16,8 @@ import { VenueTime, TimezoneNote } from '../shared/VenueTime';
 import { usePortalSettings } from '../shared/extras';
 import { CancelBookingDialog } from './CancelBookingDialog';
 import { RebookDialog } from './RebookDialog';
+import { InviteSessionDialog } from './InviteSessionDialog';
+import { SessionInvitationsPanel } from './SessionInvitationsPanel';
 
 function readString(
   record: Record<string, unknown> | null | undefined,
@@ -42,13 +44,14 @@ export function BookingsPage() {
 
   const bookings = listItems<BookingListItem>(query);
   const players = listItems<PlayerResponse>(playersQuery);
-  const playerName = (id: string) => {
+  const playerName = (id: string | null | undefined) => {
     const player = players.find((candidate) => candidate.id === id);
     return player ? `${player.first_name} ${player.last_name}` : 'Player';
   };
 
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [rebookId, setRebookId] = useState<string | null>(null);
+  const [inviteSessionId, setInviteSessionId] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -99,12 +102,15 @@ export function BookingsPage() {
                   timezone={settings.timezone}
                   onCancel={() => setCancelId(item.booking.id)}
                   onRebook={() => setRebookId(item.booking.id)}
+                  onInvite={() => setInviteSessionId(item.booking.session_id)}
                 />
               </li>
             ))}
           </ul>
         )}
       </QueryState>
+
+      <SessionInvitationsPanel />
 
       {cancelId ? (
         <CancelBookingDialog
@@ -120,6 +126,13 @@ export function BookingsPage() {
           onOpenChange={(open) => !open && setRebookId(null)}
         />
       ) : null}
+      {inviteSessionId ? (
+        <InviteSessionDialog
+          sessionId={inviteSessionId}
+          open
+          onOpenChange={(open) => !open && setInviteSessionId(null)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -130,12 +143,14 @@ function BookingCard({
   timezone,
   onCancel,
   onRebook,
+  onInvite,
 }: {
   item: BookingListItem;
   playerName: string;
   timezone: string;
   onCancel: () => void;
   onRebook: () => void;
+  onInvite: () => void;
 }) {
   const booking = item.booking;
   const session = item.session as Record<string, unknown> | null;
@@ -143,6 +158,11 @@ function BookingCard({
   const startsAt = readString(session, 'starts_at');
   const title = readString(offering, 'name') ?? 'Session';
   const canAct = booking.status === 'confirmed' || booking.status === 'held';
+  const canInvite =
+    canAct &&
+    offering?.allow_invite_reservations === true &&
+    Number(session?.seats_left ?? 0) > 0 &&
+    booking.player_id != null;
 
   return (
     <Card data-testid="booking-card">
@@ -177,6 +197,11 @@ function BookingCard({
 
         {canAct ? (
           <div className="flex flex-wrap gap-2">
+            {canInvite ? (
+              <Button size="sm" onClick={onInvite}>
+                Invite someone
+              </Button>
+            ) : null}
             <Button size="sm" variant="outline" onClick={onRebook}>
               Rebook
             </Button>

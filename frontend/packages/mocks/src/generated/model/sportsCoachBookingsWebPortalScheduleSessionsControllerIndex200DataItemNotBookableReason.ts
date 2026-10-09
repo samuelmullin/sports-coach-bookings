@@ -18,4 +18,5 @@ export const SportsCoachBookingsWebPortalScheduleSessionsControllerIndex200DataI
   too_late: 'too_late',
   too_early: 'too_early',
   cancelled: 'cancelled',
+  understaffed: 'understaffed',
 } as const;

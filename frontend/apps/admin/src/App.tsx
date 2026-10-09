@@ -31,11 +31,16 @@ const DashboardPage = lazyNamed(
 );
 const SettingsPage = lazyNamed(() => import('./features/settings/SettingsPage'), 'SettingsPage');
 const TeamPage = lazyNamed(() => import('./features/team/TeamPage'), 'TeamPage');
+const WebsitePage = lazyNamed(() => import('./features/website/WebsitePage'), 'WebsitePage');
 const CatalogLayout = lazyNamed(() => import('./features/catalog/CatalogLayout'), 'CatalogLayout');
 const VenuesPage = lazyNamed(() => import('./features/catalog/VenuesPage'), 'VenuesPage');
 const OfferingsPage = lazyNamed(() => import('./features/catalog/OfferingsPage'), 'OfferingsPage');
 const PackagesPage = lazyNamed(() => import('./features/catalog/PackagesPage'), 'PackagesPage');
 const DiscountsPage = lazyNamed(() => import('./features/catalog/DiscountsPage'), 'DiscountsPage');
+const PrivateSessionRequestsPage = lazyNamed(
+  () => import('./features/catalog/PrivateSessionRequestsPage'),
+  'PrivateSessionRequestsPage',
+);
 const PoliciesPage = lazyNamed(() => import('./features/policies/PoliciesPage'), 'PoliciesPage');
 const PolicyEditorPage = lazyNamed(
   () => import('./features/policies/PolicyEditorPage'),
@@ -286,6 +291,7 @@ export function AppRoutes() {
             <Route path="offerings" element={<OfferingsPage />} />
             <Route path="packages" element={<PackagesPage />} />
             <Route path="discounts" element={<DiscountsPage />} />
+            <Route path="private-requests" element={<PrivateSessionRequestsPage />} />
           </Route>
 
           <Route
@@ -360,6 +366,14 @@ export function AppRoutes() {
               <CoachAccess>
                 <FeedbackHistoryPage />
               </CoachAccess>
+            }
+          />
+          <Route
+            path="website"
+            element={
+              <AdminOnly>
+                <WebsitePage />
+              </AdminOnly>
             }
           />
           <Route

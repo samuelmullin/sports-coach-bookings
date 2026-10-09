@@ -29,7 +29,8 @@ export type SportsCoachBookingsWebPortalBookingsBookingsControllerCancel200 = {
   order_line_id?: string | null;
   paid_amount?: number;
   payment_method: SportsCoachBookingsWebPortalBookingsBookingsControllerCancel200PaymentMethod;
-  player_id: string;
+  /** @nullable */
+  player_id?: string | null;
   rebook_count?: number;
   /** @nullable */
   rebooked_from_id?: string | null;

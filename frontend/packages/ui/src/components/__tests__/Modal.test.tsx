@@ -28,6 +28,21 @@ describe('Modal', () => {
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('traps focus while open and restores focus to the opener when closed', async () => {
+    render(<ModalHarness />);
+    const opener = screen.getByRole('button', { name: 'Open modal' });
+    await userEvent.click(opener);
+
+    const close = screen.getByRole('button', { name: 'Close' });
+    expect(close).toHaveFocus();
+
+    await userEvent.tab();
+    expect(close).toHaveFocus();
+
+    await userEvent.keyboard('{Escape}');
+    expect(opener).toHaveFocus();
+  });
 });
 
 describe('Drawer', () => {

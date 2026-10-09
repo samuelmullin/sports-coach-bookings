@@ -7,7 +7,12 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:4000',
+      '/api': {
+        target: 'http://localhost:4000',
+        // Tenancy and same-origin protection both use the browser-facing host.
+        // Do not replace demo.localhost with the proxy target's localhost host.
+        changeOrigin: false,
+      },
     },
   },
   build: {

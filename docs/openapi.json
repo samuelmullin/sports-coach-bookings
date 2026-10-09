@@ -638,6 +638,15 @@
           "active": {
             "type": "boolean"
           },
+          "allow_invite_reservations": {
+            "type": "boolean"
+          },
+          "allow_private_conversion": {
+            "type": "boolean"
+          },
+          "allow_private_requests": {
+            "type": "boolean"
+          },
           "bookable_from_days_ahead": {
             "nullable": true,
             "type": "integer"
@@ -674,6 +683,11 @@
             "nullable": true,
             "type": "string"
           },
+          "invite_hold_hours": {
+            "default": 48,
+            "minimum": 1,
+            "type": "integer"
+          },
           "max_age": {
             "nullable": true,
             "type": "integer"
@@ -687,6 +701,36 @@
           },
           "position": {
             "type": "integer"
+          },
+          "private_enabled": {
+            "type": "boolean"
+          },
+          "private_max_players": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "private_players_per_coach": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "private_price_tiers": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "public_enabled": {
+            "type": "boolean"
+          },
+          "public_max_players": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "public_players_per_coach": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "public_price_tiers": {
+            "additionalProperties": true,
+            "type": "object"
           },
           "slug": {
             "nullable": true,
@@ -743,6 +787,15 @@
           "active": {
             "type": "boolean"
           },
+          "allow_invite_reservations": {
+            "type": "boolean"
+          },
+          "allow_private_conversion": {
+            "type": "boolean"
+          },
+          "allow_private_requests": {
+            "type": "boolean"
+          },
           "bookable_from_days_ahead": {
             "nullable": true,
             "type": "integer"
@@ -788,6 +841,9 @@
             "nullable": true,
             "type": "string"
           },
+          "invite_hold_hours": {
+            "type": "integer"
+          },
           "max_age": {
             "nullable": true,
             "type": "integer"
@@ -801,6 +857,32 @@
           },
           "position": {
             "type": "integer"
+          },
+          "private_enabled": {
+            "type": "boolean"
+          },
+          "private_max_players": {
+            "type": "integer"
+          },
+          "private_players_per_coach": {
+            "type": "integer"
+          },
+          "private_price_tiers": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "public_enabled": {
+            "type": "boolean"
+          },
+          "public_max_players": {
+            "type": "integer"
+          },
+          "public_players_per_coach": {
+            "type": "integer"
+          },
+          "public_price_tiers": {
+            "additionalProperties": true,
+            "type": "object"
           },
           "slug": {
             "type": "string"
@@ -821,7 +903,17 @@
           "format",
           "duration_minutes",
           "active",
-          "position"
+          "position",
+          "public_enabled",
+          "public_max_players",
+          "public_players_per_coach",
+          "private_enabled",
+          "private_max_players",
+          "private_players_per_coach",
+          "allow_invite_reservations",
+          "invite_hold_hours",
+          "allow_private_conversion",
+          "allow_private_requests"
         ],
         "title": "OfferingResponse",
         "type": "object"
@@ -2731,6 +2823,144 @@
         ]
       }
     },
+    "/api/staff/bookings/private-session-requests/{id}": {
+      "patch": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Bookings.PrivateSessionRequestsController.update",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "decline_reason": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "format": "uuid",
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "approved",
+                      "declined"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Review",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "decline_reason": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "household_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "inserted_at": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "notes": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "offering_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "player_count": {
+                      "type": "integer"
+                    },
+                    "preferred_times": {
+                      "items": {
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "reviewed_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "session_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "pending",
+                        "approved",
+                        "declined",
+                        "cancelled"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "offering_id",
+                    "household_id",
+                    "player_count",
+                    "preferred_times",
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Approve or decline a private-session request",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
     "/api/portal/account/password": {
       "put": {
         "callbacks": {},
@@ -3715,6 +3945,117 @@
         ]
       }
     },
+    "/api/portal/bookings/invitations": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.invitations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "properties": {
+                          "accepted_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "booking_id": {
+                            "format": "uuid",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "email": {
+                            "format": "email",
+                            "type": "string"
+                          },
+                          "expires_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "invitee_household_id": {
+                            "format": "uuid",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "invitee_player_id": {
+                            "format": "uuid",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "last_sent_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "organizer_household_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "payment_mode": {
+                            "enum": [
+                              "split",
+                              "organizer"
+                            ],
+                            "type": "string"
+                          },
+                          "resend_count": {
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "seat_status": {
+                            "type": "string"
+                          },
+                          "session_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "session_id",
+                          "email",
+                          "status",
+                          "payment_mode",
+                          "seat_status"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_cursor": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Invitations"
+          }
+        },
+        "summary": "List the household's session invitations",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
     "/api/portal/ping": {
       "get": {
         "callbacks": {},
@@ -3734,6 +4075,112 @@
           }
         },
         "summary": "Ping",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
+    "/api/portal/session_invitations/{token}": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.show_invitation",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "booking_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "type": "string"
+                    },
+                    "expires_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "invitee_household_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "invitee_player_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "last_sent_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "organizer_household_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "payment_mode": {
+                      "enum": [
+                        "split",
+                        "organizer"
+                      ],
+                      "type": "string"
+                    },
+                    "resend_count": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "seat_status": {
+                      "type": "string"
+                    },
+                    "session_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "session_id",
+                    "email",
+                    "status",
+                    "payment_mode",
+                    "seat_status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Invitation"
+          }
+        },
+        "summary": "View a session invitation",
         "tags": [
           "portal"
         ]
@@ -4051,6 +4498,227 @@
           }
         },
         "summary": "The household's credit ledger history",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
+    "/api/portal/bookings/private-session-requests": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.private_requests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "properties": {
+                          "decline_reason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "household_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "notes": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "offering_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "player_count": {
+                            "type": "integer"
+                          },
+                          "preferred_times": {
+                            "items": {
+                              "format": "date-time",
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "reviewed_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "session_id": {
+                            "format": "uuid",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": [
+                              "pending",
+                              "approved",
+                              "declined",
+                              "cancelled"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "offering_id",
+                          "household_id",
+                          "player_count",
+                          "preferred_times",
+                          "status"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_cursor": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Private-session requests"
+          }
+        },
+        "summary": "List the household's private-session requests",
+        "tags": [
+          "portal"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.request_private",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "notes": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "offering_id": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "player_count": {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "preferred_times": {
+                    "items": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "offering_id",
+                  "player_count"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Private session request",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "decline_reason": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "household_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "inserted_at": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "notes": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "offering_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "player_count": {
+                      "type": "integer"
+                    },
+                    "preferred_times": {
+                      "items": {
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "reviewed_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "session_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "pending",
+                        "approved",
+                        "declined",
+                        "cancelled"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "offering_id",
+                    "household_id",
+                    "player_count",
+                    "preferred_times",
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Request"
+          }
+        },
+        "summary": "Request a new operator-approved private session",
         "tags": [
           "portal"
         ]
@@ -5061,6 +5729,7 @@
                               },
                               "player_id": {
                                 "format": "uuid",
+                                "nullable": true,
                                 "type": "string"
                               },
                               "rebook_count": {
@@ -5099,7 +5768,6 @@
                             "required": [
                               "id",
                               "session_id",
-                              "player_id",
                               "status",
                               "payment_method"
                             ],
@@ -5263,6 +5931,7 @@
                     },
                     "player_id": {
                       "format": "uuid",
+                      "nullable": true,
                       "type": "string"
                     },
                     "rebook_count": {
@@ -5301,7 +5970,6 @@
                   "required": [
                     "id",
                     "session_id",
-                    "player_id",
                     "status",
                     "payment_method"
                   ],
@@ -5437,7 +6105,8 @@
                               "full",
                               "too_late",
                               "too_early",
-                              "cancelled"
+                              "cancelled",
+                              "understaffed"
                             ],
                             "nullable": true,
                             "type": "string"
@@ -5445,6 +6114,15 @@
                           "offering": {
                             "nullable": true,
                             "properties": {
+                              "allow_invite_reservations": {
+                                "type": "boolean"
+                              },
+                              "allow_private_conversion": {
+                                "type": "boolean"
+                              },
+                              "allow_private_requests": {
+                                "type": "boolean"
+                              },
                               "bookable_from_days_ahead": {
                                 "nullable": true,
                                 "type": "integer"
@@ -5481,6 +6159,9 @@
                                 "format": "uuid",
                                 "type": "string"
                               },
+                              "invite_hold_hours": {
+                                "type": "integer"
+                              },
                               "max_age": {
                                 "nullable": true,
                                 "type": "integer"
@@ -5491,6 +6172,26 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "private_enabled": {
+                                "type": "boolean"
+                              },
+                              "private_max_players": {
+                                "type": "integer"
+                              },
+                              "private_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
+                              },
+                              "public_enabled": {
+                                "type": "boolean"
+                              },
+                              "public_max_players": {
+                                "type": "integer"
+                              },
+                              "public_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
                               },
                               "slug": {
                                 "type": "string"
@@ -5503,6 +6204,13 @@
                           },
                           "session": {
                             "properties": {
+                              "access_mode": {
+                                "enum": [
+                                  "public",
+                                  "private"
+                                ],
+                                "type": "string"
+                              },
                               "booked_count": {
                                 "type": "integer"
                               },
@@ -5541,6 +6249,10 @@
                               "offering_id": {
                                 "format": "uuid",
                                 "type": "string"
+                              },
+                              "party_size": {
+                                "nullable": true,
+                                "type": "integer"
                               },
                               "seats_left": {
                                 "type": "integer"
@@ -5679,6 +6391,14 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "access_mode": {
+                    "enum": [
+                      "public",
+                      "private"
+                    ],
+                    "nullable": true,
+                    "type": "string"
+                  },
                   "capacity": {
                     "type": "integer"
                   },
@@ -5705,6 +6425,10 @@
                   "offering_id": {
                     "format": "uuid",
                     "type": "string"
+                  },
+                  "party_size": {
+                    "nullable": true,
+                    "type": "integer"
                   },
                   "show_coaches": {
                     "nullable": true,
@@ -5751,6 +6475,13 @@
                   "properties": {
                     "session": {
                       "properties": {
+                        "access_mode": {
+                          "enum": [
+                            "public",
+                            "private"
+                          ],
+                          "type": "string"
+                        },
                         "booked_count": {
                           "type": "integer"
                         },
@@ -5789,6 +6520,10 @@
                         "offering_id": {
                           "format": "uuid",
                           "type": "string"
+                        },
+                        "party_size": {
+                          "nullable": true,
+                          "type": "integer"
                         },
                         "seats_left": {
                           "type": "integer"
@@ -6028,6 +6763,261 @@
         "summary": "Archive a tax rate",
         "tags": [
           "staff"
+        ]
+      }
+    },
+    "/api/portal/bookings/sessions/{session_id}/invitations": {
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.invite",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "format": "email",
+                    "type": "string"
+                  },
+                  "method": {
+                    "enum": [
+                      "credits",
+                      "paid"
+                    ],
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "payment_mode": {
+                    "enum": [
+                      "split",
+                      "organizer"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "payment_mode"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Invitation",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "booking": {
+                      "nullable": true,
+                      "properties": {
+                        "cancel_outcome": {
+                          "additionalProperties": true,
+                          "nullable": true,
+                          "type": "object"
+                        },
+                        "cancelled_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "credits_used": {
+                          "type": "integer"
+                        },
+                        "currency": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "free_change_until": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "hold_expires_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "household_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "inserted_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "order_line_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "paid_amount": {
+                          "type": "integer"
+                        },
+                        "payment_method": {
+                          "enum": [
+                            "credits",
+                            "paid",
+                            "comp"
+                          ],
+                          "type": "string"
+                        },
+                        "player_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "rebook_count": {
+                          "type": "integer"
+                        },
+                        "rebooked_from_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "rebooked_to_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "session_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "status": {
+                          "enum": [
+                            "held",
+                            "confirmed",
+                            "cancelled",
+                            "attended",
+                            "no_show"
+                          ],
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "session_id",
+                        "status",
+                        "payment_method"
+                      ],
+                      "type": "object"
+                    },
+                    "invitation": {
+                      "properties": {
+                        "accepted_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "booking_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "email": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "expires_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "invitee_household_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "invitee_player_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "last_sent_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "organizer_household_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "payment_mode": {
+                          "enum": [
+                            "split",
+                            "organizer"
+                          ],
+                          "type": "string"
+                        },
+                        "resend_count": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "seat_status": {
+                          "type": "string"
+                        },
+                        "session_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "session_id",
+                        "email",
+                        "status",
+                        "payment_mode",
+                        "seat_status"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "invitation"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Invitation"
+          }
+        },
+        "summary": "Invite one player to a session",
+        "tags": [
+          "portal"
         ]
       }
     },
@@ -7103,6 +8093,77 @@
           }
         },
         "summary": "List waiver signatures",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/staff/website/publish": {
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Websites.SiteController.publish",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "draft_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "preview_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "published_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "published_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "updated_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "draft_content",
+                    "preview_content",
+                    "published_content"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Website"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Publish the hosted website draft",
         "tags": [
           "staff"
         ]
@@ -8218,6 +9279,7 @@
                               },
                               "player_id": {
                                 "format": "uuid",
+                                "nullable": true,
                                 "type": "string"
                               },
                               "rebook_count": {
@@ -8256,7 +9318,6 @@
                             "required": [
                               "id",
                               "session_id",
-                              "player_id",
                               "status",
                               "payment_method"
                             ],
@@ -8420,6 +9481,7 @@
                     },
                     "player_id": {
                       "format": "uuid",
+                      "nullable": true,
                       "type": "string"
                     },
                     "rebook_count": {
@@ -8458,7 +9520,6 @@
                   "required": [
                     "id",
                     "session_id",
-                    "player_id",
                     "status",
                     "payment_method"
                   ],
@@ -9773,6 +10834,14 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "access_mode": {
+                    "enum": [
+                      "public",
+                      "private"
+                    ],
+                    "nullable": true,
+                    "type": "string"
+                  },
                   "capacity": {
                     "type": "integer"
                   },
@@ -9807,6 +10876,10 @@
                   "offering_id": {
                     "format": "uuid",
                     "type": "string"
+                  },
+                  "party_size": {
+                    "nullable": true,
+                    "type": "integer"
                   },
                   "show_coaches": {
                     "nullable": true,
@@ -9926,6 +10999,13 @@
                     "sessions": {
                       "items": {
                         "properties": {
+                          "access_mode": {
+                            "enum": [
+                              "public",
+                              "private"
+                            ],
+                            "type": "string"
+                          },
                           "booked_count": {
                             "type": "integer"
                           },
@@ -9964,6 +11044,10 @@
                           "offering_id": {
                             "format": "uuid",
                             "type": "string"
+                          },
+                          "party_size": {
+                            "nullable": true,
+                            "type": "integer"
                           },
                           "seats_left": {
                             "type": "integer"
@@ -10575,6 +11659,13 @@
                     },
                     "session": {
                       "properties": {
+                        "access_mode": {
+                          "enum": [
+                            "public",
+                            "private"
+                          ],
+                          "type": "string"
+                        },
                         "booked_count": {
                           "type": "integer"
                         },
@@ -10613,6 +11704,10 @@
                         "offering_id": {
                           "format": "uuid",
                           "type": "string"
+                        },
+                        "party_size": {
+                          "nullable": true,
+                          "type": "integer"
                         },
                         "seats_left": {
                           "type": "integer"
@@ -10736,7 +11831,8 @@
                         "full",
                         "too_late",
                         "too_early",
-                        "cancelled"
+                        "cancelled",
+                        "understaffed"
                       ],
                       "nullable": true,
                       "type": "string"
@@ -10744,6 +11840,15 @@
                     "offering": {
                       "nullable": true,
                       "properties": {
+                        "allow_invite_reservations": {
+                          "type": "boolean"
+                        },
+                        "allow_private_conversion": {
+                          "type": "boolean"
+                        },
+                        "allow_private_requests": {
+                          "type": "boolean"
+                        },
                         "bookable_from_days_ahead": {
                           "nullable": true,
                           "type": "integer"
@@ -10780,6 +11885,9 @@
                           "format": "uuid",
                           "type": "string"
                         },
+                        "invite_hold_hours": {
+                          "type": "integer"
+                        },
                         "max_age": {
                           "nullable": true,
                           "type": "integer"
@@ -10790,6 +11898,26 @@
                         },
                         "name": {
                           "type": "string"
+                        },
+                        "private_enabled": {
+                          "type": "boolean"
+                        },
+                        "private_max_players": {
+                          "type": "integer"
+                        },
+                        "private_price_tiers": {
+                          "additionalProperties": true,
+                          "type": "object"
+                        },
+                        "public_enabled": {
+                          "type": "boolean"
+                        },
+                        "public_max_players": {
+                          "type": "integer"
+                        },
+                        "public_price_tiers": {
+                          "additionalProperties": true,
+                          "type": "object"
                         },
                         "slug": {
                           "type": "string"
@@ -10809,6 +11937,13 @@
                     },
                     "session": {
                       "properties": {
+                        "access_mode": {
+                          "enum": [
+                            "public",
+                            "private"
+                          ],
+                          "type": "string"
+                        },
                         "booked_count": {
                           "type": "integer"
                         },
@@ -10847,6 +11982,10 @@
                         "offering_id": {
                           "format": "uuid",
                           "type": "string"
+                        },
+                        "party_size": {
+                          "nullable": true,
+                          "type": "integer"
                         },
                         "seats_left": {
                           "type": "integer"
@@ -10986,6 +12125,14 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "access_mode": {
+                    "enum": [
+                      "public",
+                      "private"
+                    ],
+                    "nullable": true,
+                    "type": "string"
+                  },
                   "capacity": {
                     "type": "integer"
                   },
@@ -11012,6 +12159,10 @@
                   "offering_id": {
                     "format": "uuid",
                     "type": "string"
+                  },
+                  "party_size": {
+                    "nullable": true,
+                    "type": "integer"
                   },
                   "show_coaches": {
                     "nullable": true,
@@ -11058,6 +12209,13 @@
                   "properties": {
                     "session": {
                       "properties": {
+                        "access_mode": {
+                          "enum": [
+                            "public",
+                            "private"
+                          ],
+                          "type": "string"
+                        },
                         "booked_count": {
                           "type": "integer"
                         },
@@ -11096,6 +12254,10 @@
                         "offering_id": {
                           "format": "uuid",
                           "type": "string"
+                        },
+                        "party_size": {
+                          "nullable": true,
+                          "type": "integer"
                         },
                         "seats_left": {
                           "type": "integer"
@@ -11229,6 +12391,14 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "access_mode": {
+                    "enum": [
+                      "public",
+                      "private"
+                    ],
+                    "nullable": true,
+                    "type": "string"
+                  },
                   "capacity": {
                     "type": "integer"
                   },
@@ -11255,6 +12425,10 @@
                   "offering_id": {
                     "format": "uuid",
                     "type": "string"
+                  },
+                  "party_size": {
+                    "nullable": true,
+                    "type": "integer"
                   },
                   "show_coaches": {
                     "nullable": true,
@@ -11301,6 +12475,13 @@
                   "properties": {
                     "session": {
                       "properties": {
+                        "access_mode": {
+                          "enum": [
+                            "public",
+                            "private"
+                          ],
+                          "type": "string"
+                        },
                         "booked_count": {
                           "type": "integer"
                         },
@@ -11339,6 +12520,10 @@
                         "offering_id": {
                           "format": "uuid",
                           "type": "string"
+                        },
+                        "party_size": {
+                          "nullable": true,
+                          "type": "integer"
                         },
                         "seats_left": {
                           "type": "integer"
@@ -15363,6 +16548,7 @@
                     },
                     "player_id": {
                       "format": "uuid",
+                      "nullable": true,
                       "type": "string"
                     },
                     "rebook_count": {
@@ -15401,7 +16587,6 @@
                   "required": [
                     "id",
                     "session_id",
-                    "player_id",
                     "status",
                     "payment_method"
                   ],
@@ -15481,6 +16666,13 @@
                   "properties": {
                     "session": {
                       "properties": {
+                        "access_mode": {
+                          "enum": [
+                            "public",
+                            "private"
+                          ],
+                          "type": "string"
+                        },
                         "booked_count": {
                           "type": "integer"
                         },
@@ -15519,6 +16711,10 @@
                         "offering_id": {
                           "format": "uuid",
                           "type": "string"
+                        },
+                        "party_size": {
+                          "nullable": true,
+                          "type": "integer"
                         },
                         "seats_left": {
                           "type": "integer"
@@ -15770,6 +16966,7 @@
                     },
                     "player_id": {
                       "format": "uuid",
+                      "nullable": true,
                       "type": "string"
                     },
                     "rebook_count": {
@@ -15808,7 +17005,6 @@
                   "required": [
                     "id",
                     "session_id",
-                    "player_id",
                     "status",
                     "payment_method"
                   ],
@@ -15896,7 +17092,8 @@
                         "full",
                         "too_late",
                         "too_early",
-                        "cancelled"
+                        "cancelled",
+                        "understaffed"
                       ],
                       "nullable": true,
                       "type": "string"
@@ -15904,6 +17101,15 @@
                     "offering": {
                       "nullable": true,
                       "properties": {
+                        "allow_invite_reservations": {
+                          "type": "boolean"
+                        },
+                        "allow_private_conversion": {
+                          "type": "boolean"
+                        },
+                        "allow_private_requests": {
+                          "type": "boolean"
+                        },
                         "bookable_from_days_ahead": {
                           "nullable": true,
                           "type": "integer"
@@ -15940,6 +17146,9 @@
                           "format": "uuid",
                           "type": "string"
                         },
+                        "invite_hold_hours": {
+                          "type": "integer"
+                        },
                         "max_age": {
                           "nullable": true,
                           "type": "integer"
@@ -15950,6 +17159,26 @@
                         },
                         "name": {
                           "type": "string"
+                        },
+                        "private_enabled": {
+                          "type": "boolean"
+                        },
+                        "private_max_players": {
+                          "type": "integer"
+                        },
+                        "private_price_tiers": {
+                          "additionalProperties": true,
+                          "type": "object"
+                        },
+                        "public_enabled": {
+                          "type": "boolean"
+                        },
+                        "public_max_players": {
+                          "type": "integer"
+                        },
+                        "public_price_tiers": {
+                          "additionalProperties": true,
+                          "type": "object"
                         },
                         "slug": {
                           "type": "string"
@@ -15962,6 +17191,13 @@
                     },
                     "session": {
                       "properties": {
+                        "access_mode": {
+                          "enum": [
+                            "public",
+                            "private"
+                          ],
+                          "type": "string"
+                        },
                         "booked_count": {
                           "type": "integer"
                         },
@@ -16000,6 +17236,10 @@
                         "offering_id": {
                           "format": "uuid",
                           "type": "string"
+                        },
+                        "party_size": {
+                          "nullable": true,
+                          "type": "integer"
                         },
                         "seats_left": {
                           "type": "integer"
@@ -17082,6 +18322,145 @@
         ]
       }
     },
+    "/api/staff/bookings/private-session-requests": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Bookings.PrivateSessionRequestsController.index",
+        "parameters": [
+          {
+            "description": "",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "properties": {
+                          "decline_reason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "household_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "notes": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "offering_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "player_count": {
+                            "type": "integer"
+                          },
+                          "preferred_times": {
+                            "items": {
+                              "format": "date-time",
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "reviewed_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "session_id": {
+                            "format": "uuid",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": [
+                              "pending",
+                              "approved",
+                              "declined",
+                              "cancelled"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "offering_id",
+                          "household_id",
+                          "player_count",
+                          "preferred_times",
+                          "status"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_cursor": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Requests"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "List private-session requests",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
     "/api/portal/catalog/packages": {
       "get": {
         "callbacks": {},
@@ -17281,6 +18660,112 @@
         "summary": "Booking detail with history",
         "tags": [
           "staff"
+        ]
+      }
+    },
+    "/api/portal/bookings/invitations/{id}": {
+      "delete": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.cancel_invitation",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "booking_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "type": "string"
+                    },
+                    "expires_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "invitee_household_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "invitee_player_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "last_sent_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "organizer_household_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "payment_mode": {
+                      "enum": [
+                        "split",
+                        "organizer"
+                      ],
+                      "type": "string"
+                    },
+                    "resend_count": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "seat_status": {
+                      "type": "string"
+                    },
+                    "session_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "session_id",
+                    "email",
+                    "status",
+                    "payment_mode",
+                    "seat_status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Cancelled invitation"
+          }
+        },
+        "summary": "Cancel a pending session invitation",
+        "tags": [
+          "portal"
         ]
       }
     },
@@ -18102,6 +19587,133 @@
         ]
       }
     },
+    "/api/staff/website/contacts/{id}": {
+      "patch": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Websites.ContactSubmissionsController.update",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "new",
+                      "read",
+                      "resolved"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Contact status",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "company": {
+                      "maxLength": 160,
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "maxLength": 320,
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "inserted_at": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "message": {
+                      "maxLength": 5000,
+                      "minLength": 10,
+                      "type": "string"
+                    },
+                    "name": {
+                      "maxLength": 120,
+                      "type": "string"
+                    },
+                    "phone": {
+                      "maxLength": 40,
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "resolved_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "new",
+                        "read",
+                        "resolved"
+                      ],
+                      "type": "string"
+                    },
+                    "subject": {
+                      "maxLength": 160,
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "message",
+                    "status",
+                    "inserted_at"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Contact submission"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Update a hosted website contact submission",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
     "/api/staff/customers/{id}/password_reset": {
       "post": {
         "callbacks": {},
@@ -18191,6 +19803,112 @@
           }
         },
         "summary": "The household's per-player waiver status",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
+    "/api/portal/bookings/invitations/{id}/resend": {
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.resend_invitation",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "booking_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "type": "string"
+                    },
+                    "expires_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "invitee_household_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "invitee_player_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "last_sent_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "organizer_household_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "payment_mode": {
+                      "enum": [
+                        "split",
+                        "organizer"
+                      ],
+                      "type": "string"
+                    },
+                    "resend_count": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "seat_status": {
+                      "type": "string"
+                    },
+                    "session_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "session_id",
+                    "email",
+                    "status",
+                    "payment_mode",
+                    "seat_status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Resent invitation"
+          }
+        },
+        "summary": "Rotate the token and resend a pending session invitation",
         "tags": [
           "portal"
         ]
@@ -20516,6 +22234,7 @@
                     },
                     "player_id": {
                       "format": "uuid",
+                      "nullable": true,
                       "type": "string"
                     },
                     "rebook_count": {
@@ -20554,7 +22273,6 @@
                   "required": [
                     "id",
                     "session_id",
-                    "player_id",
                     "status",
                     "payment_method"
                   ],
@@ -20659,6 +22377,155 @@
         "summary": "Start or resume provider onboarding",
         "tags": [
           "staff"
+        ]
+      }
+    },
+    "/api/portal/bookings/sessions/{session_id}/convert-private": {
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.convert_private",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "party_size": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "party_size"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Private party",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "access_mode": {
+                      "enum": [
+                        "public",
+                        "private"
+                      ],
+                      "type": "string"
+                    },
+                    "booked_count": {
+                      "type": "integer"
+                    },
+                    "cancel_reason": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "capacity": {
+                      "type": "integer"
+                    },
+                    "ends_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "held_count": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "inserted_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "notes_public": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "notes_staff": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "offering_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "party_size": {
+                      "nullable": true,
+                      "type": "integer"
+                    },
+                    "seats_left": {
+                      "type": "integer"
+                    },
+                    "series_id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "show_coaches": {
+                      "type": "boolean"
+                    },
+                    "starts_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "scheduled",
+                        "cancelled",
+                        "completed"
+                      ],
+                      "type": "string"
+                    },
+                    "title_override": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "venue_id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "enum": [
+                        "public",
+                        "hidden"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Private session"
+          }
+        },
+        "summary": "Convert an empty public session into a private party",
+        "tags": [
+          "portal"
         ]
       }
     },
@@ -20883,7 +22750,8 @@
                               "full",
                               "too_late",
                               "too_early",
-                              "cancelled"
+                              "cancelled",
+                              "understaffed"
                             ],
                             "nullable": true,
                             "type": "string"
@@ -20891,6 +22759,15 @@
                           "offering": {
                             "nullable": true,
                             "properties": {
+                              "allow_invite_reservations": {
+                                "type": "boolean"
+                              },
+                              "allow_private_conversion": {
+                                "type": "boolean"
+                              },
+                              "allow_private_requests": {
+                                "type": "boolean"
+                              },
                               "bookable_from_days_ahead": {
                                 "nullable": true,
                                 "type": "integer"
@@ -20927,6 +22804,9 @@
                                 "format": "uuid",
                                 "type": "string"
                               },
+                              "invite_hold_hours": {
+                                "type": "integer"
+                              },
                               "max_age": {
                                 "nullable": true,
                                 "type": "integer"
@@ -20937,6 +22817,26 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "private_enabled": {
+                                "type": "boolean"
+                              },
+                              "private_max_players": {
+                                "type": "integer"
+                              },
+                              "private_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
+                              },
+                              "public_enabled": {
+                                "type": "boolean"
+                              },
+                              "public_max_players": {
+                                "type": "integer"
+                              },
+                              "public_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
                               },
                               "slug": {
                                 "type": "string"
@@ -20949,6 +22849,13 @@
                           },
                           "session": {
                             "properties": {
+                              "access_mode": {
+                                "enum": [
+                                  "public",
+                                  "private"
+                                ],
+                                "type": "string"
+                              },
                               "booked_count": {
                                 "type": "integer"
                               },
@@ -20987,6 +22894,10 @@
                               "offering_id": {
                                 "format": "uuid",
                                 "type": "string"
+                              },
+                              "party_size": {
+                                "nullable": true,
+                                "type": "integer"
                               },
                               "seats_left": {
                                 "type": "integer"
@@ -22032,6 +23943,7 @@
                           },
                           "player_id": {
                             "format": "uuid",
+                            "nullable": true,
                             "type": "string"
                           },
                           "rebook_count": {
@@ -22070,7 +23982,6 @@
                         "required": [
                           "id",
                           "session_id",
-                          "player_id",
                           "status",
                           "payment_method"
                         ],
@@ -22146,6 +24057,57 @@
           }
         },
         "summary": "Leave the household (primary members must transfer first)",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
+    "/api/portal/website": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.WebsiteController.show",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "published_at": {
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "published_at",
+                    "content"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Published website"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not published"
+          }
+        },
+        "summary": "Get published hosted website content",
         "tags": [
           "portal"
         ]
@@ -23510,6 +25472,146 @@
         ]
       }
     },
+    "/api/portal/website/contact": {
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.WebsiteController.contact",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "company": {
+                    "maxLength": 160,
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "format": "email",
+                    "maxLength": 320,
+                    "type": "string"
+                  },
+                  "message": {
+                    "maxLength": 5000,
+                    "minLength": 10,
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 120,
+                    "type": "string"
+                  },
+                  "phone": {
+                    "maxLength": 40,
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "subject": {
+                    "maxLength": 160,
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "message"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Contact inquiry",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "company": {
+                      "maxLength": 160,
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "maxLength": 320,
+                      "type": "string"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "inserted_at": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "message": {
+                      "maxLength": 5000,
+                      "minLength": 10,
+                      "type": "string"
+                    },
+                    "name": {
+                      "maxLength": 120,
+                      "type": "string"
+                    },
+                    "phone": {
+                      "maxLength": 40,
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "resolved_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "new",
+                        "read",
+                        "resolved"
+                      ],
+                      "type": "string"
+                    },
+                    "subject": {
+                      "maxLength": 160,
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "message",
+                    "status",
+                    "inserted_at"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Contact submission"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid inquiry"
+          }
+        },
+        "summary": "Submit a hosted website inquiry",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
     "/api/portal/account/export": {
       "get": {
         "callbacks": {},
@@ -24168,6 +26270,251 @@
         ]
       }
     },
+    "/api/staff/website": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Websites.SiteController.show",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "draft_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "preview_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "published_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "published_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "updated_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "draft_content",
+                    "preview_content",
+                    "published_content"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Website"
+          }
+        },
+        "summary": "Get hosted website draft and published content",
+        "tags": [
+          "staff"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Websites.SiteController.update (2)",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "content": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "content"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Website draft",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "draft_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "preview_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "published_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "published_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "updated_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "draft_content",
+                    "preview_content",
+                    "published_content"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Website"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Update hosted website draft",
+        "tags": [
+          "staff"
+        ]
+      },
+      "put": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Websites.SiteController.update",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "content": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "content"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Website draft",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "draft_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "format": "uuid",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "preview_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "published_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "published_content": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "updated_at": {
+                      "format": "date-time",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "draft_content",
+                    "preview_content",
+                    "published_content"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Website"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Update hosted website draft",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
     "/api/staff/players/{id}/profile": {
       "put": {
         "callbacks": {},
@@ -24285,6 +26632,45 @@
         ]
       }
     },
+    "/api/portal/bookings/invitation-partners": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.partners",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_cursor": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Partners"
+          }
+        },
+        "summary": "List previous accepted invitation partners",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
     "/api/staff/schedule/sessions/{id}/edit_series": {
       "post": {
         "callbacks": {},
@@ -24383,6 +26769,13 @@
                     "sessions": {
                       "items": {
                         "properties": {
+                          "access_mode": {
+                            "enum": [
+                              "public",
+                              "private"
+                            ],
+                            "type": "string"
+                          },
                           "booked_count": {
                             "type": "integer"
                           },
@@ -24421,6 +26814,10 @@
                           "offering_id": {
                             "format": "uuid",
                             "type": "string"
+                          },
+                          "party_size": {
+                            "nullable": true,
+                            "type": "integer"
                           },
                           "seats_left": {
                             "type": "integer"
@@ -25982,6 +28379,94 @@
         ]
       }
     },
+    "/api/staff/website/uploads": {
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Websites.SiteController.create_upload",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "byte_size": {
+                    "type": "integer"
+                  },
+                  "content_type": {
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp",
+                      "image/svg+xml"
+                    ],
+                    "type": "string"
+                  },
+                  "filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "filename",
+                  "content_type",
+                  "byte_size"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Upload",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "expires_at": {
+                      "type": "string"
+                    },
+                    "headers": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "method": {
+                      "type": "string"
+                    },
+                    "upload_url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "upload_url"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Upload"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "summary": "Presign a hosted website image upload",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
     "/api/staff/orders": {
       "get": {
         "callbacks": {},
@@ -27103,7 +29588,8 @@
                               "full",
                               "too_late",
                               "too_early",
-                              "cancelled"
+                              "cancelled",
+                              "understaffed"
                             ],
                             "nullable": true,
                             "type": "string"
@@ -27111,6 +29597,15 @@
                           "offering": {
                             "nullable": true,
                             "properties": {
+                              "allow_invite_reservations": {
+                                "type": "boolean"
+                              },
+                              "allow_private_conversion": {
+                                "type": "boolean"
+                              },
+                              "allow_private_requests": {
+                                "type": "boolean"
+                              },
                               "bookable_from_days_ahead": {
                                 "nullable": true,
                                 "type": "integer"
@@ -27147,6 +29642,9 @@
                                 "format": "uuid",
                                 "type": "string"
                               },
+                              "invite_hold_hours": {
+                                "type": "integer"
+                              },
                               "max_age": {
                                 "nullable": true,
                                 "type": "integer"
@@ -27157,6 +29655,26 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "private_enabled": {
+                                "type": "boolean"
+                              },
+                              "private_max_players": {
+                                "type": "integer"
+                              },
+                              "private_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
+                              },
+                              "public_enabled": {
+                                "type": "boolean"
+                              },
+                              "public_max_players": {
+                                "type": "integer"
+                              },
+                              "public_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
                               },
                               "slug": {
                                 "type": "string"
@@ -27169,6 +29687,13 @@
                           },
                           "session": {
                             "properties": {
+                              "access_mode": {
+                                "enum": [
+                                  "public",
+                                  "private"
+                                ],
+                                "type": "string"
+                              },
                               "booked_count": {
                                 "type": "integer"
                               },
@@ -27207,6 +29732,10 @@
                               "offering_id": {
                                 "format": "uuid",
                                 "type": "string"
+                              },
+                              "party_size": {
+                                "nullable": true,
+                                "type": "integer"
                               },
                               "seats_left": {
                                 "type": "integer"
@@ -27547,6 +30076,7 @@
                     },
                     "player_id": {
                       "format": "uuid",
+                      "nullable": true,
                       "type": "string"
                     },
                     "rebook_count": {
@@ -27585,7 +30115,6 @@
                   "required": [
                     "id",
                     "session_id",
-                    "player_id",
                     "status",
                     "payment_method"
                   ],
@@ -27775,6 +30304,132 @@
         ]
       }
     },
+    "/api/staff/website/contacts": {
+      "get": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Staff.Websites.ContactSubmissionsController.index",
+        "parameters": [
+          {
+            "description": "",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "properties": {
+                          "company": {
+                            "maxLength": 160,
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "email": {
+                            "format": "email",
+                            "maxLength": 320,
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "message": {
+                            "maxLength": 5000,
+                            "minLength": 10,
+                            "type": "string"
+                          },
+                          "name": {
+                            "maxLength": 120,
+                            "type": "string"
+                          },
+                          "phone": {
+                            "maxLength": 40,
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "resolved_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": [
+                              "new",
+                              "read",
+                              "resolved"
+                            ],
+                            "type": "string"
+                          },
+                          "subject": {
+                            "maxLength": 160,
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "email",
+                          "message",
+                          "status",
+                          "inserted_at"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_cursor": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Contact submissions"
+          }
+        },
+        "summary": "List hosted website contact submissions",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
     "/api/staff/my-sessions": {
       "get": {
         "callbacks": {},
@@ -27838,7 +30493,8 @@
                               "full",
                               "too_late",
                               "too_early",
-                              "cancelled"
+                              "cancelled",
+                              "understaffed"
                             ],
                             "nullable": true,
                             "type": "string"
@@ -27846,6 +30502,15 @@
                           "offering": {
                             "nullable": true,
                             "properties": {
+                              "allow_invite_reservations": {
+                                "type": "boolean"
+                              },
+                              "allow_private_conversion": {
+                                "type": "boolean"
+                              },
+                              "allow_private_requests": {
+                                "type": "boolean"
+                              },
                               "bookable_from_days_ahead": {
                                 "nullable": true,
                                 "type": "integer"
@@ -27882,6 +30547,9 @@
                                 "format": "uuid",
                                 "type": "string"
                               },
+                              "invite_hold_hours": {
+                                "type": "integer"
+                              },
                               "max_age": {
                                 "nullable": true,
                                 "type": "integer"
@@ -27892,6 +30560,26 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "private_enabled": {
+                                "type": "boolean"
+                              },
+                              "private_max_players": {
+                                "type": "integer"
+                              },
+                              "private_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
+                              },
+                              "public_enabled": {
+                                "type": "boolean"
+                              },
+                              "public_max_players": {
+                                "type": "integer"
+                              },
+                              "public_price_tiers": {
+                                "additionalProperties": true,
+                                "type": "object"
                               },
                               "slug": {
                                 "type": "string"
@@ -27904,6 +30592,13 @@
                           },
                           "session": {
                             "properties": {
+                              "access_mode": {
+                                "enum": [
+                                  "public",
+                                  "private"
+                                ],
+                                "type": "string"
+                              },
                               "booked_count": {
                                 "type": "integer"
                               },
@@ -27942,6 +30637,10 @@
                               "offering_id": {
                                 "format": "uuid",
                                 "type": "string"
+                              },
+                              "party_size": {
+                                "nullable": true,
+                                "type": "integer"
                               },
                               "seats_left": {
                                 "type": "integer"
@@ -28592,6 +31291,7 @@
                         },
                         "player_id": {
                           "format": "uuid",
+                          "nullable": true,
                           "type": "string"
                         },
                         "rebook_count": {
@@ -28630,7 +31330,6 @@
                       "required": [
                         "id",
                         "session_id",
-                        "player_id",
                         "status",
                         "payment_method"
                       ],
@@ -28926,6 +31625,253 @@
         "summary": "Download a signature's PDF snapshot",
         "tags": [
           "staff"
+        ]
+      }
+    },
+    "/api/portal/bookings/session_invitations/{token}/accept": {
+      "post": {
+        "callbacks": {},
+        "operationId": "SportsCoachBookingsWeb.Portal.Bookings.BookingsController.accept_invitation",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "method": {
+                    "enum": [
+                      "credits",
+                      "paid"
+                    ],
+                    "type": "string"
+                  },
+                  "player_id": {
+                    "format": "uuid",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "player_id",
+                  "method"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Acceptance",
+          "required": false
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "booking": {
+                      "nullable": true,
+                      "properties": {
+                        "cancel_outcome": {
+                          "additionalProperties": true,
+                          "nullable": true,
+                          "type": "object"
+                        },
+                        "cancelled_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "credits_used": {
+                          "type": "integer"
+                        },
+                        "currency": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "free_change_until": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "hold_expires_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "household_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "inserted_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "order_line_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "paid_amount": {
+                          "type": "integer"
+                        },
+                        "payment_method": {
+                          "enum": [
+                            "credits",
+                            "paid",
+                            "comp"
+                          ],
+                          "type": "string"
+                        },
+                        "player_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "rebook_count": {
+                          "type": "integer"
+                        },
+                        "rebooked_from_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "rebooked_to_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "session_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "status": {
+                          "enum": [
+                            "held",
+                            "confirmed",
+                            "cancelled",
+                            "attended",
+                            "no_show"
+                          ],
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "session_id",
+                        "status",
+                        "payment_method"
+                      ],
+                      "type": "object"
+                    },
+                    "invitation": {
+                      "properties": {
+                        "accepted_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "booking_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "email": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "expires_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "invitee_household_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "invitee_player_id": {
+                          "format": "uuid",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "last_sent_at": {
+                          "format": "date-time",
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "organizer_household_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "payment_mode": {
+                          "enum": [
+                            "split",
+                            "organizer"
+                          ],
+                          "type": "string"
+                        },
+                        "resend_count": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "seat_status": {
+                          "type": "string"
+                        },
+                        "session_id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "session_id",
+                        "email",
+                        "status",
+                        "payment_mode",
+                        "seat_status"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "invitation"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Accepted invitation"
+          }
+        },
+        "summary": "Accept a session invitation",
+        "tags": [
+          "portal"
         ]
       }
     },

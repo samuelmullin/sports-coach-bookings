@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Clock, Users } from 'lucide-react';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@scb/ui';
@@ -7,6 +8,8 @@ import { QueryState } from '../shared/QueryState';
 import { PageHeader } from '../shared/PageHeader';
 import { OfferingPacks } from './OfferingPacks';
 import type { OfferingResponse, PolicySummaryResponse } from '../../api/endpoints';
+import { useCustomerAuth } from '../../auth/customer-auth';
+import { RequestPrivateSessionDialog } from '../bookings/RequestPrivateSessionDialog';
 
 const FORMAT_LABEL: Record<string, string> = {
   private: 'Private',
@@ -28,6 +31,8 @@ export function OfferingDetailPage() {
   const offerings = listItems<OfferingResponse>(offeringsQuery);
   const offering = offerings.find((candidate) => candidate.id === offeringId);
   const policy = body<PolicySummaryResponse>(policyQuery);
+  const { status } = useCustomerAuth();
+  const [requestPrivate, setRequestPrivate] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,6 +62,17 @@ export function OfferingDetailPage() {
                   <Button asChild>
                     <Link to={`/offerings/${offering.id}/schedule`}>Schedule sessions</Link>
                   </Button>
+                  {offering.private_enabled && offering.allow_private_requests ? (
+                    status === 'authenticated' ? (
+                      <Button variant="outline" onClick={() => setRequestPrivate(true)}>
+                        Request private session
+                      </Button>
+                    ) : (
+                      <Button asChild variant="outline">
+                        <Link to="/login">Sign in to request private</Link>
+                      </Button>
+                    )
+                  ) : null}
                 </>
               }
             />
@@ -95,6 +111,14 @@ export function OfferingDetailPage() {
                   {policy.summary ? <p>{policy.summary}</p> : null}
                 </CardContent>
               </Card>
+            ) : null}
+            {requestPrivate ? (
+              <RequestPrivateSessionDialog
+                offeringId={offering.id}
+                maxPlayers={offering.private_max_players ?? 1}
+                open
+                onOpenChange={setRequestPrivate}
+              />
             ) : null}
           </>
         )}

@@ -110,16 +110,30 @@ import type {
   SportsCoachBookingsWebPortalAccountSessionControllerCreate201,
   SportsCoachBookingsWebPortalAccountSessionControllerCreateBody,
   SportsCoachBookingsWebPortalAccountSessionControllerDelete204,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation201,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody,
   SportsCoachBookingsWebPortalBookingsBookingsControllerCancel200,
   SportsCoachBookingsWebPortalBookingsBookingsControllerCancelBody,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation200,
   SportsCoachBookingsWebPortalBookingsBookingsControllerCancelPreview200,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate200,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody,
   SportsCoachBookingsWebPortalBookingsBookingsControllerCreate201,
   SportsCoachBookingsWebPortalBookingsBookingsControllerCreateBody,
   SportsCoachBookingsWebPortalBookingsBookingsControllerIndex200,
   SportsCoachBookingsWebPortalBookingsBookingsControllerIndexParams,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerInvitations200,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerInvite201,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerPartners200,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests200,
   SportsCoachBookingsWebPortalBookingsBookingsControllerRebook201,
   SportsCoachBookingsWebPortalBookingsBookingsControllerRebookBody,
   SportsCoachBookingsWebPortalBookingsBookingsControllerRebookOptions200,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate201,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation200,
+  SportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation200,
   SportsCoachBookingsWebPortalBrandingControllerShow200,
   SportsCoachBookingsWebPortalCartCartControllerAddLine201,
   SportsCoachBookingsWebPortalCartCartControllerAddLineBody,
@@ -164,6 +178,9 @@ import type {
   SportsCoachBookingsWebPortalScheduleSessionsControllerIndex200,
   SportsCoachBookingsWebPortalScheduleSessionsControllerIndexParams,
   SportsCoachBookingsWebPortalScheduleSessionsControllerShow200,
+  SportsCoachBookingsWebPortalWebsiteControllerContact201,
+  SportsCoachBookingsWebPortalWebsiteControllerContactBody,
+  SportsCoachBookingsWebPortalWebsiteControllerShow200,
   SportsCoachBookingsWebStaffBookingsBookingsControllerAttendance200,
   SportsCoachBookingsWebStaffBookingsBookingsControllerAttendanceBody,
   SportsCoachBookingsWebStaffBookingsBookingsControllerCancel200,
@@ -174,6 +191,10 @@ import type {
   SportsCoachBookingsWebStaffBookingsBookingsControllerIndexParams,
   SportsCoachBookingsWebStaffBookingsBookingsControllerRoster200,
   SportsCoachBookingsWebStaffBookingsBookingsControllerShow200,
+  SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex200,
+  SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexParams,
+  SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate200,
+  SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody,
   SportsCoachBookingsWebStaffBroadcastsBroadcastsControllerCancel200,
   SportsCoachBookingsWebStaffBroadcastsBroadcastsControllerCreate201,
   SportsCoachBookingsWebStaffBroadcastsBroadcastsControllerCreateBody,
@@ -337,6 +358,18 @@ import type {
   SportsCoachBookingsWebStaffWaiversSignaturesControllerExportParams,
   SportsCoachBookingsWebStaffWaiversSignaturesControllerIndexParams,
   SportsCoachBookingsWebStaffWaiversTemplatesControllerIndexParams,
+  SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex200,
+  SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexParams,
+  SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate200,
+  SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload201,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerPublish200,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerShow200,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate200,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2200,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body,
+  SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody,
   TaxRateListResponse,
   TaxRateRequest,
   TaxRateResponse,
@@ -856,6 +889,98 @@ export const useSportsCoachBookingsWebStaffPlayersPlayersControllerUpdate = <TEr
       > => {
 
       const mutationOptions = getSportsCoachBookingsWebStaffPlayersPlayersControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
+ * @summary Approve or decline a private-session request
+ */
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponse200 = {
+  data: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate200
+  status: 200
+}
+
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponseSuccess = (sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponseError = (sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponse403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponse = (sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponseSuccess | sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponseError)
+
+export const getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateUrl = (id: string,) => {
+
+
+  
+
+  return `/api/staff/bookings/private-session-requests/${id}`
+}
+
+export const sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate = async (id: string,
+    sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody?: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody, options?: RequestInit): Promise<sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateResponse>(getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateUrl(id),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate>>, TError,{id: string;data: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate>>, TError,{id: string;data: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate>>, {id: string;data: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate>>>
+    export type SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateMutationBody = SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody
+    export type SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateMutationError = ErrorResponse
+
+    /**
+ * @summary Approve or decline a private-session request
+ */
+export const useSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate>>, TError,{id: string;data: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate>>,
+        TError,
+        {id: string;data: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdateMutationOptions(options);
 
       return useMutation(mutationOptions);
     }
@@ -1834,6 +1959,95 @@ export const useSportsCoachBookingsWebStaffInventoryStockControllerAdjust = <TEr
     }
     
 /**
+ * @summary List the household's session invitations
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsResponse200 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerInvitations200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsUrl = () => {
+
+
+  
+
+  return `/api/portal/bookings/invitations`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations = async ( options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsQueryKey = () => {
+    return [
+    `/api/portal/bookings/invitations`
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations>>> = () => sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations(requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations>>>
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsQueryError = unknown
+
+
+/**
+ * @summary List the household's session invitations
+ */
+
+export function useSportsCoachBookingsWebPortalBookingsBookingsControllerInvitations<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerInvitationsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
  * Returns the tenant resolved from the request host.
  * @summary Ping
  */
@@ -1911,6 +2125,95 @@ export function useSportsCoachBookingsWebPortalPingControllerShow<TData = Awaite
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getSportsCoachBookingsWebPortalPingControllerShowQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary View a session invitation
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationResponse200 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationUrl = (token: string,) => {
+
+
+  
+
+  return `/api/portal/session_invitations/${token}`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation = async (token: string, options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationUrl(token),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationQueryKey = (token?: string,) => {
+    return [
+    `/api/portal/session_invitations/${token}`
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation>>, TError = unknown>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationQueryKey(token);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation>>> = () => sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation(token, requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation>>>
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationQueryError = unknown
+
+
+/**
+ * @summary View a session invitation
+ */
+
+export function useSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation>>, TError = unknown>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerShowInvitationQueryOptions(token,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -2394,6 +2697,179 @@ export function useSportsCoachBookingsWebPortalCreditsCreditsControllerLedger<TD
 
 
 
+/**
+ * @summary List the household's private-session requests
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsResponse200 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsUrl = () => {
+
+
+  
+
+  return `/api/portal/bookings/private-session-requests`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests = async ( options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsQueryKey = () => {
+    return [
+    `/api/portal/bookings/private-session-requests`
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests>>> = () => sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests(requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests>>>
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsQueryError = unknown
+
+
+/**
+ * @summary List the household's private-session requests
+ */
+
+export function useSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerPrivateRequestsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Request a new operator-approved private session
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateResponse201 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate201
+  status: 201
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateResponse201) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateUrl = () => {
+
+
+  
+
+  return `/api/portal/bookings/private-session-requests`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate = async (sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody?: SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody, options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate>>, TError,{data: SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate>>, TError,{data: SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate>>, {data: SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate>>>
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateMutationBody = SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateMutationError = unknown
+
+    /**
+ * @summary Request a new operator-approved private session
+ */
+export const useSportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate>>, TError,{data: SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivate>>,
+        TError,
+        {data: SportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerRequestPrivateMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 /**
  * @summary List a product's variants
  */
@@ -3921,6 +4397,91 @@ export const useSportsCoachBookingsWebStaffCatalogTaxRatesControllerArchive = <T
     }
     
 /**
+ * @summary Invite one player to a session
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerInviteResponse201 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerInvite201
+  status: 201
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerInviteResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerInviteResponse201) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerInviteResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerInviteResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerInviteUrl = (sessionId: string,) => {
+
+
+  
+
+  return `/api/portal/bookings/sessions/${sessionId}/invitations`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerInvite = async (sessionId: string,
+    sportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody?: SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody, options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerInviteResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerInviteResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerInviteUrl(sessionId),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerInviteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvite>>, TError,{sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvite>>, TError,{sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalBookingsBookingsControllerInvite'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvite>>, {sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody}> = (props) => {
+          const {sessionId,data} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalBookingsBookingsControllerInvite(sessionId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerInviteMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvite>>>
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerInviteMutationBody = SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerInviteMutationError = unknown
+
+    /**
+ * @summary Invite one player to a session
+ */
+export const useSportsCoachBookingsWebPortalBookingsBookingsControllerInvite = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvite>>, TError,{sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerInvite>>,
+        TError,
+        {sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerInviteBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerInviteMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
  * @summary Fetch the tenant's active legal document of a kind
  */
 export type sportsCoachBookingsWebPortalLegalDocumentsControllerShowResponse200 = {
@@ -4708,6 +5269,96 @@ export function useSportsCoachBookingsWebStaffWaiversSignaturesControllerIndex<T
 
 
 
+/**
+ * @summary Publish the hosted website draft
+ */
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponse200 = {
+  data: SportsCoachBookingsWebStaffWebsitesSiteControllerPublish200
+  status: 200
+}
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponseSuccess = (sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponseError = (sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponse403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponse = (sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponseSuccess | sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponseError)
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerPublishUrl = () => {
+
+
+  
+
+  return `/api/staff/website/publish`
+}
+
+export const sportsCoachBookingsWebStaffWebsitesSiteControllerPublish = async ( options?: RequestInit): Promise<sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffWebsitesSiteControllerPublishResponse>(getSportsCoachBookingsWebStaffWebsitesSiteControllerPublishUrl(),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerPublishMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerPublish>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerPublish>>, TError,void, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebStaffWebsitesSiteControllerPublish'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerPublish>>, void> = () => {
+          
+
+          return  sportsCoachBookingsWebStaffWebsitesSiteControllerPublish(requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerPublishMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerPublish>>>
+    
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerPublishMutationError = ErrorResponse
+
+    /**
+ * @summary Publish the hosted website draft
+ */
+export const useSportsCoachBookingsWebStaffWebsitesSiteControllerPublish = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerPublish>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerPublish>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebStaffWebsitesSiteControllerPublishMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 /**
  * @summary Resend a confirmation email
  */
@@ -13138,6 +13789,109 @@ export const useSportsCoachBookingsWebStaffBroadcastsBroadcastsControllerCreate 
     }
     
 /**
+ * @summary List private-session requests
+ */
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponse200 = {
+  data: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex200
+  status: 200
+}
+
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponseSuccess = (sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponseError = (sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponse403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponse = (sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponseSuccess | sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponseError)
+
+export const getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexUrl = (params?: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/staff/bookings/private-session-requests?${stringifiedParams}` : `/api/staff/bookings/private-session-requests`
+}
+
+export const sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex = async (params?: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexParams, options?: RequestInit): Promise<sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexResponse>(getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexQueryKey = (params?: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexParams,) => {
+    return [
+    `/api/staff/bookings/private-session-requests`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex>>, TError = ErrorResponse>(params?: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex>>> = () => sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex(params, requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex>>>
+export type SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexQueryError = ErrorResponse
+
+
+/**
+ * @summary List private-session requests
+ */
+
+export function useSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex>>, TError = ErrorResponse>(
+ params?: SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
  * @summary List visible packages
  */
 export type sportsCoachBookingsWebPortalCatalogPackagesControllerIndexResponse200 = {
@@ -13424,6 +14178,89 @@ export function useSportsCoachBookingsWebStaffBookingsBookingsControllerShow<TDa
 
 
 
+/**
+ * @summary Cancel a pending session invitation
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationResponse200 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationUrl = (id: string,) => {
+
+
+  
+
+  return `/api/portal/bookings/invitations/${id}`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation = async (id: string, options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationUrl(id),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation>>>
+    
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationMutationError = unknown
+
+    /**
+ * @summary Cancel a pending session invitation
+ */
+export const useSportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitation>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerCancelInvitationMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 /**
  * @summary Get a customer
  */
@@ -14295,6 +15132,98 @@ export function useSportsCoachBookingsWebPortalHouseholdHouseholdControllerShow<
 
 
 /**
+ * @summary Update a hosted website contact submission
+ */
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponse200 = {
+  data: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate200
+  status: 200
+}
+
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponseSuccess = (sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponseError = (sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponse403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponse = (sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponseSuccess | sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponseError)
+
+export const getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateUrl = (id: string,) => {
+
+
+  
+
+  return `/api/staff/website/contacts/${id}`
+}
+
+export const sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate = async (id: string,
+    sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody?: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody, options?: RequestInit): Promise<sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateResponse>(getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateUrl(id),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate>>, TError,{id: string;data: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate>>, TError,{id: string;data: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate>>, {id: string;data: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate>>>
+    export type SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateMutationBody = SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody
+    export type SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateMutationError = ErrorResponse
+
+    /**
+ * @summary Update a hosted website contact submission
+ */
+export const useSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate>>, TError,{id: string;data: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate>>,
+        TError,
+        {id: string;data: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
  * @summary Trigger a password-reset email
  */
 export type sportsCoachBookingsWebStaffCustomersCustomersControllerResetPasswordResponse202 = {
@@ -14485,6 +15414,89 @@ export function useSportsCoachBookingsWebPortalWaiversWaiversControllerStatus<TD
 
 
 
+/**
+ * @summary Rotate the token and resend a pending session invitation
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationResponse200 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationUrl = (id: string,) => {
+
+
+  
+
+  return `/api/portal/bookings/invitations/${id}/resend`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation = async (id: string, options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationUrl(id),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation>>>
+    
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationMutationError = unknown
+
+    /**
+ * @summary Rotate the token and resend a pending session invitation
+ */
+export const useSportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitation>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerResendInvitationMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 /**
  * @summary Register a global staff user
  */
@@ -17480,6 +18492,91 @@ export const useSportsCoachBookingsWebStaffPaymentsConnectControllerOnboarding =
     }
     
 /**
+ * @summary Convert an empty public session into a private party
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateResponse200 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateUrl = (sessionId: string,) => {
+
+
+  
+
+  return `/api/portal/bookings/sessions/${sessionId}/convert-private`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate = async (sessionId: string,
+    sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody?: SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody, options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateUrl(sessionId),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate>>, TError,{sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate>>, TError,{sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate>>, {sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody}> = (props) => {
+          const {sessionId,data} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate(sessionId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate>>>
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateMutationBody = SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateMutationError = unknown
+
+    /**
+ * @summary Convert an empty public session into a private party
+ */
+export const useSportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate>>, TError,{sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivate>>,
+        TError,
+        {sessionId: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerConvertPrivateMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
  * @summary Get notification preferences
  */
 export type sportsCoachBookingsWebPortalAccountAccountControllerPreferencesResponse200 = {
@@ -19043,6 +20140,102 @@ export const useSportsCoachBookingsWebPortalHouseholdHouseholdControllerLeave = 
     }
     
 /**
+ * @summary Get published hosted website content
+ */
+export type sportsCoachBookingsWebPortalWebsiteControllerShowResponse200 = {
+  data: SportsCoachBookingsWebPortalWebsiteControllerShow200
+  status: 200
+}
+
+export type sportsCoachBookingsWebPortalWebsiteControllerShowResponse404 = {
+  data: ErrorResponse
+  status: 404
+}
+    
+export type sportsCoachBookingsWebPortalWebsiteControllerShowResponseSuccess = (sportsCoachBookingsWebPortalWebsiteControllerShowResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebPortalWebsiteControllerShowResponseError = (sportsCoachBookingsWebPortalWebsiteControllerShowResponse404) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebPortalWebsiteControllerShowResponse = (sportsCoachBookingsWebPortalWebsiteControllerShowResponseSuccess | sportsCoachBookingsWebPortalWebsiteControllerShowResponseError)
+
+export const getSportsCoachBookingsWebPortalWebsiteControllerShowUrl = () => {
+
+
+  
+
+  return `/api/portal/website`
+}
+
+export const sportsCoachBookingsWebPortalWebsiteControllerShow = async ( options?: RequestInit): Promise<sportsCoachBookingsWebPortalWebsiteControllerShowResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalWebsiteControllerShowResponse>(getSportsCoachBookingsWebPortalWebsiteControllerShowUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebPortalWebsiteControllerShowQueryKey = () => {
+    return [
+    `/api/portal/website`
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebPortalWebsiteControllerShowQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerShow>>, TError = ErrorResponse>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerShow>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebPortalWebsiteControllerShowQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerShow>>> = () => sportsCoachBookingsWebPortalWebsiteControllerShow(requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerShow>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebPortalWebsiteControllerShowQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerShow>>>
+export type SportsCoachBookingsWebPortalWebsiteControllerShowQueryError = ErrorResponse
+
+
+/**
+ * @summary Get published hosted website content
+ */
+
+export function useSportsCoachBookingsWebPortalWebsiteControllerShow<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerShow>>, TError = ErrorResponse>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerShow>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebPortalWebsiteControllerShowQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
  * @summary List a player's authorized pickups
  */
 export type sportsCoachBookingsWebPortalPlayersAuthorizedPickupsControllerIndexResponse200 = {
@@ -20598,6 +21791,97 @@ export function useSportsCoachBookingsWebPortalOrdersOrdersControllerShow<TData 
 
 
 /**
+ * @summary Submit a hosted website inquiry
+ */
+export type sportsCoachBookingsWebPortalWebsiteControllerContactResponse201 = {
+  data: SportsCoachBookingsWebPortalWebsiteControllerContact201
+  status: 201
+}
+
+export type sportsCoachBookingsWebPortalWebsiteControllerContactResponse422 = {
+  data: ErrorResponse
+  status: 422
+}
+    
+export type sportsCoachBookingsWebPortalWebsiteControllerContactResponseSuccess = (sportsCoachBookingsWebPortalWebsiteControllerContactResponse201) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebPortalWebsiteControllerContactResponseError = (sportsCoachBookingsWebPortalWebsiteControllerContactResponse422) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebPortalWebsiteControllerContactResponse = (sportsCoachBookingsWebPortalWebsiteControllerContactResponseSuccess | sportsCoachBookingsWebPortalWebsiteControllerContactResponseError)
+
+export const getSportsCoachBookingsWebPortalWebsiteControllerContactUrl = () => {
+
+
+  
+
+  return `/api/portal/website/contact`
+}
+
+export const sportsCoachBookingsWebPortalWebsiteControllerContact = async (sportsCoachBookingsWebPortalWebsiteControllerContactBody?: SportsCoachBookingsWebPortalWebsiteControllerContactBody, options?: RequestInit): Promise<sportsCoachBookingsWebPortalWebsiteControllerContactResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalWebsiteControllerContactResponse>(getSportsCoachBookingsWebPortalWebsiteControllerContactUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebPortalWebsiteControllerContactBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalWebsiteControllerContactMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerContact>>, TError,{data: SportsCoachBookingsWebPortalWebsiteControllerContactBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerContact>>, TError,{data: SportsCoachBookingsWebPortalWebsiteControllerContactBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalWebsiteControllerContact'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerContact>>, {data: SportsCoachBookingsWebPortalWebsiteControllerContactBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalWebsiteControllerContact(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalWebsiteControllerContactMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerContact>>>
+    export type SportsCoachBookingsWebPortalWebsiteControllerContactMutationBody = SportsCoachBookingsWebPortalWebsiteControllerContactBody
+    export type SportsCoachBookingsWebPortalWebsiteControllerContactMutationError = ErrorResponse
+
+    /**
+ * @summary Submit a hosted website inquiry
+ */
+export const useSportsCoachBookingsWebPortalWebsiteControllerContact = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerContact>>, TError,{data: SportsCoachBookingsWebPortalWebsiteControllerContactBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalWebsiteControllerContact>>,
+        TError,
+        {data: SportsCoachBookingsWebPortalWebsiteControllerContactBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalWebsiteControllerContactMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
  * Returns accounts, players (including medical information), waivers, bookings, credits, and orders. Medical reads and the export are audited.
  * @summary Export all data held about the caller's household
  */
@@ -21091,6 +22375,277 @@ export function useSportsCoachBookingsWebPortalBookingsBookingsControllerRebookO
 
 
 /**
+ * @summary Get hosted website draft and published content
+ */
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerShowResponse200 = {
+  data: SportsCoachBookingsWebStaffWebsitesSiteControllerShow200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerShowResponseSuccess = (sportsCoachBookingsWebStaffWebsitesSiteControllerShowResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerShowResponse = (sportsCoachBookingsWebStaffWebsitesSiteControllerShowResponseSuccess)
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerShowUrl = () => {
+
+
+  
+
+  return `/api/staff/website`
+}
+
+export const sportsCoachBookingsWebStaffWebsitesSiteControllerShow = async ( options?: RequestInit): Promise<sportsCoachBookingsWebStaffWebsitesSiteControllerShowResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffWebsitesSiteControllerShowResponse>(getSportsCoachBookingsWebStaffWebsitesSiteControllerShowUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerShowQueryKey = () => {
+    return [
+    `/api/staff/website`
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerShowQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerShow>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerShow>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebStaffWebsitesSiteControllerShowQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerShow>>> = () => sportsCoachBookingsWebStaffWebsitesSiteControllerShow(requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerShow>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebStaffWebsitesSiteControllerShowQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerShow>>>
+export type SportsCoachBookingsWebStaffWebsitesSiteControllerShowQueryError = unknown
+
+
+/**
+ * @summary Get hosted website draft and published content
+ */
+
+export function useSportsCoachBookingsWebStaffWebsitesSiteControllerShow<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerShow>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerShow>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebStaffWebsitesSiteControllerShowQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Update hosted website draft
+ */
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Response200 = {
+  data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2200
+  status: 200
+}
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Response403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2ResponseSuccess = (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Response200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2ResponseError = (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Response403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Response = (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2ResponseSuccess | sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2ResponseError)
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Url = () => {
+
+
+  
+
+  return `/api/staff/website`
+}
+
+export const sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2 = async (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body?: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body, options?: RequestInit): Promise<sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Response> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Response>(getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Url(),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2MutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2>>, {data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2MutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2>>>
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2MutationBody = SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2MutationError = ErrorResponse
+
+    /**
+ * @summary Update hosted website draft
+ */
+export const useSportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2 = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2>>,
+        TError,
+        {data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2Body},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2MutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
+ * @summary Update hosted website draft
+ */
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponse200 = {
+  data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdate200
+  status: 200
+}
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponseSuccess = (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponse200) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponseError = (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponse403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponse = (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponseSuccess | sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponseError)
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdateUrl = () => {
+
+
+  
+
+  return `/api/staff/website`
+}
+
+export const sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate = async (sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody?: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody, options?: RequestInit): Promise<sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateResponse>(getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdateUrl(),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdateMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate>>, {data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate>>>
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateMutationBody = SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateMutationError = ErrorResponse
+
+    /**
+ * @summary Update hosted website draft
+ */
+export const useSportsCoachBookingsWebStaffWebsitesSiteControllerUpdate = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerUpdate>>,
+        TError,
+        {data: SportsCoachBookingsWebStaffWebsitesSiteControllerUpdateBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebStaffWebsitesSiteControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
  * @summary Create or update a player's profile
  */
 export type sportsCoachBookingsWebStaffPlayersPlayersControllerUpdateProfileResponse200 = {
@@ -21282,6 +22837,95 @@ export const useSportsCoachBookingsWebStaffPoliciesPoliciesControllerSetDefault 
       return useMutation(mutationOptions);
     }
     
+/**
+ * @summary List previous accepted invitation partners
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerPartnersResponse200 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerPartners200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerPartnersResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerPartnersResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerPartnersResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerPartnersResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerPartnersUrl = () => {
+
+
+  
+
+  return `/api/portal/bookings/invitation-partners`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerPartners = async ( options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerPartnersResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerPartnersResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerPartnersUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerPartnersQueryKey = () => {
+    return [
+    `/api/portal/bookings/invitation-partners`
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerPartnersQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPartners>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPartners>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebPortalBookingsBookingsControllerPartnersQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPartners>>> = () => sportsCoachBookingsWebPortalBookingsBookingsControllerPartners(requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPartners>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerPartnersQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPartners>>>
+export type SportsCoachBookingsWebPortalBookingsBookingsControllerPartnersQueryError = unknown
+
+
+/**
+ * @summary List previous accepted invitation partners
+ */
+
+export function useSportsCoachBookingsWebPortalBookingsBookingsControllerPartners<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPartners>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerPartners>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerPartnersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 /**
  * @summary Edit a session series (single / following / all)
  */
@@ -22909,6 +24553,97 @@ export function useSportsCoachBookingsWebPortalCatalogOfferingsControllerPackage
 
 
 /**
+ * @summary Presign a hosted website image upload
+ */
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponse201 = {
+  data: SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload201
+  status: 201
+}
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponse403 = {
+  data: ErrorResponse
+  status: 403
+}
+    
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponseSuccess = (sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponse201) & {
+  headers: Headers;
+};
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponseError = (sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponse403) & {
+  headers: Headers;
+};
+
+export type sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponse = (sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponseSuccess | sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponseError)
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadUrl = () => {
+
+
+  
+
+  return `/api/staff/website/uploads`
+}
+
+export const sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload = async (sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody?: SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody, options?: RequestInit): Promise<sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadResponse>(getSportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadMutationOptions = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload>>, {data: SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload>>>
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadMutationBody = SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody
+    export type SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadMutationError = ErrorResponse
+
+    /**
+ * @summary Presign a hosted website image upload
+ */
+export const useSportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload = <TError = ErrorResponse,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload>>, TError,{data: SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload>>,
+        TError,
+        {data: SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebStaffWebsitesSiteControllerCreateUploadMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+/**
  * @summary List orders
  */
 export type sportsCoachBookingsWebStaffOrdersOrdersControllerIndexResponse200 = {
@@ -24247,6 +25982,102 @@ export function useSportsCoachBookingsWebStaffCustomersHouseholdsControllerShow<
 
 
 /**
+ * @summary List hosted website contact submissions
+ */
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexResponse200 = {
+  data: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex200
+  status: 200
+}
+    
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexResponseSuccess = (sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexResponse200) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexResponse = (sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexResponseSuccess)
+
+export const getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexUrl = (params?: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/staff/website/contacts?${stringifiedParams}` : `/api/staff/website/contacts`
+}
+
+export const sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex = async (params?: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexParams, options?: RequestInit): Promise<sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexResponse>(getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexQueryKey = (params?: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexParams,) => {
+    return [
+    `/api/staff/website/contacts`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexQueryOptions = <TData = Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex>>, TError = unknown>(params?: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex>>> = () => sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex(params, requestOptions);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexQueryResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex>>>
+export type SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexQueryError = unknown
+
+
+/**
+ * @summary List hosted website contact submissions
+ */
+
+export function useSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex<TData = Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex>>, TError = unknown>(
+ params?: SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
  * @summary The acting coach's sessions
  */
 export type sportsCoachBookingsWebStaffScheduleSessionsControllerMySessionsResponse200 = {
@@ -25123,6 +26954,91 @@ export function useSportsCoachBookingsWebStaffWaiversSignaturesControllerPdf<TDa
 
 
 
+/**
+ * @summary Accept a session invitation
+ */
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationResponse201 = {
+  data: SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation201
+  status: 201
+}
+    
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationResponseSuccess = (sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationResponse201) & {
+  headers: Headers;
+};
+;
+
+export type sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationResponse = (sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationResponseSuccess)
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationUrl = (token: string,) => {
+
+
+  
+
+  return `/api/portal/bookings/session_invitations/${token}/accept`
+}
+
+export const sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation = async (token: string,
+    sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody?: SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody, options?: RequestInit): Promise<sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationResponse> => {
+  
+  return customFetch<sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationResponse>(getSportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationUrl(token),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody,)
+  }
+);}
+
+
+
+
+export const getSportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation>>, TError,{token: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation>>, TError,{token: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody}, TContext> => {
+
+const mutationKey = ['sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation>>, {token: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody}> = (props) => {
+          const {token,data} = props ?? {};
+
+          return  sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation(token,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation>>>
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationMutationBody = SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody
+    export type SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationMutationError = unknown
+
+    /**
+ * @summary Accept a session invitation
+ */
+export const useSportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation>>, TError,{token: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitation>>,
+        TError,
+        {token: string;data: SportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSportsCoachBookingsWebPortalBookingsBookingsControllerAcceptInvitationMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 /**
  * @summary List packages
  */

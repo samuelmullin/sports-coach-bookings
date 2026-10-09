@@ -94,6 +94,21 @@ export function BookingFlowPage() {
   const offering = item?.offering;
   const offeringFull = offerings.find((candidate) => candidate.id === offering?.id);
   const session = item?.session;
+  const tierSize =
+    session?.access_mode === 'private'
+      ? (session.party_size ?? 1)
+      : (offeringFull?.public_max_players ?? session?.capacity ?? 1);
+  const tiers =
+    session?.access_mode === 'private'
+      ? offeringFull?.private_price_tiers
+      : offeringFull?.public_price_tiers;
+  const pricingTier =
+    tiers && typeof tiers === 'object'
+      ? ((tiers as Record<string, { price?: number | null; credit_cost?: number }>)[
+          String(tierSize)
+        ] ?? undefined)
+      : undefined;
+  const creditCost = pricingTier?.credit_cost ?? offeringFull?.credit_cost ?? 0;
 
   const eligibleCreditTotal = credits
     .filter((entry) => entry.amount > 0)
@@ -109,7 +124,7 @@ export function BookingFlowPage() {
   const seatsLeft = item?.seats_left ?? session?.seats_left ?? 0;
   const bookable = item?.bookable ?? false;
 
-  const hasCredits = eligibleCreditTotal > 0;
+  const hasCredits = eligibleCreditTotal >= creditCost;
 
   const canSubmit =
     Boolean(player) && bookable && seatsLeft > 0 && ageOk && waiversSigned && hasContacts;
@@ -294,10 +309,10 @@ export function BookingFlowPage() {
                   <span className="text-muted-foreground">Method</span>
                   <span>{method === 'credits' ? 'Sessions' : 'Drop-in'}</span>
                 </div>
-                {method === 'credits' && offeringFull?.credit_cost ? (
+                {method === 'credits' && creditCost > 0 ? (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Sessions</span>
-                    <Badge variant="accent">{offeringFull.credit_cost}</Badge>
+                    <Badge variant="accent">{creditCost}</Badge>
                   </div>
                 ) : null}
                 {method === 'paid' ? (
