@@ -61,14 +61,20 @@ defmodule SportsCoachBookingsWeb.Portal.Schedule.SessionsController do
   defp customer_actor(conn), do: conn.assigns[:current_customer_actor]
 
   defp player_opts(conn, params) do
+    household_opts =
+      case customer_actor(conn) do
+        %{household_id: household_id} -> [household_id: household_id]
+        _ -> []
+      end
+
     case params["player_id"] do
       nil ->
-        {:ok, []}
+        {:ok, household_opts}
 
       player_id ->
         with {:ok, player} <- Players.fetch_player(player_id),
              :ok <- Players.Policy.authorize(customer_actor(conn), :get, player) do
-          {:ok, [player: player]}
+          {:ok, [player: player] ++ household_opts}
         end
     end
   end

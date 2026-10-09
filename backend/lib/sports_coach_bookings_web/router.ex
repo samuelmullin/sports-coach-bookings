@@ -104,6 +104,10 @@ defmodule SportsCoachBookingsWeb.Router do
     plug SportsCoachBookingsWeb.Plugs.RateLimit, keys: [:discount], limit: 120, window: 60
   end
 
+  pipeline :rate_limit_contact do
+    plug SportsCoachBookingsWeb.Plugs.RateLimit, keys: [:contact], limit: 10, window: 3600
+  end
+
   # Reads the guest reservation bearer token from `x-reservation-token` and
   # loads the reservation (401 when absent, 404 when it does not match).
   pipeline :reservation_token do
@@ -169,6 +173,16 @@ defmodule SportsCoachBookingsWeb.Router do
         patch "/", BrandingController, :update
         put "/", BrandingController, :update
         post "/uploads", BrandingController, :create_upload
+      end
+
+      scope "/website", Websites do
+        get "/", SiteController, :show
+        patch "/", SiteController, :update
+        put "/", SiteController, :update
+        post "/publish", SiteController, :publish
+        post "/uploads", SiteController, :create_upload
+        get "/contacts", ContactSubmissionsController, :index
+        patch "/contacts/:id", ContactSubmissionsController, :update
       end
 
       scope "/team", Team do
@@ -363,6 +377,8 @@ defmodule SportsCoachBookingsWeb.Router do
     scope "/staff/bookings", SportsCoachBookingsWeb.Staff.Bookings do
       pipe_through :staff_auth
 
+      get "/private-session-requests", PrivateSessionRequestsController, :index
+      patch "/private-session-requests/:id", PrivateSessionRequestsController, :update
       get "/", BookingsController, :index
       post "/", BookingsController, :create
       get "/:id", BookingsController, :show
@@ -437,6 +453,7 @@ defmodule SportsCoachBookingsWeb.Router do
       # Household invite acceptance: tenant-resolved, session optional.
       get "/household_invites/:token", Household.InvitesController, :show
       post "/household_invites/:token/accept", Household.InvitesController, :accept
+      get "/session_invitations/:token", Bookings.BookingsController, :show_invitation
     end
 
     scope "/portal", SportsCoachBookingsWeb.Portal do
@@ -444,6 +461,7 @@ defmodule SportsCoachBookingsWeb.Router do
 
       get "/ping", PingController, :show
       get "/branding", BrandingController, :show
+      get "/website", WebsiteController, :show
 
       scope "/account", Account do
         pipe_through :require_customer
@@ -583,6 +601,15 @@ defmodule SportsCoachBookingsWeb.Router do
       post "/:id/cancel", BookingsController, :cancel
       get "/:id/rebook-options", BookingsController, :rebook_options
       post "/:id/rebook", BookingsController, :rebook
+      get "/invitations", BookingsController, :invitations
+      get "/invitation-partners", BookingsController, :partners
+      delete "/invitations/:id", BookingsController, :cancel_invitation
+      post "/invitations/:id/resend", BookingsController, :resend_invitation
+      post "/sessions/:session_id/invitations", BookingsController, :invite
+      post "/session_invitations/:token/accept", BookingsController, :accept_invitation
+      post "/sessions/:session_id/convert-private", BookingsController, :convert_private
+      get "/private-session-requests", BookingsController, :private_requests
+      post "/private-session-requests", BookingsController, :request_private
     end
 
     # Guest reservation holds: anonymous create; the opaque token is the
@@ -603,6 +630,12 @@ defmodule SportsCoachBookingsWeb.Router do
       pipe_through [:portal_session, :require_customer, :reservation_token]
 
       post "/:id/convert", ReservationsController, :convert
+    end
+
+    scope "/portal", SportsCoachBookingsWeb.Portal do
+      pipe_through [:portal_session, :rate_limit_contact]
+
+      post "/website/contact", WebsiteController, :contact
     end
   end
 
@@ -649,6 +682,13 @@ defmodule SportsCoachBookingsWeb.Router do
   # Built SPA bundles with history fallback. Declared last so they never shadow
   # the API, webhook, spec, or dev routes. In local development the Vite dev
   # servers serve these instead; in production Phoenix serves the built dist.
+  scope "/", SportsCoachBookingsWeb.Portal do
+    pipe_through :resolve_tenant
+
+    get "/robots.txt", WebsiteMetaController, :robots
+    get "/sitemap.xml", WebsiteMetaController, :sitemap
+  end
+
   scope "/admin", SportsCoachBookingsWeb do
     get "/", SpaController, :admin
     get "/*path", SpaController, :admin

@@ -41,6 +41,10 @@ defmodule SportsCoachBookings.Notifications.Templates.Helpers do
   def portal_link(path, token),
     do: tenant_url(TenantContext.get_tenant_id(), path) <> token_query(token)
 
+  @doc "An absolute portal URL on the tenant host without a token."
+  @spec portal_url(String.t()) :: String.t()
+  def portal_url(path), do: tenant_url(TenantContext.get_tenant_id(), path)
+
   @doc "A portal link whose token is a path segment, e.g. `/accept-invite/<token>`."
   @spec portal_path_link(String.t(), String.t()) :: String.t()
   def portal_path_link(path, token),
@@ -63,6 +67,15 @@ defmodule SportsCoachBookings.Notifications.Templates.Helpers do
   @spec button(String.t(), String.t()) :: String.t()
   def button(label, url) do
     ~s(<p style="margin:24px 0;"><a href="#{url}" style="background-color:#1d4ed8;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;display:inline-block;font-weight:bold;">#{label}</a></p>)
+  end
+
+  @doc "Escapes untrusted text before interpolating it into an HTML notification."
+  @spec escape_html(term()) :: String.t()
+  def escape_html(value) do
+    value
+    |> to_string()
+    |> Phoenix.HTML.html_escape()
+    |> Phoenix.HTML.safe_to_string()
   end
 
   defp token_query(token), do: "?token=" <> URI.encode_www_form(to_string(token))

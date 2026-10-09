@@ -11,6 +11,8 @@ defmodule SportsCoachBookings.Factory do
 
   alias SportsCoachBookings.Bookings.Booking
   alias SportsCoachBookings.Bookings.BookingEvent
+  alias SportsCoachBookings.Bookings.PrivateSessionRequest
+  alias SportsCoachBookings.Bookings.SessionInvitation
   alias SportsCoachBookings.Catalog.Discount
   alias SportsCoachBookings.Catalog.DiscountRedemption
   alias SportsCoachBookings.Catalog.DiscountTarget
@@ -78,6 +80,8 @@ defmodule SportsCoachBookings.Factory do
   alias SportsCoachBookings.Waivers.WaiverTemplate
   alias SportsCoachBookings.Waivers.WaiverTemplateOffering
   alias SportsCoachBookings.Waivers.WaiverVersion
+  alias SportsCoachBookings.Websites.ContactSubmission
+  alias SportsCoachBookings.Websites.Site
 
   @waiver_body "I agree to participate and accept the risks."
 
@@ -99,6 +103,25 @@ defmodule SportsCoachBookings.Factory do
       host: "#{sequence(:host_seq, & &1)}.localhost",
       primary: false,
       tenant: build(:tenant)
+    }
+  end
+
+  def website_site_factory do
+    %Site{
+      tenant_id: TenantContext.get_tenant_id(),
+      enabled: true,
+      draft_content: %{"hero" => %{"title" => "Draft"}},
+      published_content: %{}
+    }
+  end
+
+  def website_contact_submission_factory do
+    %ContactSubmission{
+      tenant_id: TenantContext.get_tenant_id(),
+      name: "Sam Player",
+      email: "sam@example.test",
+      message: "I would like to ask about private coaching.",
+      status: :new
     }
   end
 
@@ -192,6 +215,34 @@ defmodule SportsCoachBookings.Factory do
       is_self: false,
       active: true,
       no_pickup_restrictions: false
+    }
+  end
+
+  def session_invitation_factory do
+    seq = sequence(:session_invitation_seq, & &1)
+
+    %SessionInvitation{
+      tenant_id: TenantContext.get_tenant_id(),
+      session_id: Ecto.UUID.generate(),
+      organizer_household_id: Ecto.UUID.generate(),
+      organizer_email: "session-organizer-#{seq}@example.com",
+      email: "session-invite-#{seq}@example.com",
+      token_hash: :crypto.hash(:sha256, "session-invite-#{seq}"),
+      status: :pending,
+      payment_mode: :split,
+      seat_status: :reserved,
+      expires_at: DateTime.add(DateTime.utc_now(), 48, :hour) |> DateTime.truncate(:microsecond)
+    }
+  end
+
+  def private_session_request_factory do
+    %PrivateSessionRequest{
+      tenant_id: TenantContext.get_tenant_id(),
+      offering_id: Ecto.UUID.generate(),
+      household_id: Ecto.UUID.generate(),
+      player_count: 2,
+      preferred_times: [],
+      status: :pending
     }
   end
 

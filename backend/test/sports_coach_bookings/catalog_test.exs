@@ -64,6 +64,7 @@ defmodule SportsCoachBookings.CatalogTest do
                })
 
       assert offering.slug == "mini-kickers"
+      assert offering.public_price_tiers["1"]["credit_cost"] == 1
       assert [^offering] = Catalog.list_offerings(%{age: 5})
       assert Catalog.list_offerings(%{age: 9}) == []
       assert [^offering] = Catalog.list_offerings(%{format: :group})

@@ -19,8 +19,12 @@ defmodule SportsCoachBookings.Bookings do
   alias SportsCoachBookings.Bookings.Booking
   alias SportsCoachBookings.Bookings.BookingEvent
   alias SportsCoachBookings.Bookings.ExpiredHoldWorker
+  alias SportsCoachBookings.Bookings.ExpiredInvitationWorker
   alias SportsCoachBookings.Bookings.Policy
+  alias SportsCoachBookings.Bookings.PrivateSessionRequest
+  alias SportsCoachBookings.Bookings.SessionInvitation
   alias SportsCoachBookings.Catalog
+  alias SportsCoachBookings.Catalog.Offering
   alias SportsCoachBookings.Commerce
   alias SportsCoachBookings.Core.Audit
   alias SportsCoachBookings.Core.CustomerActor
@@ -29,7 +33,9 @@ defmodule SportsCoachBookings.Bookings do
   alias SportsCoachBookings.Core.StaffActor
   alias SportsCoachBookings.Core.TenantContext
   alias SportsCoachBookings.Credits
+  alias SportsCoachBookings.Customers
   alias SportsCoachBookings.Events
+  alias SportsCoachBookings.Notifications
   alias SportsCoachBookings.Players
   alias SportsCoachBookings.Players.Player
   alias SportsCoachBookings.Policies
@@ -46,6 +52,249 @@ defmodule SportsCoachBookings.Bookings do
   @free_change_days 7
   @active_statuses [:held, :confirmed, :attended]
   @roster_statuses [:held, :confirmed, :attended, :no_show]
+
+  ## Session invitations
+
+  @doc "Creates a one-seat invitation, reserving or purchasing its capacity."
+  @spec invite(CustomerActor.t(), binary(), map() | keyword()) ::
+          {:ok, %{invitation: SessionInvitation.t(), token: binary(), booking: Booking.t() | nil}}
+          | {:error, term()}
+  def invite(%CustomerActor{} = actor, session_id, attrs) when is_binary(session_id) do
+    attrs = Enum.into(attrs, %{})
+    write(fn -> do_invite(actor, session_id, attrs) end)
+  end
+
+  @doc "Lists invitations created by or accepted into a household."
+  @spec list_invitations(binary()) :: [SessionInvitation.t()]
+  def list_invitations(household_id) when is_binary(household_id) do
+    write(fn ->
+      expire_due_invitations(now())
+
+      Repo.all(
+        from i in SessionInvitation,
+          where:
+            i.organizer_household_id == ^household_id or i.invitee_household_id == ^household_id,
+          order_by: [desc: i.inserted_at]
+      )
+    end)
+  end
+
+  @doc "Returns prior accepted invitation partners for a household."
+  @spec invitation_partners(binary()) :: [map()]
+  def invitation_partners(household_id) when is_binary(household_id) do
+    read(fn ->
+      Repo.all(
+        from i in SessionInvitation,
+          where:
+            i.status == :accepted and
+              (i.organizer_household_id == ^household_id or
+                 i.invitee_household_id == ^household_id),
+          order_by: [desc: i.accepted_at]
+      )
+      |> Enum.map(&invitation_partner(&1, household_id))
+      |> Enum.reject(&is_nil(&1.email))
+      |> Enum.uniq_by(&String.downcase(&1.email))
+    end)
+  end
+
+  defp invitation_partner(%{organizer_household_id: household_id} = invitation, household_id),
+    do: %{email: invitation.email, player_id: invitation.invitee_player_id}
+
+  defp invitation_partner(invitation, _household_id),
+    do: %{email: invitation.organizer_email, player_id: nil}
+
+  @doc "Looks up an invitation by its opaque token."
+  @spec invitation_by_token(binary()) :: {:ok, SessionInvitation.t()} | {:error, :not_found}
+  def invitation_by_token(token) when is_binary(token) do
+    read(fn ->
+      case Repo.get_by(SessionInvitation, token_hash: token_hash(token)) do
+        nil -> {:error, :not_found}
+        invitation -> {:ok, invitation}
+      end
+    end)
+  end
+
+  @doc "Accepts an invitation and assigns/books a player from the invited household."
+  @spec accept_invitation(CustomerActor.t(), binary(), binary(), atom()) ::
+          {:ok, %{invitation: SessionInvitation.t(), booking: Booking.t()}} | {:error, term()}
+  def accept_invitation(%CustomerActor{} = actor, token, player_id, method) do
+    write(fn -> do_accept_invitation(actor, token, player_id, normalize_method(method)) end)
+  end
+
+  @doc "Cancels a pending invitation and returns any organizer-funded seat in full."
+  @spec cancel_invitation(CustomerActor.t(), binary()) ::
+          {:ok, SessionInvitation.t()} | {:error, term()}
+  def cancel_invitation(%CustomerActor{} = actor, invitation_id) when is_binary(invitation_id) do
+    write(fn -> do_cancel_invitation(actor, invitation_id) end)
+  end
+
+  @doc "Rotates the token and re-sends a pending invitation."
+  @spec resend_invitation(CustomerActor.t(), binary()) ::
+          {:ok, %{invitation: SessionInvitation.t(), token: binary()}} | {:error, term()}
+  def resend_invitation(%CustomerActor{} = actor, invitation_id) when is_binary(invitation_id) do
+    write(fn -> do_resend_invitation(actor, invitation_id) end)
+  end
+
+  @doc "Expires one pending invitation and releases its temporary reservation."
+  @spec expire_invitation(binary()) :: {:ok, :expired | :noop}
+  def expire_invitation(id) when is_binary(id),
+    do: write(fn -> expire_invitation_row(id, now()) end)
+
+  @doc "Creates a request that an operator schedule a new private session."
+  @spec request_private_session(CustomerActor.t(), binary(), map() | keyword()) ::
+          {:ok, PrivateSessionRequest.t()} | {:error, term()}
+  def request_private_session(%CustomerActor{} = actor, offering_id, attrs) do
+    attrs = Enum.into(attrs, %{})
+
+    write(fn ->
+      with {:ok, offering} <- fetch_offering(offering_id),
+           true <- offering.private_enabled and offering.allow_private_requests,
+           player_count = fetch(attrs, :player_count),
+           true <- is_integer(player_count) and player_count <= offering.private_max_players do
+        %PrivateSessionRequest{}
+        |> PrivateSessionRequest.changeset(%{
+          tenant_id: TenantContext.get_tenant_id(),
+          offering_id: offering_id,
+          household_id: actor.household_id,
+          player_count: player_count,
+          preferred_times: fetch(attrs, :preferred_times) || [],
+          notes: fetch(attrs, :notes)
+        })
+        |> Repo.insert()
+      else
+        false ->
+          Repo.rollback({:private_request_not_allowed, "Private requests are not available"})
+
+        {:error, reason} ->
+          Repo.rollback(reason)
+      end
+    end)
+  end
+
+  @doc "Lists one household's private-session requests, newest first."
+  @spec list_private_session_requests(binary()) :: [PrivateSessionRequest.t()]
+  def list_private_session_requests(household_id) when is_binary(household_id) do
+    read(fn ->
+      Repo.all(
+        from r in PrivateSessionRequest,
+          where: r.household_id == ^household_id,
+          order_by: [desc: r.inserted_at]
+      )
+    end)
+  end
+
+  @doc "Converts an empty public occurrence into an exclusive private party."
+  @spec convert_session_to_private(CustomerActor.t(), binary(), pos_integer()) ::
+          {:ok, Session.t()} | {:error, term()}
+  def convert_session_to_private(%CustomerActor{} = actor, session_id, party_size)
+      when is_integer(party_size) and party_size > 0 do
+    write(fn ->
+      with {:ok, session} <- lock_session(session_id),
+           {:ok, offering} <- fetch_offering(session.offering_id),
+           true <- session.access_mode == :public,
+           true <- offering.private_enabled and offering.allow_private_conversion,
+           true <- party_size <= offering.private_max_players,
+           true <- session.booked_count + session.held_count == 0,
+           :ok <- ensure_private_staffing(session, party_size, offering),
+           {:ok, updated} <- persist_private_conversion(session, actor, party_size),
+           {:ok, _event} <- publish_private_conversion(updated, actor, party_size) do
+        {:ok, updated}
+      else
+        false ->
+          Repo.rollback(
+            {:private_conversion_not_allowed,
+             "This session cannot be converted at the requested party size"}
+          )
+
+        {:error, reason} ->
+          Repo.rollback(reason)
+      end
+    end)
+  end
+
+  defp persist_private_conversion(session, actor, party_size) do
+    Session.update_changeset(session, %{
+      access_mode: :private,
+      capacity: party_size,
+      party_size: party_size,
+      exclusive_household_id: actor.household_id
+    })
+    |> Repo.update()
+  end
+
+  defp publish_private_conversion(session, actor, party_size) do
+    Events.publish("session.converted_private", %{
+      tenant_id: session.tenant_id,
+      session_id: session.id,
+      household_id: actor.household_id,
+      party_size: party_size
+    })
+  end
+
+  @doc "Paginates private-session requests for an operator."
+  @spec page_private_session_requests(map() | keyword(), map() | keyword()) :: map()
+  def page_private_session_requests(filters \\ %{}, params \\ %{}) do
+    filters = Enum.into(filters, %{})
+
+    read(fn ->
+      query =
+        from r in PrivateSessionRequest,
+          order_by: [desc: r.inserted_at]
+
+      query =
+        case fetch(filters, :status) do
+          nil -> query
+          status -> where(query, [r], r.status == ^status)
+        end
+
+      {rows, cursor} = Pagination.paginate(query, params)
+      %{data: rows, next_cursor: cursor}
+    end)
+  end
+
+  @doc "Approves, declines, or cancels a private-session request."
+  @spec review_private_session_request(StaffActor.t(), binary(), atom() | binary(), map()) ::
+          {:ok, PrivateSessionRequest.t()} | {:error, term()}
+  def review_private_session_request(%StaffActor{} = actor, id, status, attrs \\ %{}) do
+    status = normalize_request_status(status)
+    attrs = Enum.into(attrs, %{})
+
+    write(fn ->
+      with %PrivateSessionRequest{status: :pending} = request <-
+             Repo.one(from r in PrivateSessionRequest, where: r.id == ^id, lock: "FOR UPDATE"),
+           true <- status in [:approved, :declined],
+           {:ok, session_id} <- maybe_approve_private_request(request, status, attrs),
+           {:ok, updated} <-
+             request
+             |> PrivateSessionRequest.changeset(%{
+               status: status,
+               reviewed_by_id: actor.staff_user_id,
+               reviewed_at: now(),
+               session_id: session_id,
+               decline_reason: fetch(attrs, :decline_reason)
+             })
+             |> Repo.update(),
+           {:ok, _audit} <-
+             Audit.record(actor, "bookings.private_session_request.#{status}", updated, %{
+               session_id: session_id
+             }),
+           {:ok, _delivery} <- deliver_private_request_decision(updated) do
+        {:ok, updated}
+      else
+        nil ->
+          Repo.rollback(:not_found)
+
+        false ->
+          Repo.rollback({:invalid_status, "Status must be approved or declined"})
+
+        %PrivateSessionRequest{} ->
+          Repo.rollback({:request_already_reviewed, "This request has already been reviewed"})
+
+        {:error, reason} ->
+          Repo.rollback(reason)
+      end
+    end)
+  end
 
   ## Reads
 
@@ -372,13 +621,16 @@ defmodule SportsCoachBookings.Bookings do
          {:ok, session} <- lock_session(session_id),
          {:ok, offering} <- fetch_offering(session.offering_id),
          :ok <- check_session_status(session),
+         :ok <- check_access(actor, session),
          :ok <- check_window(session, offering, actor, override, reason),
          :ok <- check_age(player, session, offering),
          :ok <- check_bookable(player),
          :ok <- check_waivers(player_id, offering.id),
          :ok <- check_duplicate(session_id, player_id),
          :ok <- check_overlap(player_id, session),
-         :ok <- check_capacity(session) do
+         :ok <- check_capacity(session),
+         :ok <- check_mode_capacity(session, offering),
+         :ok <- check_staffing(session, offering) do
       insert_booking_for(actor, player, session, offering, method, reason)
     else
       {:error, reason} -> Repo.rollback(reason)
@@ -411,6 +663,15 @@ defmodule SportsCoachBookings.Bookings do
 
   defp check_session_status(_session),
     do: {:error, {:session_not_bookable, "This session is not open for booking"}}
+
+  defp check_access(%CustomerActor{household_id: household_id}, %Session{
+         access_mode: :private,
+         exclusive_household_id: owner
+       })
+       when is_binary(owner) and owner != household_id,
+       do: {:error, {:private_session, "This session belongs to another private party"}}
+
+  defp check_access(_actor, _session), do: :ok
 
   defp check_window(session, offering, actor, override, reason) do
     reference = now()
@@ -540,6 +801,59 @@ defmodule SportsCoachBookings.Bookings do
       else: {:error, :session_full}
   end
 
+  defp check_mode_capacity(session, offering) do
+    limit =
+      if session.access_mode == :private do
+        if map_size(offering.private_price_tiers || %{}) > 0,
+          do: session.party_size || offering.private_max_players
+      else
+        if map_size(offering.public_price_tiers || %{}) > 0,
+          do: offering.public_max_players
+      end
+
+    if is_nil(limit) or session.booked_count + session.held_count < limit,
+      do: :ok,
+      else: {:error, :session_full}
+  end
+
+  defp check_staffing(session, offering) do
+    case staffing_ratio(session, offering) do
+      nil -> :ok
+      ratio -> check_staffed_capacity(session, ratio)
+    end
+  end
+
+  defp staffing_ratio(%{access_mode: :private}, offering) do
+    if map_size(offering.private_price_tiers || %{}) > 0,
+      do: offering.private_players_per_coach || 1
+  end
+
+  defp staffing_ratio(_session, offering) do
+    if map_size(offering.public_price_tiers || %{}) > 0,
+      do: offering.public_players_per_coach || 1
+  end
+
+  defp check_staffed_capacity(session, ratio) do
+    case Scheduling.session_detail(session.id) do
+      {:ok, %{coaches: []}} ->
+        # Sessions may be published before coach assignments are finalized.
+        # Once at least one coach is assigned, the ratio is a hard limit.
+        :ok
+
+      {:ok, %{coaches: coaches}} ->
+        ensure_staffed_capacity(session, length(coaches) * ratio)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp ensure_staffed_capacity(session, staffed_capacity) do
+    if session.booked_count + session.held_count < staffed_capacity,
+      do: :ok,
+      else: {:error, {:session_understaffed, "This session needs another coach"}}
+  end
+
   defp insert_booking_for(actor, player, session, offering, :paid, _reason) do
     hold_expires_at = DateTime.add(now(), @hold_minutes, :minute)
     base = base_attrs(actor, player, session, :paid)
@@ -549,7 +863,7 @@ defmodule SportsCoachBookings.Bookings do
         status: :held,
         credits_used: 0,
         hold_expires_at: hold_expires_at,
-        paid_amount: offering.drop_in_price || 0
+        paid_amount: tier_price(offering, session)
       })
 
     with {:ok, booking} <- insert_booking(attrs),
@@ -583,7 +897,7 @@ defmodule SportsCoachBookings.Bookings do
   end
 
   defp insert_booking_for(actor, player, session, offering, :credits, _reason) do
-    cost = offering.credit_cost || 0
+    cost = tier_credit_cost(offering, session)
 
     attrs =
       base_attrs(actor, player, session, :credits)
@@ -620,6 +934,31 @@ defmodule SportsCoachBookings.Bookings do
   defp insert_booking(attrs) do
     %Booking{} |> Booking.create_changeset(attrs) |> Repo.insert()
   end
+
+  defp tier_price(offering, session) do
+    case tier(offering, session) do
+      %{price: price} when is_integer(price) -> price
+      _ -> offering.drop_in_price || 0
+    end
+  end
+
+  defp tier_credit_cost(offering, session) do
+    case tier(offering, session) do
+      %{credit_cost: cost} when is_integer(cost) -> cost
+      _ -> offering.credit_cost || 0
+    end
+  end
+
+  defp tier(offering, %{access_mode: :private} = session),
+    do: Offering.price_tier(offering, :private, session.party_size || 1)
+
+  defp tier(offering, _session),
+    do:
+      Offering.price_tier(
+        offering,
+        :public,
+        offering.public_max_players || offering.default_capacity
+      )
 
   defp consume_credits(_booking, _offering_id, 0, _actor), do: :ok
 
@@ -939,7 +1278,9 @@ defmodule SportsCoachBookings.Bookings do
          :ok <- check_waivers(booking.player_id, target_offering.id),
          :ok <- check_duplicate(target_session.id, booking.player_id),
          :ok <- check_overlap(player.id, target_session, booking.id),
-         :ok <- check_capacity(target_session) do
+         :ok <- check_capacity(target_session),
+         :ok <- check_mode_capacity(target_session, target_offering),
+         :ok <- check_staffing(target_session, target_offering) do
       :ok
     else
       {:error, reason} -> {:error, reason}
@@ -1305,8 +1646,27 @@ defmodule SportsCoachBookings.Bookings do
              }
            })
            |> Repo.update(),
+         :ok <- release_invitation_for_booking(updated),
          {:ok, _event} <- insert_event(updated, action, nil, %{}) do
       :ok
+    end
+  end
+
+  defp release_invitation_for_booking(%Booking{session_invitation_id: nil}), do: :ok
+
+  defp release_invitation_for_booking(%Booking{session_invitation_id: invitation_id}) do
+    case Repo.get(SessionInvitation, invitation_id) do
+      %SessionInvitation{status: :pending} = invitation ->
+        invitation
+        |> SessionInvitation.changeset(%{status: :expired, seat_status: :released})
+        |> Repo.update()
+        |> case do
+          {:ok, _} -> :ok
+          {:error, reason} -> {:error, reason}
+        end
+
+      _ ->
+        :ok
     end
   end
 
@@ -1405,9 +1765,571 @@ defmodule SportsCoachBookings.Bookings do
 
   defp household_query(household_id) do
     from b in Booking,
-      where: b.household_id == ^household_id,
+      where: b.household_id == ^household_id or b.beneficiary_household_id == ^household_id,
       order_by: [desc: b.inserted_at]
   end
+
+  defp do_invite(actor, session_id, attrs) do
+    payment_mode = normalize_payment_mode(fetch(attrs, :payment_mode))
+    method = normalize_method(fetch(attrs, :method))
+    email = attrs |> fetch(:email) |> normalize_email()
+
+    with true <- payment_mode in [:split, :organizer],
+         true <- payment_mode == :split or method in [:paid, :credits],
+         true <- is_binary(email) and email != "",
+         {:ok, session} <- lock_session(session_id),
+         {:ok, offering} <- fetch_offering(session.offering_id),
+         :ok <- check_session_status(session),
+         :ok <- check_access(actor, session),
+         :ok <- ensure_invites_enabled(offering),
+         :ok <- ensure_organizer_booked(actor.household_id, session_id),
+         :ok <- ensure_invitation_capacity(session),
+         :ok <- check_mode_capacity(session, offering),
+         :ok <- check_staffing(session, offering),
+         :ok <- ensure_unique_pending_invite(session_id, email),
+         :ok <- ensure_reservation_window(payment_mode, session, offering),
+         {:ok, result} <-
+           create_invitation(actor, email, payment_mode, method, session, offering) do
+      {:ok, result}
+    else
+      false -> Repo.rollback({:invalid_invitation, "Check the invitation details"})
+      {:error, reason} -> Repo.rollback(reason)
+    end
+  end
+
+  defp create_invitation(actor, email, payment_mode, method, session, offering) do
+    {token, hash} = invitation_token()
+    expires_at = invitation_expiry(payment_mode, session, offering)
+
+    attrs = %{
+      tenant_id: TenantContext.get_tenant_id(),
+      session_id: session.id,
+      organizer_household_id: actor.household_id,
+      organizer_email: normalize_email(actor.customer_user.email),
+      email: email,
+      token_hash: hash,
+      payment_mode: payment_mode,
+      seat_status: :reserved,
+      expires_at: expires_at,
+      last_sent_at: now()
+    }
+
+    with {:ok, invitation} <-
+           %SessionInvitation{} |> SessionInvitation.changeset(attrs) |> Repo.insert(),
+         {:ok, booking, _session} <-
+           create_invited_seat(actor, invitation, session, offering, payment_mode, method),
+         {:ok, invitation} <- attach_invitation_booking(invitation, booking),
+         {:ok, _job} <- schedule_invitation_expiry(invitation),
+         {:ok, _delivery} <-
+           deliver_invitation(
+             invitation,
+             email,
+             token,
+             payment_mode,
+             session,
+             offering,
+             expires_at,
+             "session-invite-#{invitation.id}"
+           ) do
+      {:ok, %{invitation: invitation, token: token, booking: booking}}
+    end
+  end
+
+  defp attach_invitation_booking(invitation, booking) do
+    invitation
+    |> SessionInvitation.changeset(%{booking_id: booking && booking.id})
+    |> Repo.update()
+  end
+
+  defp deliver_invitation(
+         _invitation,
+         email,
+         token,
+         payment_mode,
+         session,
+         offering,
+         expires_at,
+         idempotency_key
+       ) do
+    Notifications.deliver(
+      :session_invite,
+      %{
+        email: email,
+        token: token,
+        offering: offering.name,
+        starts_at: DateTime.to_iso8601(session.starts_at),
+        payment_mode: to_string(payment_mode),
+        expires_at: expires_at && DateTime.to_iso8601(expires_at)
+      },
+      idempotency_key: idempotency_key
+    )
+  end
+
+  defp do_cancel_invitation(actor, invitation_id) do
+    invitation = lock_invitation(invitation_id)
+
+    with %SessionInvitation{} <- invitation,
+         :ok <- ensure_invitation_organizer(actor, invitation),
+         :ok <- ensure_pending_invitation(invitation),
+         :ok <- cancel_invited_booking(actor, invitation),
+         :ok <- release_reserved_invitation(invitation),
+         {:ok, cancelled} <-
+           invitation
+           |> SessionInvitation.changeset(%{status: :cancelled, seat_status: :released})
+           |> Repo.update() do
+      {:ok, cancelled}
+    else
+      nil -> Repo.rollback(:not_found)
+      {:error, reason} -> Repo.rollback(reason)
+    end
+  end
+
+  defp do_resend_invitation(actor, invitation_id) do
+    invitation = lock_invitation(invitation_id)
+
+    with %SessionInvitation{} <- invitation,
+         :ok <- ensure_invitation_organizer(actor, invitation),
+         :ok <- ensure_pending_invitation(invitation),
+         {:ok, session} <- fetch_session_required(invitation.session_id),
+         {:ok, offering} <- fetch_offering_required(session.offering_id),
+         {token, token_hash} = invitation_token(),
+         resend_count = invitation.resend_count + 1,
+         {:ok, updated} <-
+           invitation
+           |> SessionInvitation.changeset(%{
+             token_hash: token_hash,
+             resend_count: resend_count,
+             last_sent_at: now()
+           })
+           |> Repo.update(),
+         {:ok, _delivery} <-
+           deliver_invitation(
+             updated,
+             updated.email,
+             token,
+             updated.payment_mode,
+             session,
+             offering,
+             updated.expires_at,
+             "session-invite-#{updated.id}-resend-#{resend_count}"
+           ) do
+      {:ok, %{invitation: updated, token: token}}
+    else
+      nil -> Repo.rollback(:not_found)
+      {:error, reason} -> Repo.rollback(reason)
+    end
+  end
+
+  defp lock_invitation(id) do
+    Repo.one(from i in SessionInvitation, where: i.id == ^id, lock: "FOR UPDATE")
+  end
+
+  defp ensure_invitation_organizer(
+         %CustomerActor{household_id: household_id},
+         %SessionInvitation{organizer_household_id: household_id}
+       ),
+       do: :ok
+
+  defp ensure_invitation_organizer(_actor, _invitation), do: {:error, :forbidden}
+
+  defp cancel_invited_booking(_actor, %SessionInvitation{booking_id: nil}), do: :ok
+
+  defp cancel_invited_booking(actor, %SessionInvitation{booking_id: booking_id}) do
+    case lock_booking(booking_id) do
+      nil ->
+        :ok
+
+      %Booking{status: :cancelled} ->
+        :ok
+
+      %Booking{} = booking ->
+        cancel_active_invited_booking(actor, booking)
+    end
+  end
+
+  defp cancel_active_invited_booking(actor, booking) do
+    with {:ok, session} <- fetch_session_required(booking.session_id),
+         outcome = %Outcome{
+           allowed?: true,
+           credit_outcome: :return,
+           refund_amount: paid_money(booking)
+         },
+         {:ok, _booking} <-
+           apply_cancel(actor, booking, session, outcome, %{reason: "invitation_revoked"}) do
+      :ok
+    end
+  end
+
+  defp create_invited_seat(_actor, _invitation, session, _offering, :split, _method) do
+    with {:ok, updated} <- Seats.adjust!(session, 0, 1) do
+      {:ok, nil, updated}
+    end
+  end
+
+  defp create_invited_seat(actor, invitation, session, offering, :organizer, method) do
+    {actor_type, actor_id} = actor_fields(actor)
+    status = if method == :paid, do: :held, else: :confirmed
+    hold_expires_at = if method == :paid, do: DateTime.add(now(), @hold_minutes, :minute)
+    credits = if method == :credits, do: tier_credit_cost(offering, session), else: 0
+
+    attrs = %{
+      tenant_id: TenantContext.get_tenant_id(),
+      session_id: session.id,
+      session_invitation_id: invitation.id,
+      household_id: actor.household_id,
+      booked_by_type: actor_type,
+      booked_by_id: actor_id,
+      status: status,
+      payment_method: method,
+      credits_used: credits,
+      paid_amount: if(method == :paid, do: tier_price(offering, session), else: 0),
+      hold_expires_at: hold_expires_at,
+      policy_snapshot: Policies.snapshot_for(session.offering_id),
+      currency: tenant_currency()
+    }
+
+    with {:ok, booking} <- insert_booking(attrs),
+         :ok <- maybe_consume_invite_credits(booking, offering.id, credits, actor),
+         {:ok, updated} <-
+           Seats.adjust!(
+             session,
+             if(status == :confirmed, do: 1, else: 0),
+             if(status == :held, do: 1, else: 0)
+           ),
+         {:ok, _event} <-
+           insert_event(booking, to_string(status), actor, %{invitation_id: invitation.id}),
+         {:ok, _job} <- schedule_hold_expiry(booking) do
+      {:ok, booking, updated}
+    end
+  end
+
+  defp maybe_consume_invite_credits(_booking, _offering_id, 0, _actor), do: :ok
+
+  defp maybe_consume_invite_credits(booking, offering_id, cost, actor),
+    do: consume_credits(booking, offering_id, cost, actor)
+
+  defp do_accept_invitation(actor, token, player_id, method) do
+    invitation =
+      Repo.one(
+        from i in SessionInvitation,
+          where: i.token_hash == ^token_hash(token),
+          lock: "FOR UPDATE"
+      )
+
+    with %SessionInvitation{} <- invitation,
+         :ok <- ensure_pending_invitation(invitation),
+         :ok <- ensure_invitee_email(actor, invitation),
+         {:ok, player} <- fetch_player(player_id),
+         :ok <- authorize_household(actor, player),
+         {:ok, session} <- lock_session(invitation.session_id),
+         {:ok, offering} <- fetch_offering(session.offering_id),
+         :ok <- check_age(player, session, offering),
+         :ok <- check_bookable(player),
+         :ok <- check_waivers(player_id, offering.id),
+         :ok <- check_duplicate(session.id, player_id),
+         :ok <- check_overlap(player_id, session) do
+      accept_invited_seat(actor, invitation, player, session, offering, method)
+    else
+      nil -> Repo.rollback(:not_found)
+      {:error, reason} -> Repo.rollback(reason)
+    end
+  end
+
+  defp accept_invited_seat(
+         actor,
+         %{payment_mode: :split} = invitation,
+         player,
+         session,
+         _offering,
+         method
+       )
+       when method in [:paid, :credits] do
+    with {:ok, released_session} <- Seats.adjust!(session, 0, -1),
+         {:ok, booking} <-
+           do_book(actor, player.id, released_session.id, method, false, nil, %{}),
+         {:ok, accepted} <- mark_invitation_accepted(invitation, actor, player, booking) do
+      {:ok, %{invitation: accepted, booking: booking}}
+    end
+  end
+
+  defp accept_invited_seat(
+         actor,
+         %{payment_mode: :organizer} = invitation,
+         player,
+         _session,
+         _offering,
+         _method
+       ) do
+    case lock_booking(invitation.booking_id) do
+      %Booking{status: status} = booking when status in [:held, :confirmed] ->
+        with {:ok, assigned} <-
+               booking
+               |> Booking.update_changeset(%{
+                 player_id: player.id,
+                 beneficiary_household_id: actor.household_id
+               })
+               |> Repo.update(),
+             {:ok, accepted} <- mark_invitation_accepted(invitation, actor, player, assigned) do
+          {:ok, %{invitation: accepted, booking: assigned}}
+        end
+
+      _ ->
+        Repo.rollback({:invitation_unfunded, "The organizer's payment is no longer active"})
+    end
+  end
+
+  defp accept_invited_seat(_actor, _invitation, _player, _session, _offering, _method),
+    do: Repo.rollback({:invalid_payment_method, "Choose credits or paid"})
+
+  defp mark_invitation_accepted(invitation, actor, player, booking) do
+    with {:ok, accepted} <-
+           invitation
+           |> SessionInvitation.changeset(%{
+             status: :accepted,
+             seat_status: :purchased,
+             invitee_household_id: actor.household_id,
+             invitee_player_id: player.id,
+             booking_id: booking.id,
+             accepted_at: now()
+           })
+           |> Repo.update(),
+         {:ok, _event} <-
+           Events.publish("session.invitation_accepted", %{
+             invitation_id: invitation.id,
+             tenant_id: invitation.tenant_id,
+             booking_id: booking.id,
+             session_id: invitation.session_id
+           }) do
+      {:ok, accepted}
+    end
+  end
+
+  defp ensure_invites_enabled(%{allow_invite_reservations: true}), do: :ok
+
+  defp ensure_invites_enabled(_),
+    do: {:error, {:invitations_disabled, "Invitations are not enabled"}}
+
+  defp ensure_organizer_booked(household_id, session_id) do
+    if Repo.exists?(
+         from b in Booking,
+           where:
+             b.household_id == ^household_id and b.session_id == ^session_id and
+               b.status in ^@active_statuses and not is_nil(b.player_id)
+       ),
+       do: :ok,
+       else: {:error, {:organizer_not_booked, "Book your own player before inviting someone"}}
+  end
+
+  defp ensure_invitation_capacity(session), do: check_capacity(session)
+
+  defp ensure_unique_pending_invite(session_id, email) do
+    if Repo.exists?(
+         from i in SessionInvitation,
+           where: i.session_id == ^session_id and i.email == ^email and i.status == :pending
+       ),
+       do: {:error, {:already_invited, "That email already has a pending invitation"}},
+       else: :ok
+  end
+
+  defp ensure_reservation_window(:organizer, _session, _offering), do: :ok
+
+  defp ensure_reservation_window(:split, session, offering) do
+    cutoff = DateTime.add(now(), offering.invite_hold_hours * 3600)
+
+    if DateTime.compare(session.starts_at, cutoff) == :gt,
+      do: :ok,
+      else: {:error, {:invite_hold_closed, "Temporary invitation reservations are closed"}}
+  end
+
+  defp invitation_expiry(:split, session, offering) do
+    configured = DateTime.add(now(), offering.invite_hold_hours * 3600)
+
+    booking_cutoff =
+      DateTime.add(session.starts_at, -(offering.bookable_until_minutes_before || 0) * 60)
+
+    if DateTime.compare(configured, booking_cutoff) == :lt, do: configured, else: booking_cutoff
+  end
+
+  defp invitation_expiry(:organizer, _session, _offering), do: nil
+
+  defp ensure_pending_invitation(%SessionInvitation{status: :pending} = invitation) do
+    if SessionInvitation.expired?(invitation, now()) do
+      _ = expire_invitation_row(invitation.id, now())
+      {:error, {:invitation_expired, "This invitation has expired"}}
+    else
+      :ok
+    end
+  end
+
+  defp ensure_pending_invitation(_),
+    do: {:error, {:invitation_unavailable, "This invitation is no longer available"}}
+
+  defp ensure_invitee_email(%CustomerActor{customer_user: %{email: email}}, invitation) do
+    if normalize_email(email) == normalize_email(invitation.email),
+      do: :ok,
+      else: {:error, :forbidden}
+  end
+
+  defp ensure_invitee_email(_actor, _invitation), do: {:error, :forbidden}
+
+  defp expire_due_invitations(reference) do
+    ids =
+      Repo.all(
+        from i in SessionInvitation,
+          where: i.status == :pending and not is_nil(i.expires_at) and i.expires_at <= ^reference,
+          select: i.id
+      )
+
+    Enum.each(ids, &expire_invitation_row(&1, reference))
+  end
+
+  defp expire_invitation_row(id, reference) do
+    case Repo.one(from i in SessionInvitation, where: i.id == ^id, lock: "FOR UPDATE") do
+      %SessionInvitation{status: :pending, expires_at: %DateTime{} = expires_at} = invitation ->
+        expire_invitation_if_due(invitation, expires_at, reference)
+
+      _ ->
+        {:ok, :noop}
+    end
+  end
+
+  defp expire_invitation_if_due(invitation, expires_at, reference) do
+    if DateTime.compare(expires_at, reference) == :gt,
+      do: {:ok, :noop},
+      else: expire_invitation_now(invitation)
+  end
+
+  defp expire_invitation_now(invitation) do
+    with :ok <- release_reserved_invitation(invitation),
+         {:ok, _expired} <-
+           invitation
+           |> SessionInvitation.changeset(%{status: :expired, seat_status: :released})
+           |> Repo.update() do
+      {:ok, :expired}
+    end
+  end
+
+  defp release_reserved_invitation(%{payment_mode: :split, seat_status: :reserved} = invitation) do
+    with {:ok, _session} <- Seats.adjust!(lock_session!(invitation.session_id), 0, -1), do: :ok
+  end
+
+  defp release_reserved_invitation(_invitation), do: :ok
+
+  defp schedule_invitation_expiry(%SessionInvitation{expires_at: nil}), do: {:ok, :none}
+
+  defp schedule_invitation_expiry(invitation) do
+    %{"tenant_id" => invitation.tenant_id, "invitation_id" => invitation.id}
+    |> ExpiredInvitationWorker.new(scheduled_at: invitation.expires_at)
+    |> Oban.insert()
+  end
+
+  defp invitation_token do
+    token = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+    {token, token_hash(token)}
+  end
+
+  defp token_hash(token), do: :crypto.hash(:sha256, token)
+
+  defp normalize_email(email) when is_binary(email),
+    do: email |> String.trim() |> String.downcase()
+
+  defp normalize_email(_), do: nil
+  defp normalize_payment_mode(mode) when mode in [:split, :organizer], do: mode
+  defp normalize_payment_mode("split"), do: :split
+  defp normalize_payment_mode("organizer"), do: :organizer
+  defp normalize_payment_mode(_), do: nil
+
+  defp ensure_private_staffing(session, party_size, offering) do
+    ratio = offering.private_players_per_coach || 1
+    required = div(party_size + ratio - 1, ratio)
+
+    case Scheduling.session_detail(session.id) do
+      {:ok, %{coaches: coaches}} when length(coaches) >= required ->
+        :ok
+
+      {:ok, _entry} ->
+        {:error,
+         {:private_conversion_requires_approval,
+          "The operator must assign enough coaches before approving this private session",
+          %{required_coaches: required}}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp maybe_approve_private_request(_request, :declined, _attrs), do: {:ok, nil}
+
+  defp maybe_approve_private_request(request, :approved, attrs) do
+    session_id = fetch(attrs, :session_id)
+
+    with true <- is_binary(session_id),
+         {:ok, session} <- lock_session(session_id),
+         true <- session.offering_id == request.offering_id,
+         true <- session.status == :scheduled,
+         true <- session.booked_count + session.held_count == 0,
+         {:ok, offering} <- fetch_offering(request.offering_id),
+         true <- request.player_count <= offering.private_max_players,
+         :ok <- ensure_private_staffing(session, request.player_count, offering),
+         {:ok, _updated} <-
+           session
+           |> Session.update_changeset(%{
+             access_mode: :private,
+             capacity: request.player_count,
+             party_size: request.player_count,
+             exclusive_household_id: request.household_id
+           })
+           |> Repo.update() do
+      {:ok, session_id}
+    else
+      false ->
+        {:error,
+         {:invalid_private_session,
+          "Choose an empty scheduled session for the same offering and within its private limit"}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp deliver_private_request_decision(request) do
+    with {:ok, offering} <- fetch_offering_required(request.offering_id),
+         {:ok, starts_at} <- private_request_starts_at(request),
+         recipients when recipients != [] <-
+           request.household_id
+           |> Customers.list_manager_emails()
+           |> Enum.map(&%{type: :email, id: nil, email: &1}) do
+      Notifications.deliver(
+        :private_session_request_reviewed,
+        recipients,
+        %{
+          offering: offering.name,
+          player_count: request.player_count,
+          status: to_string(request.status),
+          starts_at: starts_at,
+          decline_reason: request.decline_reason
+        },
+        idempotency_key: "private-session-request-#{request.id}-#{request.status}"
+      )
+    else
+      [] -> {:ok, :no_recipients}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp private_request_starts_at(%PrivateSessionRequest{session_id: nil}), do: {:ok, nil}
+
+  defp private_request_starts_at(%PrivateSessionRequest{session_id: session_id}) do
+    case Scheduling.fetch_session(session_id) do
+      {:ok, session} -> {:ok, DateTime.to_iso8601(session.starts_at)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp normalize_request_status(status) when status in [:approved, :declined], do: status
+  defp normalize_request_status("approved"), do: :approved
+  defp normalize_request_status("declined"), do: :declined
+  defp normalize_request_status(_), do: nil
 
   defp filter_bookings(query, filters) do
     query

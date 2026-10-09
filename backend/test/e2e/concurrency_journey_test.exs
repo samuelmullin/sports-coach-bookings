@@ -40,6 +40,7 @@ defmodule SportsCoachBookings.E2E.ConcurrencyJourneyTest do
         "name" => "Free Group",
         "format" => "group",
         "duration_minutes" => 60,
+        "default_capacity" => 5,
         "credit_cost" => 0
       })
       |> json_response(201)
