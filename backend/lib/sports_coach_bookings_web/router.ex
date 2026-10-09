@@ -601,6 +601,7 @@ defmodule SportsCoachBookingsWeb.Router do
 
       post "/invitations/:id/resend", BookingsController, :resend_invitation
       post "/sessions/:session_id/invitations", BookingsController, :invite
+      post "/private-session-requests", BookingsController, :request_private
     end
 
     # WP-14: portal bookings (book, list, cancel preview/cancel, rebook).
@@ -619,7 +620,6 @@ defmodule SportsCoachBookingsWeb.Router do
       post "/session_invitations/:token/accept", BookingsController, :accept_invitation
       post "/sessions/:session_id/convert-private", BookingsController, :convert_private
       get "/private-session-requests", BookingsController, :private_requests
-      post "/private-session-requests", BookingsController, :request_private
     end
 
     # Guest reservation holds: anonymous create; the opaque token is the

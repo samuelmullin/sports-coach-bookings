@@ -52,6 +52,7 @@ defmodule SportsCoachBookings.Bookings do
   @free_change_days 7
   @max_pending_invitations 10
   @max_resends 3
+  @max_pending_private_requests 5
   @active_statuses [:held, :confirmed, :attended]
   @roster_statuses [:held, :confirmed, :attended, :no_show]
 
@@ -152,7 +153,8 @@ defmodule SportsCoachBookings.Bookings do
       with {:ok, offering} <- fetch_offering(offering_id),
            true <- offering.private_enabled and offering.allow_private_requests,
            player_count = fetch(attrs, :player_count),
-           true <- is_integer(player_count) and player_count <= offering.private_max_players do
+           true <- is_integer(player_count) and player_count <= offering.private_max_players,
+           :ok <- ensure_pending_request_quota(actor.household_id) do
         %PrivateSessionRequest{}
         |> PrivateSessionRequest.changeset(%{
           tenant_id: TenantContext.get_tenant_id(),
@@ -171,6 +173,22 @@ defmodule SportsCoachBookings.Bookings do
           Repo.rollback(reason)
       end
     end)
+  end
+
+  defp ensure_pending_request_quota(household_id) do
+    pending =
+      Repo.aggregate(
+        from(r in PrivateSessionRequest,
+          where: r.household_id == ^household_id and r.status == :pending
+        ),
+        :count
+      )
+
+    if pending >= @max_pending_private_requests,
+      do:
+        {:error,
+         {:too_many_requests, "You already have several requests awaiting review. Please wait."}},
+      else: :ok
   end
 
   @doc "Lists one household's private-session requests, newest first."

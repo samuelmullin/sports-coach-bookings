@@ -45,5 +45,8 @@ defmodule SportsCoachBookings.Bookings.PrivateSessionRequest do
       :status
     ])
     |> Ecto.Changeset.validate_number(:player_count, greater_than_or_equal_to: 1)
+    |> Ecto.Changeset.validate_length(:notes, max: 2_000)
+    |> Ecto.Changeset.validate_length(:decline_reason, max: 1_000)
+    |> Ecto.Changeset.validate_length(:preferred_times, max: 5)
   end
 end

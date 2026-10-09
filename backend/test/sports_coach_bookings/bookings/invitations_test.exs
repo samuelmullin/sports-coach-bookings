@@ -370,6 +370,24 @@ defmodule SportsCoachBookings.Bookings.InvitationsTest do
     assert {:error, {:too_many_invitations, _message}} = List.last(results)
   end
 
+  test "private-session requests are bounded per household and per field", ctx do
+    actor = household_actor(ctx.tenant)
+
+    assert {:error, %Ecto.Changeset{}} =
+             Bookings.request_private_session(actor, ctx.offering.id, %{
+               player_count: 2,
+               notes: String.duplicate("x", 2_001)
+             })
+
+    for _ <- 1..5 do
+      assert {:ok, _request} =
+               Bookings.request_private_session(actor, ctx.offering.id, %{player_count: 2})
+    end
+
+    assert {:error, {:too_many_requests, _message}} =
+             Bookings.request_private_session(actor, ctx.offering.id, %{player_count: 2})
+  end
+
   defp household_actor(tenant) do
     household = insert(:household)
     user = insert(:customer_user)
