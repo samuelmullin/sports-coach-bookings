@@ -3,6 +3,7 @@ import {
   useSportsCoachBookingsWebPortalBrandingControllerShow,
   type SportsCoachBookingsWebPortalBrandingControllerShow200,
 } from '@scb/api-client';
+import { loadTenantFont } from './fonts';
 import { Splash, applyTheme, fontStack, platformTheme, type ThemeTokens } from '@scb/ui';
 
 export type PortalBranding = SportsCoachBookingsWebPortalBrandingControllerShow200;
@@ -34,6 +35,7 @@ export function brandingToTokens(branding: PortalBranding): ThemeTokens {
 export function applyBrandingToDocument(branding: PortalBranding): void {
   if (typeof document === 'undefined') return;
   applyTheme(brandingToTokens(branding));
+  void loadTenantFont(branding.theme?.font_family);
   const name = branding.tenant?.name;
   if (name) document.title = name;
   const favicon = branding.assets?.favicon_url;
