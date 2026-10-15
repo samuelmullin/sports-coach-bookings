@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   bookingsQueryKey,
   creditsQueryKey,
+  useCancelBooking,
   useCreateBooking,
   useCredits,
   useHouseholdWaiverStatus,
@@ -83,6 +84,7 @@ export function BookingFlowPage() {
   const creditsQuery = useCredits();
   const waiversQuery = useHouseholdWaiverStatus();
   const createBooking = useCreateBooking();
+  const cancelBooking = useCancelBooking();
 
   const players = listItems<PlayerResponse>(playersQuery);
   const credits = listItems<CreditBalance>(creditsQuery);
@@ -178,7 +180,16 @@ export function BookingFlowPage() {
         // A paid booking is only a timed hold until the order is paid.
         const held = responseData<{ id?: string }>(result);
         if (held?.id) {
-          await addToCart.mutateAsync({ data: { type: 'drop_in', ref_id: held.id, quantity: 1 } });
+          try {
+            await addToCart.mutateAsync({
+              data: { type: 'drop_in', ref_id: held.id, quantity: 1 },
+            });
+          } catch (cartError) {
+            // Don't leave the seat held for someone who never reached payment.
+            await cancelBooking.mutateAsync({ id: held.id, data: {} }).catch(() => undefined);
+            await queryClient.invalidateQueries({ queryKey: bookingsQueryKey() });
+            throw cartError;
+          }
           toast({ title: 'Seat held — complete payment to confirm', variant: 'success' });
           navigate('/cart');
           return;

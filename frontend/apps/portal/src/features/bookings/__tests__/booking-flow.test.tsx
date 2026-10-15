@@ -212,4 +212,26 @@ describe('BookingFlowPage', () => {
     expect(cartPost).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("You're booked!")).not.toBeInTheDocument();
   });
+
+  it('releases the held seat when adding to the cart fails', async () => {
+    useBookingData();
+    server.use(http.get('/api/portal/credits', () => HttpResponse.json({ data: [] })));
+    const cancelPost = vi.fn(() => HttpResponse.json({ ...booking, status: 'cancelled' }));
+    server.use(
+      http.post('/api/portal/bookings', () =>
+        HttpResponse.json({ ...booking, status: 'held', payment_method: 'paid' }, { status: 201 }),
+      ),
+      http.post('/api/portal/cart/lines', () =>
+        HttpResponse.json({ error: { code: 'invalid', message: 'nope' } }, { status: 422 }),
+      ),
+      http.post('/api/portal/bookings/:id/cancel', cancelPost),
+    );
+
+    renderFlow();
+    await selectPlayer();
+    await userEvent.click(await screen.findByRole('button', { name: 'Continue to payment' }));
+
+    await waitFor(() => expect(cancelPost).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText('Cart page')).not.toBeInTheDocument();
+  });
 });

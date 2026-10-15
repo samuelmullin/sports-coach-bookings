@@ -27,21 +27,14 @@ const phoneSchema = z
   .object({ country: z.string(), national: z.string() })
   .refine(isValidPhoneValue, { message: 'auth.invalidPhone' });
 
-const schema = z
-  .object({
-    first_name: z.string().min(1, 'auth.required'),
-    last_name: z.string().min(1, 'auth.required'),
-    email: z.string().email('auth.invalidEmail'),
-    phone: phoneSchema,
-    password: z.string().min(12, 'auth.passwordMin'),
-    confirm: z.string(),
-    accept_terms: z.boolean().refine((value) => value, { message: 'auth.required' }),
-    accept_privacy: z.boolean().refine((value) => value, { message: 'auth.required' }),
-  })
-  .refine((values) => values.password === values.confirm, {
-    path: ['confirm'],
-    message: 'auth.required',
-  });
+const schema = z.object({
+  first_name: z.string().min(1, 'auth.required'),
+  last_name: z.string().min(1, 'auth.required'),
+  email: z.string().email('auth.invalidEmail'),
+  phone: phoneSchema,
+  password: z.string().min(12, 'auth.passwordMin'),
+  accept: z.boolean().refine((value) => value, { message: 'auth.required' }),
+});
 
 type FormValues = z.infer<typeof schema>;
 
@@ -54,6 +47,7 @@ export function RegisterPage() {
   const touchReservation = useReservationTouch();
   const registerMutation = useSportsCoachBookingsWebPortalAccountRegistrationsControllerCreate();
   const [documentKind, setDocumentKind] = useState<'terms' | 'privacy' | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -64,8 +58,7 @@ export function RegisterPage() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      accept_terms: false,
-      accept_privacy: false,
+      accept: false,
       phone: { country: defaultPhoneCountry, national: '' },
     },
   });
@@ -136,22 +129,25 @@ export function RegisterPage() {
           label={t('auth.password')}
           error={errors.password && t(errors.password.message ?? '')}
         >
-          <Input type="password" autoComplete="new-password" {...register('password')} />
+          <Input
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="new-password"
+            {...register('password')}
+          />
         </FormField>
-        <FormField
-          label={t('auth.confirmPassword')}
-          error={errors.confirm && t(errors.confirm.message ?? '')}
-        >
-          <Input type="password" autoComplete="new-password" {...register('confirm')} />
-        </FormField>
+        <Checkbox
+          label={t('auth.showPassword')}
+          checked={showPassword}
+          onCheckedChange={(checked) => setShowPassword(checked === true)}
+        />
         <Controller
-          name="accept_terms"
+          name="accept"
           control={control}
           render={({ field }) => (
             <Checkbox
               label={
                 <>
-                  {t('auth.acceptTermsPrefix')}
+                  {t('auth.acceptPrefix')}
                   <a
                     href="#terms"
                     className="text-primary hover:underline"
@@ -162,21 +158,7 @@ export function RegisterPage() {
                   >
                     {t('auth.termsLink')}
                   </a>
-                </>
-              }
-              checked={field.value}
-              onCheckedChange={field.onChange}
-            />
-          )}
-        />
-        <Controller
-          name="accept_privacy"
-          control={control}
-          render={({ field }) => (
-            <Checkbox
-              label={
-                <>
-                  {t('auth.acceptPrivacyPrefix')}
+                  {t('auth.acceptJoin')}
                   <a
                     href="#privacy"
                     className="text-primary hover:underline"
