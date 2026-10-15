@@ -42,6 +42,30 @@ defmodule SportsCoachBookings.Bookings.CoachAccessTest do
     assert CoachAccess.player_visible?(actor, player_row.id)
   end
 
+  # Regression: real requests are not inside a tenant transaction when this runs.
+  # `put_tenant/1` sets the RLS setting for the whole sandbox transaction (and, before
+  # `:scope_tenant_guc_to_call`, nested tenant transactions leaked it too), which hid a
+  # bug where the bookings query ran outside `Repo.with_tenant_tx` and RLS returned no
+  # rows, so a coach could never see their own players.
+  test "a coach sees their player in a request (no tenant setting pre-established)", %{
+    tenant: tenant,
+    venue: venue
+  } do
+    coach = coach_membership(tenant)
+    offering = insert(:offering)
+    session = session_in_window(offering, venue)
+    insert(:session_coach, session: session, membership_id: coach.id)
+
+    household = insert(:household).id
+    player_row = player(household)
+    insert(:booking, session_id: session.id, player_id: player_row.id, household_id: household)
+    actor = coach_actor(tenant, coach)
+
+    assert with_tenant_context_only(tenant, fn ->
+             CoachAccess.player_visible?(actor, player_row.id)
+           end)
+  end
+
   test "a coach does not see a player with no booking in their sessions", %{
     tenant: tenant,
     venue: venue

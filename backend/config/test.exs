@@ -70,6 +70,10 @@ config :phoenix,
 # `test/security/rate_limit_test.exs` enables it explicitly.
 config :sports_coach_bookings, :rate_limiting_enabled, false
 
+# Make nested tenant transactions restore the RLS setting like production commits do
+# (see `Repo.with_tenant_tx/2`), so tests cannot pass on a leaked tenant setting.
+config :sports_coach_bookings, :scope_tenant_guc_to_call, true
+
 # Signed-waiver PDFs are written to a throwaway directory in tests.
 config :sports_coach_bookings, SportsCoachBookings.Waivers.PdfStore.Local,
   root: Path.join(System.tmp_dir!(), "scb_waiver_pdfs_test")
