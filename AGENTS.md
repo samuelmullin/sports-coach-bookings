@@ -137,8 +137,10 @@ Done since the last review (2026-09-30): booking/convert confirmation guard,
 (branded Unicode browser renderer in production, private store, downloads),
 browser e2e plus automated WCAG coverage, SPA code-splitting, stale-scaffolding
 cleanup, exact shared sliding-window rate limiting, a live RustFS CI round trip,
-an RLS-without-GUC regression helper, and a batch of defects the e2e suite
-exposed (see git history / the e2e README).
+an RLS-without-GUC regression helper (now effective for nested tenant
+transactions via `:scope_tenant_guc_to_call` in test config), self-hosted tenant
+fonts, a dependency-advisory review (`docs/security-review.md` §4), and a batch
+of defects the e2e suite exposed (see git history / the e2e README).
 
 1. **Production operations are not commissioned.** Fly/S3/DNS/contacts/backup
    drill/error-reporting values are placeholders and need a human: work through
