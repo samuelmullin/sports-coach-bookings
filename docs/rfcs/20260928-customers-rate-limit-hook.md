@@ -1,6 +1,6 @@
 # RFC 20260928 — Customers: rate-limiting hook point
 
-**Owner:** wp-02 (Customers); enforcement owned by wp-19. **Status:** hook only.
+**Owner:** wp-02 (Customers); enforcement owned by wp-19. **Status:** implemented by wp-19 (`Plugs.RateLimit` + `RateLimiter`). Limits are per node; see `docs/security-review.md` §4.
 
 ## Context
 

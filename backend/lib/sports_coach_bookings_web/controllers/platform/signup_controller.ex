@@ -6,6 +6,7 @@ defmodule SportsCoachBookingsWeb.Platform.SignupController do
 
   action_fallback SportsCoachBookingsWeb.FallbackController
 
+  alias SportsCoachBookings.Staff
   alias SportsCoachBookings.Tenancy
   alias SportsCoachBookingsWeb.Schemas.Api
   alias SportsCoachBookingsWeb.Schemas.ErrorResponse
@@ -28,6 +29,10 @@ defmodule SportsCoachBookingsWeb.Platform.SignupController do
   def create(conn, params) do
     case Tenancy.signup(signup_attrs(params), signup_opts(conn)) do
       {:ok, %{tenant: tenant, staff_user: staff_user, membership: membership}} ->
+        # A newly registered owner must confirm their address; an existing
+        # (already confirmed) user starting a second club must not be re-prompted.
+        unless staff_user.confirmed_at, do: Staff.deliver_confirmation_instructions(staff_user)
+
         conn
         |> Auth.log_in_staff(staff_user)
         |> put_status(:created)

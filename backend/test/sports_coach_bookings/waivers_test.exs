@@ -2,6 +2,7 @@ defmodule SportsCoachBookings.WaiversTest do
   use SportsCoachBookings.DataCase, async: false
 
   alias SportsCoachBookings.Waivers
+  alias SportsCoachBookings.Waivers.PdfStore
   alias SportsCoachBookings.Waivers.PdfWorker
   alias SportsCoachBookings.Waivers.WaiverSignature
   alias SportsCoachBookings.Waivers.WaiverTemplate
@@ -280,7 +281,7 @@ defmodule SportsCoachBookings.WaiversTest do
 
   describe "status_for_household/1" do
     test "returns a per-player required/signed matrix" do
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       player = insert(:player, tenant_id: TenantContext.get_tenant_id(), household_id: household)
       other = insert(:player, tenant_id: TenantContext.get_tenant_id(), household_id: household)
 
@@ -323,6 +324,37 @@ defmodule SportsCoachBookings.WaiversTest do
     end
   end
 
+  describe "pdf_binary/1" do
+    setup do
+      {_template, published} = published_template()
+
+      {:ok, signature} =
+        Waivers.sign(
+          nil,
+          Ecto.UUID.generate(),
+          published.id,
+          sign_attrs(published.content_sha256)
+        )
+
+      %{signature: signature}
+    end
+
+    test "renders on demand when the job has not run yet", %{signature: signature} do
+      assert is_nil(signature.pdf_key)
+      assert {:ok, "%PDF-" <> _} = Waivers.pdf_binary(signature)
+      assert Repo.get!(WaiverSignature, signature.id).pdf_key
+    end
+
+    test "re-renders when the stored object has gone missing", %{signature: signature} do
+      assert {:ok, _} = Waivers.pdf_binary(signature)
+      key = Repo.get!(WaiverSignature, signature.id).pdf_key
+      :ok = PdfStore.delete(key)
+
+      assert {:ok, "%PDF-" <> _} = Waivers.pdf_binary(Repo.get!(WaiverSignature, signature.id))
+      assert {:ok, _} = PdfStore.get(key)
+    end
+  end
+
   describe "PdfWorker" do
     test "renders and stores the pdf_key via the configured renderer" do
       {_template, published} = published_template()
@@ -334,7 +366,9 @@ defmodule SportsCoachBookings.WaiversTest do
       job = %Oban.Job{args: %{"signature_id" => signature.id, "tenant_id" => signature.tenant_id}}
       assert :ok = PdfWorker.perform(job)
 
-      assert Repo.get!(WaiverSignature, signature.id).pdf_key == "waivers/#{signature.id}.pdf"
+      key = "#{signature.tenant_id}/waivers/#{signature.id}.pdf"
+      assert Repo.get!(WaiverSignature, signature.id).pdf_key == key
+      assert {:ok, "%PDF-" <> _} = PdfStore.get(key)
     end
   end
 

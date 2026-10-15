@@ -1,6 +1,6 @@
 # RFC 20260928 — Players: `household_id` stub while WP-02 is unmerged
 
-**Owner:** wp-06 (Players). **Status:** temporary stub; remove the plain-uuid
+**Owner:** wp-06 (Players). **Status:** superseded by `20260928-players-household-fk.md` (resolved 2026-09-30); was a temporary stub; remove the plain-uuid
 column and add the foreign key once wp-02 (`Customers.households`) merges.
 
 ## Context

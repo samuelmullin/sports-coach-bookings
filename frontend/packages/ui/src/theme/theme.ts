@@ -36,6 +36,55 @@ export const platformTheme: ThemeTokens = {
   fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
 };
 
+/**
+ * The fonts a tenant may choose. Keys mirror the backend allowlist
+ * (`Tenancy.Branding`); the value is a full CSS stack that always ends in a
+ * generic family so a font that is not installed falls back to sans-serif
+ * instead of the browser default (serif).
+ */
+export const FONT_STACKS: Record<string, { label: string; stack: string }> = {
+  inter: {
+    label: 'Inter',
+    stack: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  },
+  roboto: {
+    label: 'Roboto',
+    stack: 'Roboto, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+  },
+  lato: {
+    label: 'Lato',
+    stack: 'Lato, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  },
+  open_sans: {
+    label: 'Open Sans',
+    stack: '"Open Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  },
+  montserrat: {
+    label: 'Montserrat',
+    stack: 'Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  },
+  source_sans_pro: {
+    label: 'Source Sans Pro',
+    stack:
+      '"Source Sans Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  },
+  system: {
+    label: 'System default',
+    stack: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  },
+};
+
+/** The `{ value, label }` options for a font picker. */
+export const FONT_OPTIONS = Object.entries(FONT_STACKS).map(([value, { label }]) => ({
+  value,
+  label,
+}));
+
+/** CSS font stack for a stored font key; unknown or empty values use the platform stack. */
+export function fontStack(key: string | null | undefined): string {
+  return (key && FONT_STACKS[key]?.stack) || platformTheme.fontFamily;
+}
+
 export const neutralTheme: ThemeTokens = {
   ...platformTheme,
   primaryColor: '#334155',

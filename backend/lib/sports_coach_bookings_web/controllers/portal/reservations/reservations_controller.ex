@@ -12,6 +12,9 @@ defmodule SportsCoachBookingsWeb.Portal.Reservations.ReservationsController do
 
   action_fallback SportsCoachBookingsWeb.FallbackController
 
+  alias SportsCoachBookings.Core.CustomerActor
+  alias SportsCoachBookings.Customers
+  alias SportsCoachBookings.Customers.CustomerUser
   alias SportsCoachBookings.Reservations
   alias SportsCoachBookingsWeb.ReservationsJSON
   alias SportsCoachBookingsWeb.Schemas.ErrorResponse
@@ -102,6 +105,7 @@ defmodule SportsCoachBookingsWeb.Portal.Reservations.ReservationsController do
     request_body: {"Conversion", "application/json", S.convert_request()},
     responses: [
       ok: {"Bookings", "application/json", S.convert_response()},
+      forbidden: {"Email unconfirmed", "application/json", ErrorResponse},
       conflict: {"Reservation expired", "application/json", ErrorResponse},
       unprocessable_entity: {"Not convertible", "application/json", ErrorResponse}
     ]
@@ -112,7 +116,8 @@ defmodule SportsCoachBookingsWeb.Portal.Reservations.ReservationsController do
     actor = conn.assigns.current_customer_actor
     attrs = body(params)
 
-    with {:ok, result} <-
+    with :ok <- require_confirmed(actor),
+         {:ok, result} <-
            Reservations.convert(
              id,
              conn.assigns.reservation_token,
@@ -123,6 +128,11 @@ defmodule SportsCoachBookingsWeb.Portal.Reservations.ReservationsController do
       json(conn, ReservationsJSON.convert(result))
     end
   end
+
+  defp require_confirmed(%CustomerActor{customer_user: %CustomerUser{} = user}),
+    do: Customers.require_confirmed(user)
+
+  defp require_confirmed(_actor), do: :ok
 
   defp body(params), do: Map.get(params, "reservation", params)
 end

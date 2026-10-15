@@ -26,6 +26,8 @@ defmodule SportsCoachBookingsWeb.SchedulingJSON do
       notes_public: session.notes_public,
       notes_staff: session.notes_staff,
       show_coaches: session.show_coaches,
+      access_mode: to_string(session.access_mode),
+      party_size: session.party_size,
       series_id: session.series_id,
       cancel_reason: session.cancel_reason,
       inserted_at: datetime(session.inserted_at),
@@ -106,7 +108,17 @@ defmodule SportsCoachBookingsWeb.SchedulingJSON do
       credit_cost: offering.credit_cost,
       drop_in_price: offering.drop_in_price,
       bookable_until_minutes_before: offering.bookable_until_minutes_before,
-      bookable_from_days_ahead: offering.bookable_from_days_ahead
+      bookable_from_days_ahead: offering.bookable_from_days_ahead,
+      public_enabled: offering.public_enabled,
+      public_max_players: offering.public_max_players,
+      public_price_tiers: offering.public_price_tiers,
+      private_enabled: offering.private_enabled,
+      private_max_players: offering.private_max_players,
+      private_price_tiers: offering.private_price_tiers,
+      allow_private_conversion: offering.allow_private_conversion,
+      allow_private_requests: offering.allow_private_requests,
+      allow_invite_reservations: offering.allow_invite_reservations,
+      invite_hold_hours: offering.invite_hold_hours
     }
   end
 

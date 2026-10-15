@@ -33,12 +33,29 @@ defmodule SportsCoachBookings.Bookings.Policy do
     :rebook_options,
     :roster,
     :mark_attendance,
-    :history
+    :history,
+    :invite,
+    :accept_invitation,
+    :convert_private,
+    :request_private,
+    :list_private_requests,
+    :review_private_request
   ]
 
   @coach_actions [:list, :roster, :mark_attendance, :history]
 
-  @customer_actions [:book, :list, :cancel, :cancel_preview, :rebook, :rebook_options]
+  @customer_actions [
+    :book,
+    :list,
+    :cancel,
+    :cancel_preview,
+    :rebook,
+    :rebook_options,
+    :invite,
+    :accept_invitation,
+    :convert_private,
+    :request_private
+  ]
 
   ## Owner / admin: full control within the tenant.
 

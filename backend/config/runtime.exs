@@ -27,6 +27,13 @@ config :sports_coach_bookings, SportsCoachBookingsWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :prod do
+  # --- Rate limiting --------------------------------------------------------
+  # Shared Postgres counters by default so limits hold across machines; set
+  # RATE_LIMIT_BACKEND=ets to fall back to per-node in-memory counters.
+  config :sports_coach_bookings,
+         :rate_limit_backend,
+         if(System.get_env("RATE_LIMIT_BACKEND") == "ets", do: :ets, else: :postgres)
+
   # --- Database -------------------------------------------------------------
   #
   # Prefer a single DATABASE_URL (`ecto://USER:PASS@HOST:PORT/DB`). Discrete
@@ -195,7 +202,14 @@ if config_env() == :prod do
       endpoint: System.get_env("S3_ENDPOINT"),
       public_base_url: System.get_env("S3_PUBLIC_BASE_URL"),
       presign_ttl_seconds: String.to_integer(System.get_env("S3_PRESIGN_TTL_SECONDS", "900")),
-      force_path_style: System.get_env("S3_FORCE_PATH_STYLE", "false") in ~w(true 1)
+      force_path_style: System.get_env("S3_FORCE_PATH_STYLE", "false") in ~w(true 1),
+      # Waiver PDFs hold a minor's name and the signer's IP; keep them out of the
+      # public assets bucket by setting S3_PRIVATE_BUCKET (docs/ops.md).
+      private_bucket: System.get_env("S3_PRIVATE_BUCKET")
+
+    config :sports_coach_bookings,
+           :waiver_pdf_store,
+           SportsCoachBookings.Waivers.PdfStore.S3
   end
 
   # --- Error reporting hook (WP-20) ----------------------------------------

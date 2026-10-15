@@ -169,7 +169,7 @@ defmodule SportsCoachBookings.ReservationsTest do
       s1 = session(offering_id: offering.id, venue_id: venue.id)
       s2 = session(offering_id: offering.id, venue_id: venue.id)
 
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       credits_player = player(household)
       paid_player = player(household)
       {:ok, _} = Credits.grant_complimentary(nil, household, %{amount: 5})
@@ -210,7 +210,7 @@ defmodule SportsCoachBookings.ReservationsTest do
       s1 = session(offering_id: offering.id, venue_id: venue.id)
       s2 = session(offering_id: offering.id, venue_id: venue.id)
 
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       paid_player = player(household)
       credits_player = player(household)
       # No credits granted: the second assignment fails.
@@ -239,7 +239,7 @@ defmodule SportsCoachBookings.ReservationsTest do
       venue = insert(:venue)
       s = session(offering_id: offering.id, venue_id: venue.id)
 
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       player = player(household)
       {:ok, _} = Credits.grant_complimentary(nil, household, %{amount: 5})
 

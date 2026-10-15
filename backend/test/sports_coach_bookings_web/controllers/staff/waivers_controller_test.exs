@@ -97,7 +97,7 @@ defmodule SportsCoachBookingsWeb.Staff.WaiversControllerTest do
   end
 
   describe "signatures" do
-    test "lists, exports, and returns PDF metadata", %{conn: conn, tenant: tenant} do
+    test "lists, exports, and downloads the PDF", %{conn: conn, tenant: tenant} do
       conn = staff_conn(conn, tenant, :owner)
       {_template, published} = published_waiver_in_tenant()
       player_id = Ecto.UUID.generate()
@@ -122,9 +122,10 @@ defmodule SportsCoachBookingsWeb.Staff.WaiversControllerTest do
       assert csv.resp_body =~ "player_id"
       assert csv.resp_body =~ player_id
 
-      pdf = conn |> get("/api/staff/waivers/signatures/#{signature.id}/pdf") |> json_response(200)
-      assert pdf["signature_id"] == signature.id
-      assert pdf["status"] == "pending"
+      pdf = get(conn, "/api/staff/waivers/signatures/#{signature.id}/pdf")
+      assert pdf.status == 200
+      assert ["application/pdf"] = get_resp_header(pdf, "content-type")
+      assert "%PDF-" <> _ = pdf.resp_body
     end
   end
 

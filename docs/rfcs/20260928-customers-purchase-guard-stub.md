@@ -1,6 +1,6 @@
 # RFC 20260928 — Customers: purchase/booking guard stub
 
-**Owner:** wp-02 (Customers); replaced by wp-13/wp-14. **Status:** temporary stub.
+**Owner:** wp-02 (Customers); replaced by wp-13/wp-14. **Status:** resolved 2026-09-30.
 
 ## Context
 
@@ -28,3 +28,7 @@ exercise the guard end to end.
 ## Not changed
 
 - No `core/*`, other contexts, or `docs/erd.md` edited.
+
+## Resolution (2026-09-30)
+
+The temporary `POST /api/portal/account/purchase_guard` route and controller were removed. `Customers.require_confirmed/1` now guards the real paths: checkout, `POST /api/portal/bookings`, and reservation `convert`. Tests assert the 403 `email_unconfirmed` contract on those endpoints.

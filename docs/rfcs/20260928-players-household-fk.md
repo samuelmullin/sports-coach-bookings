@@ -1,6 +1,6 @@
 # RFC 20260928 — Players `household_id`: add the FK now that wp-02 is merged
 
-**Owner:** wp-02 (proposal); change to be made by wp-06 (Players). **Status:** open.
+**Owner:** wp-02 (proposal); change to be made by wp-06 (Players). **Status:** resolved 2026-09-30 — migration `20260930120000_players_add_household_fk`.
 
 ## Context
 
@@ -24,3 +24,13 @@ tenant-owned table, so the FK can be added.
 
 - WP-02 does **not** touch the `players` table (owned by wp-06); this RFC is the
   hand-off.
+
+## Resolution (2026-09-30)
+
+- FK added as `NOT VALID`, then validated after an orphan check that fails with
+  a readable message (safe for existing data; a bad dataset aborts the migration).
+- **Deviation:** `ON DELETE RESTRICT` rather than `delete_all`. Bookings,
+  credits, and waivers reference players without FKs, so a cascade would orphan
+  them silently. Household deletion (PIPEDA work) must remove players explicitly.
+- `Player.changeset/2` maps the constraint to `household_id: "does not exist"`.
+- The stub RFC (`20260928-players-household-stub.md`) is superseded.

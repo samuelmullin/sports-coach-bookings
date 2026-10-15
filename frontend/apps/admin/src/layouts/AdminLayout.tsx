@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Avatar, AvatarFallback, Button, IconButton, cn } from '@scb/ui';
+import { Avatar, AvatarFallback, Button, IconButton, RouteFallback, cn } from '@scb/ui';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useStaffAuth } from '../auth/staff-auth';
 import { navForRole } from '../navigation';
@@ -84,7 +84,9 @@ export function AdminLayout() {
           </div>
         </header>
         <main className="flex-1 p-4 lg:p-6">
-          <Outlet />
+          <Suspense fallback={<RouteFallback />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

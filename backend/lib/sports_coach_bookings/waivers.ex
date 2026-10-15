@@ -29,6 +29,8 @@ defmodule SportsCoachBookings.Waivers do
   alias SportsCoachBookings.Events
   alias SportsCoachBookings.Players
   alias SportsCoachBookings.Repo
+  alias SportsCoachBookings.Waivers.PdfCleanupWorker
+  alias SportsCoachBookings.Waivers.PdfStore
   alias SportsCoachBookings.Waivers.PdfWorker
   alias SportsCoachBookings.Waivers.WaiverSignature
   alias SportsCoachBookings.Waivers.WaiverTemplate
@@ -268,6 +270,37 @@ defmodule SportsCoachBookings.Waivers do
   @doc "Fetches a signature, returning `{:error, :not_found}` when absent."
   @spec fetch_signature(binary()) :: {:ok, WaiverSignature.t()} | {:error, :not_found}
   def fetch_signature(id), do: read(fn -> fetch_record(WaiverSignature, id) end)
+
+  @doc """
+  Returns the signature's PDF bytes from private storage.
+
+  Renders on demand when the background job has not produced the file yet (or
+  the stored object is missing), so a download never has to wait on the queue.
+  """
+  @spec pdf_binary(WaiverSignature.t()) :: {:ok, binary()} | {:error, term()}
+  def pdf_binary(%WaiverSignature{} = signature) do
+    read(fn ->
+      with {:ok, signature} <- ensure_pdf_key(signature) do
+        fetch_or_rerender(signature)
+      end
+    end)
+  end
+
+  defp fetch_or_rerender(signature) do
+    case PdfStore.get(signature.pdf_key) do
+      {:error, :not_found} -> rerender_and_get(signature)
+      result -> result
+    end
+  end
+
+  defp ensure_pdf_key(%WaiverSignature{pdf_key: nil} = signature), do: PdfWorker.render(signature)
+  defp ensure_pdf_key(signature), do: {:ok, signature}
+
+  defp rerender_and_get(signature) do
+    with {:ok, signature} <- PdfWorker.render(signature) do
+      PdfStore.get(signature.pdf_key)
+    end
+  end
 
   @doc """
   Signs a published waiver version for a player.
@@ -766,6 +799,45 @@ defmodule SportsCoachBookings.Waivers do
       {:error, ^key, %Ecto.Changeset{} = changeset, _changes} -> {:error, changeset}
       {:error, _step, reason, _changes} -> {:error, reason}
     end
+  end
+
+  ## Privacy erasure
+
+  @doc """
+  Anonymizes the waiver signatures of the given players.
+
+  The signature rows are kept (they evidence that a version was accepted and
+  when) but the signer's typed name, relationship, IP address, and user agent
+  are scrubbed and the signed PDF reference is dropped. Returns the PDF storage
+  keys that were referenced so the caller can delete the stored files.
+  """
+  @spec anonymize_signatures([binary()]) :: [binary()]
+  def anonymize_signatures([]), do: []
+
+  def anonymize_signatures(player_ids) do
+    read(fn ->
+      query = from s in WaiverSignature, where: s.player_id in ^player_ids
+
+      keys = Repo.all(from s in query, where: not is_nil(s.pdf_key), select: s.pdf_key)
+      tenant_id = TenantContext.get_tenant_id()
+
+      Repo.update_all(query,
+        set: [
+          signer_name_typed: "[erased]",
+          signer_relationship: nil,
+          ip: %Postgrex.INET{address: {0, 0, 0, 0}, netmask: 32},
+          user_agent: "[erased]",
+          pdf_key: nil
+        ]
+      )
+
+      if keys != [] do
+        {:ok, _job} =
+          Oban.insert(PdfCleanupWorker.new(%{"keys" => keys, "tenant_id" => tenant_id}))
+      end
+
+      keys
+    end)
   end
 
   defp read(fun) do

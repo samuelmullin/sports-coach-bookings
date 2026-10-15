@@ -37,7 +37,17 @@ defmodule SportsCoachBookingsWeb.Schemas.Scheduling do
         credit_cost: %Schema{type: :integer},
         drop_in_price: %Schema{type: :integer, nullable: true},
         bookable_until_minutes_before: %Schema{type: :integer},
-        bookable_from_days_ahead: %Schema{type: :integer, nullable: true}
+        bookable_from_days_ahead: %Schema{type: :integer, nullable: true},
+        public_enabled: %Schema{type: :boolean},
+        public_max_players: %Schema{type: :integer},
+        public_price_tiers: %Schema{type: :object, additionalProperties: true},
+        private_enabled: %Schema{type: :boolean},
+        private_max_players: %Schema{type: :integer},
+        private_price_tiers: %Schema{type: :object, additionalProperties: true},
+        allow_private_conversion: %Schema{type: :boolean},
+        allow_private_requests: %Schema{type: :boolean},
+        allow_invite_reservations: %Schema{type: :boolean},
+        invite_hold_hours: %Schema{type: :integer}
       }
     }
   end
@@ -84,6 +94,8 @@ defmodule SportsCoachBookingsWeb.Schemas.Scheduling do
         notes_public: %Schema{type: :string, nullable: true},
         notes_staff: %Schema{type: :string, nullable: true},
         show_coaches: %Schema{type: :boolean},
+        access_mode: %Schema{type: :string, enum: ["public", "private"]},
+        party_size: %Schema{type: :integer, nullable: true},
         series_id: %Schema{type: :string, format: :uuid, nullable: true},
         cancel_reason: %Schema{type: :string, nullable: true},
         inserted_at: datetime(),
@@ -105,7 +117,7 @@ defmodule SportsCoachBookingsWeb.Schemas.Scheduling do
         not_bookable_reason: %Schema{
           type: :string,
           nullable: true,
-          enum: ["full", "too_late", "too_early", "cancelled"]
+          enum: ["full", "too_late", "too_early", "cancelled", "understaffed"]
         },
         already_booked: %Schema{type: :boolean},
         warnings: %Schema{type: :array, items: warning()}
@@ -230,6 +242,8 @@ defmodule SportsCoachBookingsWeb.Schemas.Scheduling do
         notes_public: %Schema{type: :string, nullable: true},
         notes_staff: %Schema{type: :string, nullable: true},
         show_coaches: %Schema{type: :boolean, nullable: true},
+        access_mode: %Schema{type: :string, enum: ["public", "private"], nullable: true},
+        party_size: %Schema{type: :integer, nullable: true},
         coach_ids: %Schema{type: :array, items: %Schema{type: :string, format: :uuid}}
       },
       required: [:offering_id, :venue_id, :starts_at]

@@ -5,11 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import {
+  ApiError,
+  applyApiFieldErrors,
   getSportsCoachBookingsWebPlatformSignupControllerSlugAvailableQueryKey,
   useSportsCoachBookingsWebPlatformSignupControllerCreate,
   useSportsCoachBookingsWebPlatformSignupControllerSlugAvailable,
 } from '@scb/api-client';
-import { Button, FormField, Input, Select } from '@scb/ui';
+import { Button, FormField, Input, Select, useToast } from '@scb/ui';
 import { AuthLayout } from '../../layouts/AuthLayout';
 
 const TIMEZONES = [
@@ -45,6 +47,7 @@ export function SignupPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const signup = useSportsCoachBookingsWebPlatformSignupControllerCreate();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [debouncedSlug, setDebouncedSlug] = useState('');
 
@@ -54,6 +57,7 @@ export function SignupPage() {
     watch,
     trigger,
     setValue,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -98,8 +102,28 @@ export function SignupPage() {
   };
 
   const onSubmit = handleSubmit(async (values) => {
-    await signup.mutateAsync({ data: values });
-    navigate('/login', { replace: true });
+    try {
+      await signup.mutateAsync({ data: values });
+      navigate('/login', { replace: true });
+    } catch (error) {
+      // The availability check is debounced, so a fast "Next" can slip a taken
+      // address through to here. Send the user back to the field that is wrong.
+      if (error instanceof ApiError && error.code === 'slug_taken') {
+        setError('slug', { type: 'server', message: 'auth.slugTaken' });
+        setStep(0);
+        return;
+      }
+      const applied = applyApiFieldErrors(error, { setError });
+      if (applied.handled) {
+        const failing = Object.keys(applied.fieldErrors);
+        const firstStep = STEP_FIELDS.findIndex((fields) =>
+          fields.some((field) => failing.includes(field)),
+        );
+        if (firstStep >= 0) setStep(firstStep);
+      } else {
+        toast({ title: t('auth.signupFailed'), variant: 'danger' });
+      }
+    }
   });
 
   return (

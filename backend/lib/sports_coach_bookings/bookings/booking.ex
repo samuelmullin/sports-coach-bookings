@@ -23,6 +23,8 @@ defmodule SportsCoachBookings.Bookings.Booking do
     field :session_id, :binary_id
     field :player_id, :binary_id
     field :household_id, :binary_id
+    field :beneficiary_household_id, :binary_id
+    field :session_invitation_id, :binary_id
 
     field :booked_by_type, :string
     field :booked_by_id, :binary_id
@@ -76,6 +78,8 @@ defmodule SportsCoachBookings.Bookings.Booking do
       :session_id,
       :player_id,
       :household_id,
+      :beneficiary_household_id,
+      :session_invitation_id,
       :booked_by_type,
       :booked_by_id,
       :status,
@@ -94,10 +98,10 @@ defmodule SportsCoachBookings.Bookings.Booking do
     |> Ecto.Changeset.validate_required([
       :tenant_id,
       :session_id,
-      :player_id,
       :household_id,
       :payment_method
     ])
+    |> validate_player_or_invitation()
     |> Ecto.Changeset.unique_constraint(
       [:tenant_id, :session_id, :player_id],
       name: :bookings_one_active_per_session_player,
@@ -119,7 +123,18 @@ defmodule SportsCoachBookings.Bookings.Booking do
       :cancelled_at,
       :free_change_until,
       :cancel_outcome,
-      :paid_amount
+      :paid_amount,
+      :player_id,
+      :beneficiary_household_id
     ])
+  end
+
+  defp validate_player_or_invitation(changeset) do
+    if Ecto.Changeset.get_field(changeset, :player_id) ||
+         Ecto.Changeset.get_field(changeset, :session_invitation_id) do
+      changeset
+    else
+      Ecto.Changeset.add_error(changeset, :player_id, "or an invitation is required")
+    end
   end
 end

@@ -69,3 +69,7 @@ config :phoenix,
 # shared across async tests. The dedicated
 # `test/security/rate_limit_test.exs` enables it explicitly.
 config :sports_coach_bookings, :rate_limiting_enabled, false
+
+# Signed-waiver PDFs are written to a throwaway directory in tests.
+config :sports_coach_bookings, SportsCoachBookings.Waivers.PdfStore.Local,
+  root: Path.join(System.tmp_dir!(), "scb_waiver_pdfs_test")

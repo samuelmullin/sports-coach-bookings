@@ -99,7 +99,7 @@ defmodule SportsCoachBookings.CommerceTest do
   ## Cart
 
   test "cart add/merge/remove lines", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     package = seed_package()
     variant = seed_variant()
 
@@ -123,7 +123,7 @@ defmodule SportsCoachBookings.CommerceTest do
   end
 
   test "price_cart reconciles line totals with the order total" do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     package = seed_package()
     variant = seed_variant()
     hold_id = register_hold(household)
@@ -140,7 +140,7 @@ defmodule SportsCoachBookings.CommerceTest do
   end
 
   test "applying an invalid discount code errors at price time" do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     package = seed_package()
     Commerce.add_package_to_cart(household, package.id, 1)
     Commerce.apply_discount_code(household, "NOPE")
@@ -151,7 +151,7 @@ defmodule SportsCoachBookings.CommerceTest do
   ## Discounts
 
   test "discount is applied and the redemption recorded once", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     package = seed_package(%{price: 10_000})
 
     {:ok, discount} =
@@ -190,7 +190,7 @@ defmodule SportsCoachBookings.CommerceTest do
   ## E2E
 
   test "checkout end-to-end is idempotent under webhook replay", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     package = seed_package()
     variant = seed_variant(%{}, 10)
     hold_id = register_hold(household)
@@ -243,7 +243,7 @@ defmodule SportsCoachBookings.CommerceTest do
   end
 
   test "zero-total order is marked paid without a provider redirect", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     package = seed_package(%{price: 10_000})
 
     {:ok, _discount} =
@@ -269,7 +269,7 @@ defmodule SportsCoachBookings.CommerceTest do
   ## Expiry
 
   test "expiry releases stock reservations and publishes order.expired", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant(%{}, 5)
 
     Commerce.add_product_to_cart(household, variant.id, 2)
@@ -289,7 +289,7 @@ defmodule SportsCoachBookings.CommerceTest do
   end
 
   test "payment.failed expires the order", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant(%{}, 5)
     Commerce.add_product_to_cart(household, variant.id, 1)
     assert {:ok, %{order: order}} = Commerce.checkout(actor(tenant), household)
@@ -299,7 +299,7 @@ defmodule SportsCoachBookings.CommerceTest do
   end
 
   test "expire_due_orders picks up lapsed pending orders", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant(%{}, 5)
     Commerce.add_product_to_cart(household, variant.id, 1)
     assert {:ok, %{order: order}} = Commerce.checkout(actor(tenant), household)
@@ -315,7 +315,7 @@ defmodule SportsCoachBookings.CommerceTest do
   ## Refunds
 
   test "partial line refund reconciles the order and publishes order.refunded", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant(%{}, 10)
     Commerce.add_product_to_cart(household, variant.id, 2)
     assert {:ok, %{order: order}} = Commerce.checkout(actor(tenant), household)
@@ -342,7 +342,7 @@ defmodule SportsCoachBookings.CommerceTest do
   end
 
   test "package refund is blocked when credits were used unless forced", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     package = seed_package()
     Commerce.add_package_to_cart(household, package.id, 1)
     assert {:ok, %{order: order}} = Commerce.checkout(actor(tenant), household)
@@ -373,7 +373,7 @@ defmodule SportsCoachBookings.CommerceTest do
   end
 
   test "refund_order refunds every open line", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant(%{}, 10)
     Commerce.add_product_to_cart(household, variant.id, 2)
     assert {:ok, %{order: order}} = Commerce.checkout(actor(tenant), household)
@@ -390,7 +390,7 @@ defmodule SportsCoachBookings.CommerceTest do
   ## Offline
 
   test "offline order is created paid and audited", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant(%{}, 10)
 
     assert {:ok, order} =
@@ -411,7 +411,7 @@ defmodule SportsCoachBookings.CommerceTest do
   ## Reads
 
   test "staff order filters", %{tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_variant(%{}, 5)
     Commerce.add_product_to_cart(household, variant.id, 1)
     assert {:ok, %{order: order}} = Commerce.checkout(actor(tenant), household)

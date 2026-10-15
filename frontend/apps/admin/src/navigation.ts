@@ -18,6 +18,7 @@ export const navItems: NavItem[] = [
   { to: '/waivers', labelKey: 'nav.waivers', roles: ['owner', 'admin'] },
   { to: '/inventory', labelKey: 'nav.inventory', roles: ['owner', 'admin'] },
   { to: '/messaging', labelKey: 'nav.messaging', roles: ['owner', 'admin'] },
+  { to: '/website', labelKey: 'nav.website', roles: ['owner', 'admin'] },
   { to: '/team', labelKey: 'nav.team', roles: ['owner', 'admin'] },
   { to: '/feedback', labelKey: 'nav.feedback', roles: ['owner', 'admin', 'coach'] },
   { to: '/settings', labelKey: 'nav.settings', roles: ['owner', 'admin'] },

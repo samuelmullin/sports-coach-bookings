@@ -17,7 +17,7 @@ defmodule SportsCoachBookings.CreditsTest do
     test "grants a package's credits, writes one entry, and publishes credits.granted once" do
       offering = insert(:offering)
       package = package([offering.id], %{credit_quantity: 5, validity_days: 30})
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       line = Ecto.UUID.generate()
 
       assert {:ok, lot} = Credits.grant(household, package.id, line)
@@ -46,7 +46,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "a package with no eligible offerings is spendable on any offering" do
       package = package([], %{credit_quantity: 3})
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       assert {:ok, lot} = Credits.grant(household, package.id, Ecto.UUID.generate())
       assert lot.eligible_offering_ids == []
@@ -68,7 +68,7 @@ defmodule SportsCoachBookings.CreditsTest do
   describe "consume/4" do
     test "spends from the soonest-expiring eligible lot first" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, later} =
         Credits.grant_complimentary(nil, household, %{
@@ -94,7 +94,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "returns :insufficient_credits without writing when the balance is too low" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, _} =
         Credits.grant_complimentary(nil, household, %{
@@ -111,7 +111,7 @@ defmodule SportsCoachBookings.CreditsTest do
     test "will not spend an offering-restricted lot on another offering" do
       offering = insert(:offering)
       other = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, _} =
         Credits.grant_complimentary(nil, household, %{
@@ -124,7 +124,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "is idempotent per booking" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       booking = Ecto.UUID.generate()
 
       {:ok, _} =
@@ -142,7 +142,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "only one of several attempts on the last credit succeeds" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, _} =
         Credits.grant_complimentary(nil, household, %{
@@ -168,7 +168,7 @@ defmodule SportsCoachBookings.CreditsTest do
   describe "reverse/2" do
     test "returns credits to the original lot and is idempotent" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       booking = Ecto.UUID.generate()
 
       {:ok, lot} =
@@ -191,7 +191,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "creates a return_grace lot when the original lot has expired" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       booking = Ecto.UUID.generate()
 
       {:ok, lot} =
@@ -219,7 +219,7 @@ defmodule SportsCoachBookings.CreditsTest do
   describe "expiry" do
     test "expiring a lot reduces the balance via a ledger entry and emits credits.expired" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, lot} =
         Credits.grant_complimentary(nil, household, %{
@@ -246,7 +246,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "emits credits.expiring_soon once per lot" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, _} =
         Credits.grant_complimentary(nil, household, %{
@@ -265,7 +265,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "a lot expiring beyond the window is not notified" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, _} =
         Credits.grant_complimentary(nil, household, %{
@@ -282,7 +282,7 @@ defmodule SportsCoachBookings.CreditsTest do
   describe "admin adjust" do
     test "adjusts a lot and records an audit event" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, lot} =
         Credits.grant_complimentary(nil, household, %{
@@ -314,7 +314,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "refuses to adjust below zero" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, lot} =
         Credits.grant_complimentary(nil, household, %{
@@ -330,7 +330,7 @@ defmodule SportsCoachBookings.CreditsTest do
   describe "reconciliation and append-only" do
     test "reconcile reports the invariant holds across grant/consume/reverse/expire" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       booking = Ecto.UUID.generate()
 
       {:ok, lot} =
@@ -351,7 +351,7 @@ defmodule SportsCoachBookings.CreditsTest do
 
     test "raw SQL UPDATE and DELETE on the ledger are rejected" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       {:ok, _} =
         Credits.grant_complimentary(nil, household, %{
@@ -376,7 +376,7 @@ defmodule SportsCoachBookings.CreditsTest do
     test "grants package credits idempotently" do
       offering = insert(:offering)
       package = package([offering.id], %{credit_quantity: 4})
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
       line = Ecto.UUID.generate()
 
       payload = %{
@@ -411,7 +411,7 @@ defmodule SportsCoachBookings.CreditsTest do
   describe "property: ledger invariant" do
     property "random grant/consume/reverse sequences never break the invariant" do
       offering = insert(:offering)
-      household = Ecto.UUID.generate()
+      household = insert(:household).id
 
       check all(ops <- list_of(operation(), max_length: 15), max_runs: 40) do
         bookings =

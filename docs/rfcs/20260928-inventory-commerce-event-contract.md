@@ -1,7 +1,7 @@
 # RFC 20260928 — Inventory ↔ Commerce contract (wp-08 ↔ wp-13)
 
 **Owner:** wp-08 (Inventory). **Consumer:** wp-13 (Commerce), wp-16 (notifications).
-**Status:** proposed; Inventory side implemented, Commerce stubs until merged.
+**Status:** implemented (Commerce calls `Inventory.reserve/2` and publishes the `order.*` events).
 
 ## Context
 

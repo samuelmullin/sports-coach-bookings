@@ -34,7 +34,7 @@ defmodule SportsCoachBookings.Bookings.CoachAccessTest do
     session = session_in_window(offering, venue)
     insert(:session_coach, session: session, membership_id: coach.id)
 
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     player_row = player(household)
     insert(:booking, session_id: session.id, player_id: player_row.id, household_id: household)
 
@@ -67,7 +67,7 @@ defmodule SportsCoachBookings.Bookings.CoachAccessTest do
 
     _mine = session_in_window(offering, venue)
 
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     player_row = player(household)
 
     insert(:booking,
@@ -88,7 +88,7 @@ defmodule SportsCoachBookings.Bookings.CoachAccessTest do
     actor = coach_actor(tenant, coach)
 
     for {days, expected} <- [{20, true}, {-50, true}, {40, false}, {-100, false}] do
-      player_row = player(Ecto.UUID.generate())
+      player_row = player(insert(:household).id)
       assert visible_with_session_at?(actor, player_row, offering, venue, coach, days) == expected
     end
   end
@@ -112,7 +112,7 @@ defmodule SportsCoachBookings.Bookings.CoachAccessTest do
 
     insert(:session_coach, session: session, membership_id: coach.id)
 
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     player_row = player(household)
 
     owner =

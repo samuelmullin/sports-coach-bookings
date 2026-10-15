@@ -93,9 +93,13 @@ The tenant is **always** resolved from the host by `SportsCoachBookingsWeb.Plugs
 | `order.paid`, `order.refunded`, `order.expired` | wp-13 | wp-12, wp-08, wp-14, wp-16 |
 | `credits.granted`, `credits.expiring_soon`, `credits.expired` | wp-12 | wp-16 |
 | `session.cancelled`, `session.rescheduled` | wp-11 | wp-14, wp-16 |
+| `session.converted_private` | wp-14 | — |
+| `session.invitation_accepted` | wp-14 | — |
 | `booking.created`, `booking.cancelled`, `booking.rebooked`, `booking.attended`, `booking.no_show` | wp-14 | wp-16 |
 | `feedback.submitted` | wp-15 | wp-16 |
 | `stock.low` | wp-08 | wp-16 |
+| `website.published` | websites | — |
+| `website.contact_submitted` | websites | websites contact notifier |
 
 Adding an event: add it to this table via an RFC note in `docs/rfcs/`.
 

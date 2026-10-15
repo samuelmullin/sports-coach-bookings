@@ -2,6 +2,8 @@ defmodule SportsCoachBookingsWeb.BookingsJSON do
   @moduledoc "Serialises bookings, rosters, cancel previews, and rebook options."
 
   alias SportsCoachBookings.Bookings.Booking
+  alias SportsCoachBookings.Bookings.PrivateSessionRequest
+  alias SportsCoachBookings.Bookings.SessionInvitation
   alias SportsCoachBookings.Catalog.Offering
   alias SportsCoachBookingsWeb.SchedulingJSON
 
@@ -86,6 +88,46 @@ defmodule SportsCoachBookingsWeb.BookingsJSON do
   @spec roster([map()]) :: map()
   def roster(rows), do: %{data: rows}
 
+  @doc "Serialises a session invitation without exposing its token hash."
+  @spec invitation(SessionInvitation.t()) :: map()
+  def invitation(%SessionInvitation{} = invitation) do
+    %{
+      id: invitation.id,
+      session_id: invitation.session_id,
+      organizer_household_id: invitation.organizer_household_id,
+      invitee_household_id: invitation.invitee_household_id,
+      invitee_player_id: invitation.invitee_player_id,
+      email: invitation.email,
+      status: to_string(invitation.status),
+      payment_mode: to_string(invitation.payment_mode),
+      seat_status: to_string(invitation.seat_status),
+      expires_at: datetime(invitation.expires_at),
+      accepted_at: datetime(invitation.accepted_at),
+      booking_id: invitation.booking_id,
+      resend_count: invitation.resend_count,
+      last_sent_at: datetime(invitation.last_sent_at),
+      inserted_at: datetime(invitation.inserted_at)
+    }
+  end
+
+  @doc "Serialises a private-session request."
+  @spec private_session_request(PrivateSessionRequest.t()) :: map()
+  def private_session_request(%PrivateSessionRequest{} = request) do
+    %{
+      id: request.id,
+      offering_id: request.offering_id,
+      household_id: request.household_id,
+      player_count: request.player_count,
+      preferred_times: Enum.map(request.preferred_times, &datetime/1),
+      notes: request.notes,
+      status: to_string(request.status),
+      session_id: request.session_id,
+      decline_reason: request.decline_reason,
+      inserted_at: datetime(request.inserted_at),
+      reviewed_at: datetime(request.reviewed_at)
+    }
+  end
+
   defp offering(nil), do: nil
 
   defp offering(%Offering{} = offering) do
@@ -98,7 +140,14 @@ defmodule SportsCoachBookingsWeb.BookingsJSON do
       credit_cost: offering.credit_cost,
       drop_in_price: offering.drop_in_price,
       min_age: offering.min_age,
-      max_age: offering.max_age
+      max_age: offering.max_age,
+      allow_invite_reservations: offering.allow_invite_reservations,
+      invite_hold_hours: offering.invite_hold_hours,
+      private_enabled: offering.private_enabled,
+      private_max_players: offering.private_max_players,
+      allow_private_conversion: offering.allow_private_conversion,
+      allow_private_requests: offering.allow_private_requests,
+      public_max_players: offering.public_max_players
     }
   end
 

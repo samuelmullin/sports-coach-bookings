@@ -447,6 +447,17 @@ defmodule SportsCoachBookings.Reservations do
 
   defp get_attr(attrs, key), do: Map.get(attrs, key) || Map.get(attrs, to_string(key))
 
+  ## Privacy erasure
+
+  @doc "Deletes a household's reservation holds. Called by `SportsCoachBookings.Privacy`."
+  @spec erase_household(binary()) :: non_neg_integer()
+  def erase_household(household_id) do
+    write(fn ->
+      {count, _} = Repo.delete_all(from r in Reservation, where: r.household_id == ^household_id)
+      count
+    end)
+  end
+
   defp write(fun) do
     case Repo.with_tenant_tx(fun) do
       {:ok, result} -> result

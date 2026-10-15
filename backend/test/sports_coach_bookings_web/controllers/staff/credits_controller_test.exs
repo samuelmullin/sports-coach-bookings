@@ -15,7 +15,7 @@ defmodule SportsCoachBookingsWeb.Staff.CreditsControllerTest do
 
   test "an owner grants, reads, and adjusts a household's credits", %{conn: conn, tenant: tenant} do
     conn = staff_conn(conn, tenant, :owner)
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     base = "/api/staff/households/#{household}/credits"
 
     lot =
@@ -46,7 +46,7 @@ defmodule SportsCoachBookingsWeb.Staff.CreditsControllerTest do
 
   test "a coach may read but cannot grant", %{conn: conn, tenant: tenant} do
     conn = staff_conn(conn, tenant, :coach)
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     base = "/api/staff/households/#{household}/credits"
 
     assert %{"data" => []} = conn |> get(base) |> json_response(200)
@@ -57,7 +57,7 @@ defmodule SportsCoachBookingsWeb.Staff.CreditsControllerTest do
   end
 
   test "an anonymous caller is forbidden", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
 
     resp = conn |> with_host(tenant.slug) |> get("/api/staff/households/#{household}/credits")
     assert json_response(resp, 403)["error"]["code"] == "forbidden"
@@ -65,7 +65,7 @@ defmodule SportsCoachBookingsWeb.Staff.CreditsControllerTest do
 
   test "a negative grant amount is rejected", %{conn: conn, tenant: tenant} do
     conn = staff_conn(conn, tenant, :owner)
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
 
     resp =
       conn

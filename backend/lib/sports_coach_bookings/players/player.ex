@@ -15,8 +15,9 @@ defmodule SportsCoachBookings.Players.Player do
 
   schema "players" do
     field :tenant_id, :binary_id
-    # Cross-context reference to Customers.households; plain uuid, no FK while
-    # the households table is unmerged. See the RFC.
+    # Cross-context reference to Customers.households. Enforced by the
+    # `players_household_id_fkey` FK (ON DELETE RESTRICT); see
+    # docs/rfcs/20260928-players-household-fk.md.
     field :household_id, :binary_id
     field :first_name, :string
     field :last_name, :string
@@ -64,6 +65,10 @@ defmodule SportsCoachBookings.Players.Player do
     |> Ecto.Changeset.validate_length(:first_name, min: 1, max: 100)
     |> Ecto.Changeset.validate_length(:last_name, min: 1, max: 100)
     |> Ecto.Changeset.validate_length(:preferred_name, max: 100)
+    |> Ecto.Changeset.foreign_key_constraint(:household_id,
+      name: :players_household_id_fkey,
+      message: "does not exist"
+    )
     |> reject_future_date_of_birth()
   end
 

@@ -11,7 +11,7 @@ defmodule SportsCoachBookingsWeb.Portal.FeedbackControllerTest do
   end
 
   test "a customer sees only shared feedback for their own player", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     player = create_player(household)
 
     insert(:session_feedback,
@@ -42,7 +42,7 @@ defmodule SportsCoachBookingsWeb.Portal.FeedbackControllerTest do
     conn: conn,
     tenant: tenant
   } do
-    other = create_player(Ecto.UUID.generate())
+    other = create_player(insert(:household).id)
 
     resp =
       conn

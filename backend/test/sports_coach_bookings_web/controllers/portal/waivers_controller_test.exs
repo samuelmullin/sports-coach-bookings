@@ -8,7 +8,7 @@ defmodule SportsCoachBookingsWeb.Portal.WaiversControllerTest do
   setup do
     tenant = insert(:tenant)
     SportsCoachBookings.DataCase.put_tenant(tenant)
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     %{tenant: tenant, household: household}
   end
 
@@ -200,14 +200,17 @@ defmodule SportsCoachBookingsWeb.Portal.WaiversControllerTest do
           "user_agent" => "ExUnit"
         })
 
-      body =
+      resp =
         conn
         |> customer(tenant, household)
         |> get("/api/portal/waivers/signatures/#{signature.id}/pdf")
-        |> json_response(200)
 
-      assert body["signature_id"] == signature.id
-      assert body["status"] == "pending"
+      assert resp.status == 200
+      assert ["application/pdf"] = get_resp_header(resp, "content-type")
+      assert [disposition] = get_resp_header(resp, "content-disposition")
+      assert disposition =~ "waiver-#{signature.id}.pdf"
+      assert ["private, no-store"] = get_resp_header(resp, "cache-control")
+      assert "%PDF-" <> _ = resp.resp_body
 
       resp =
         conn

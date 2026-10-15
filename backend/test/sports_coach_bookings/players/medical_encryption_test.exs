@@ -23,7 +23,7 @@ defmodule SportsCoachBookings.Players.MedicalEncryptionTest do
   test "medical fields are stored as ciphertext in the database", %{tenant: tenant} do
     {:ok, player} =
       Players.create_player(nil, %{
-        "household_id" => Ecto.UUID.generate(),
+        "household_id" => insert(:household).id,
         "first_name" => "Riley",
         "last_name" => "Doe",
         "date_of_birth" => ~D[2014-01-01]
@@ -62,7 +62,7 @@ defmodule SportsCoachBookings.Players.MedicalEncryptionTest do
   test "every staff medical read writes an audit event", %{tenant: tenant} do
     {:ok, player} =
       Players.create_player(nil, %{
-        "household_id" => Ecto.UUID.generate(),
+        "household_id" => insert(:household).id,
         "first_name" => "Casey",
         "last_name" => "Doe",
         "date_of_birth" => ~D[2014-01-01]

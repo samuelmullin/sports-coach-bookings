@@ -6,6 +6,8 @@ defmodule SportsCoachBookingsWeb.FallbackController do
 
   use SportsCoachBookingsWeb, :controller
 
+  alias Plug.Conn.Status
+
   def call(conn, {:error, :not_found}) do
     error(conn, :not_found, "not_found", "Not found")
   end
@@ -58,6 +60,18 @@ defmodule SportsCoachBookingsWeb.FallbackController do
     error(conn, :unprocessable_entity, to_string(code), message)
   end
 
+  def call(conn, {:error, {:erasure_blocked, reasons}}) when is_list(reasons) do
+    conn
+    |> put_status(:conflict)
+    |> json(%{
+      error: %{
+        code: "erasure_blocked",
+        message: "Erasure is blocked until the listed conditions are resolved.",
+        details: %{reasons: Enum.map(reasons, &to_string/1)}
+      }
+    })
+  end
+
   def call(conn, {:error, {code, message, details}})
       when is_atom(code) and is_binary(message) and is_map(details) do
     conn
@@ -72,7 +86,7 @@ defmodule SportsCoachBookingsWeb.FallbackController do
       conn,
       status,
       to_string(code),
-      Phoenix.Controller.status_message_from_template("#{status}.json")
+      status |> Status.code() |> Status.reason_phrase()
     )
   end
 
@@ -91,6 +105,7 @@ defmodule SportsCoachBookingsWeb.FallbackController do
   defp status_for(:reservation_expired), do: :conflict
   defp status_for(:expired), do: :conflict
   defp status_for(:email_unconfirmed), do: :forbidden
+  defp status_for(:invalid_password), do: :forbidden
   defp status_for(:account_deactivated), do: :forbidden
   defp status_for(:already_has_household), do: :conflict
   defp status_for(:invalid_code), do: :unprocessable_entity

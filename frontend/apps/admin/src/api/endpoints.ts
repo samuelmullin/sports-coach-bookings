@@ -65,6 +65,10 @@ export type { SportsCoachBookingsWebPortalBrandingControllerShow200 as Branding 
 export type { SportsCoachBookingsWebStaffSettingsBrandingControllerCreateUpload201 as BrandingUpload } from '@scb/api-client';
 export type { SportsCoachBookingsWebStaffInventoryUploadsControllerCreate201 as InventoryUpload } from '@scb/api-client';
 export type { SportsCoachBookingsWebStaffSettingsSettingsControllerShow200 as TenantSettings } from '@scb/api-client';
+export type { SportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndexParams as PrivateSessionRequestParams } from '@scb/api-client';
+export type { SportsCoachBookingsWebStaffWebsitesSiteControllerShow200 as WebsiteSite } from '@scb/api-client';
+export type { SportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex200DataItem as WebsiteContactSubmission } from '@scb/api-client';
+export type { SportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload201 as WebsiteUpload } from '@scb/api-client';
 
 // ---------------------------------------------------------------------------
 // Query hooks
@@ -78,6 +82,17 @@ export {
   useSportsCoachBookingsWebStaffSettingsSettingsControllerTransferOwnership as useTransferOwnership,
   useSportsCoachBookingsWebStaffSettingsBrandingControllerUpdate2 as useUpdateBranding,
   useSportsCoachBookingsWebStaffSettingsBrandingControllerCreateUpload as useCreateBrandingUpload,
+} from '@scb/api-client';
+
+export {
+  useSportsCoachBookingsWebStaffWebsitesSiteControllerShow as useWebsiteSite,
+  useSportsCoachBookingsWebStaffWebsitesSiteControllerUpdate2 as useUpdateWebsiteSite,
+  useSportsCoachBookingsWebStaffWebsitesSiteControllerPublish as usePublishWebsiteSite,
+  useSportsCoachBookingsWebStaffWebsitesSiteControllerCreateUpload as useCreateWebsiteUpload,
+  useSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndex as useWebsiteContacts,
+  useSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerUpdate as useUpdateWebsiteContact,
+  getSportsCoachBookingsWebStaffWebsitesContactSubmissionsControllerIndexQueryKey as websiteContactsQueryKey,
+  getSportsCoachBookingsWebStaffWebsitesSiteControllerShowQueryKey as websiteSiteQueryKey,
 } from '@scb/api-client';
 
 export {
@@ -145,6 +160,11 @@ export {
   useSportsCoachBookingsWebStaffScheduleSessionsControllerUpdate2 as useUpdateSession,
   useSportsCoachBookingsWebStaffScheduleSessionsControllerReschedule as useRescheduleSession,
   useSportsCoachBookingsWebStaffScheduleSessionsControllerCancel as useCancelSession,
+} from '@scb/api-client';
+
+export {
+  useSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerIndex as usePrivateSessionRequests,
+  useSportsCoachBookingsWebStaffBookingsPrivateSessionRequestsControllerUpdate as useReviewPrivateSessionRequest,
 } from '@scb/api-client';
 
 export {

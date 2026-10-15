@@ -5,10 +5,12 @@
  * Multi-tenant coaching bookings API. JSON only.
  * OpenAPI spec version: 0.1.0
  */
+import type { SportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItemAccessMode } from './sportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItemAccessMode';
 import type { SportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItemStatus } from './sportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItemStatus';
 import type { SportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItemVisibility } from './sportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItemVisibility';
 
 export type SportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItem = {
+  access_mode?: SportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201SessionsItemAccessMode;
   booked_count?: number;
   /** @nullable */
   cancel_reason?: string | null;
@@ -24,6 +26,8 @@ export type SportsCoachBookingsWebStaffScheduleSessionsControllerCreateSeries201
   /** @nullable */
   notes_staff?: string | null;
   offering_id?: string;
+  /** @nullable */
+  party_size?: number | null;
   seats_left?: number;
   /** @nullable */
   series_id?: string | null;

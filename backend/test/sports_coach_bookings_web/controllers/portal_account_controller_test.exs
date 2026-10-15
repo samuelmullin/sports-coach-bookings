@@ -115,7 +115,7 @@ defmodule SportsCoachBookingsWeb.PortalAccountControllerTest do
   end
 
   describe "email confirmation guard" do
-    test "an unconfirmed customer can log in but the purchase guard returns 403 email_unconfirmed",
+    test "an unconfirmed customer can log in but checkout returns 403 email_unconfirmed",
          %{conn: conn} do
       tenant = insert(:tenant, slug: "acme")
 
@@ -134,10 +134,12 @@ defmodule SportsCoachBookingsWeb.PortalAccountControllerTest do
 
       assert json_response(login, 201)
 
-      guard =
-        ConnTest.recycle(login) |> host("acme") |> post("/api/portal/account/purchase_guard")
+      guard = ConnTest.recycle(login) |> host("acme") |> post("/api/portal/checkout")
 
-      assert json_response(guard, 403)["error"]["code"] == "email_unconfirmed"
+      body = json_response(guard, 403)
+      assert body["error"]["code"] == "email_unconfirmed"
+      # Atom-coded errors carry the HTTP reason phrase (was always "Internal Server Error").
+      assert body["error"]["message"] == "Forbidden"
 
       # Confirming clears the guard.
       DataCase.put_tenant(tenant)
@@ -149,8 +151,9 @@ defmodule SportsCoachBookingsWeb.PortalAccountControllerTest do
 
       assert json_response(confirm, 200)["customer_user"]["confirmed"] == true
 
-      ok = ConnTest.recycle(login) |> host("acme") |> post("/api/portal/account/purchase_guard")
-      assert json_response(ok, 200)["message"] == "confirmed"
+      # Past the confirmation guard the (empty) cart is what stops checkout.
+      past = ConnTest.recycle(login) |> host("acme") |> post("/api/portal/checkout")
+      refute past.status == 403
     end
   end
 

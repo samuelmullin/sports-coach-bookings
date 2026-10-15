@@ -3,7 +3,7 @@ import {
   useSportsCoachBookingsWebPortalBrandingControllerShow,
   type SportsCoachBookingsWebPortalBrandingControllerShow200,
 } from '@scb/api-client';
-import { Splash, applyTheme, platformTheme, type ThemeTokens } from '@scb/ui';
+import { Splash, applyTheme, fontStack, platformTheme, type ThemeTokens } from '@scb/ui';
 
 export type PortalBranding = SportsCoachBookingsWebPortalBrandingControllerShow200;
 
@@ -27,7 +27,7 @@ export function brandingToTokens(branding: PortalBranding): ThemeTokens {
     accentColor: theme.accent_color ?? platformTheme.accentColor,
     backgroundColor: theme.background_color ?? platformTheme.backgroundColor,
     textColor: theme.text_color ?? platformTheme.textColor,
-    fontFamily: theme.font_family ?? platformTheme.fontFamily,
+    fontFamily: fontStack(theme.font_family),
   };
 }
 

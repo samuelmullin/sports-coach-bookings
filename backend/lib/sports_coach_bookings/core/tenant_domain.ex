@@ -1,7 +1,6 @@
 defmodule SportsCoachBookings.Core.TenantDomain do
   @moduledoc """
-  Maps a hostname to a tenant. Custom domains are out of MVP (subdomains only),
-  but the table exists so they can be added without a schema change.
+  Maps a platform subdomain or manually commissioned custom hostname to a tenant.
   """
 
   use SportsCoachBookings.Core.Schema

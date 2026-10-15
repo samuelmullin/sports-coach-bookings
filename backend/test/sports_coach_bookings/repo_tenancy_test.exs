@@ -3,6 +3,8 @@ defmodule SportsCoachBookings.RepoTenancyTest do
 
   alias SportsCoachBookings.Core.Audit.Event
   alias SportsCoachBookings.Core.{MissingTenantError, TenantContext}
+  alias SportsCoachBookings.Players
+  alias SportsCoachBookings.Players.Player
   alias SportsCoachBookings.Repo
 
   test "RLS blocks cross-tenant reads even through raw SQL" do
@@ -39,5 +41,17 @@ defmodule SportsCoachBookings.RepoTenancyTest do
       end)
 
     assert {:ok, %{event: %Event{action: "regression.multi"}}} = Repo.with_tenant_tx(multi)
+  end
+
+  test "context-only helper exposes reads that forget with_tenant_tx" do
+    tenant = insert(:tenant)
+    put_tenant(tenant)
+    player = insert(:player, tenant_id: tenant.id)
+
+    with_tenant_context_only(tenant, fn ->
+      assert Repo.get(Player, player.id) == nil
+      assert {:ok, %Player{id: id}} = Players.fetch_player(player.id)
+      assert id == player.id
+    end)
   end
 end

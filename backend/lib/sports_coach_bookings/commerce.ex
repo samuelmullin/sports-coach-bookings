@@ -1291,6 +1291,31 @@ defmodule SportsCoachBookings.Commerce do
 
   ## Private — shared plumbing
 
+  ## Privacy
+
+  @doc "True when the household has an order awaiting payment."
+  @spec pending_orders?(binary()) :: boolean()
+  def pending_orders?(household_id) do
+    read(fn ->
+      Repo.exists?(
+        from o in Order, where: o.household_id == ^household_id and o.status == :pending_payment
+      )
+    end)
+  end
+
+  @doc """
+  Deletes a household's carts (and their lines). Orders, payments, and refunds
+  are retained as financial records; they reference the household by opaque id
+  only. Called by `SportsCoachBookings.Privacy`.
+  """
+  @spec erase_household_carts(binary()) :: non_neg_integer()
+  def erase_household_carts(household_id) do
+    read(fn ->
+      {count, _} = Repo.delete_all(from c in Cart, where: c.household_id == ^household_id)
+      count
+    end)
+  end
+
   defp read(fun) do
     case Repo.with_tenant_tx(fun) do
       {:ok, result} -> result

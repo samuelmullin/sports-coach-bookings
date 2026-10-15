@@ -7,11 +7,11 @@ defmodule SportsCoachBookings.Notifications.Templates.StaffConfirm do
     html: """
     <h1 style="margin:0 0 16px 0;font-size:24px;">Confirm your email</h1>
     <p style="margin:0 0 16px 0;">Please confirm your email address to activate your staff account.</p>
-    <%= SportsCoachBookings.Notifications.Templates.Helpers.button("Confirm email", SportsCoachBookings.Notifications.Templates.Helpers.link("/confirm", assigns[:token])) %>
+    <%= SportsCoachBookings.Notifications.Templates.Helpers.button("Confirm email", SportsCoachBookings.Notifications.Templates.Helpers.admin_link("/confirm-email", assigns[:token])) %>
     """,
     text: """
     Confirm your email
 
-    <%= SportsCoachBookings.Notifications.Templates.Helpers.link("/confirm", assigns[:token]) %>
+    <%= SportsCoachBookings.Notifications.Templates.Helpers.admin_link("/confirm-email", assigns[:token]) %>
     """
 end

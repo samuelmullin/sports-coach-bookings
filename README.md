@@ -1,5 +1,7 @@
 # Agent Briefs — SportsCoachBookings
 
+> **Status (2026-10-02):** these briefs describe the original execution plan. The MVP they specify is implemented; see `AGENTS.md` for the current state, commands, and the prioritized list of remaining gaps. The execution-order and dependency tables below are kept as historical context.
+
 Hand each agent **two files**: `00-shared-context.md` (always) and its own brief.
 Once WP-00 has merged, also point agents at `docs/erd.md` and `docs/conventions.md` in the repo.
 
@@ -47,30 +49,30 @@ Product name: **SportsCoachBookings** (OTP app `:sports_coach_bookings`, modules
 
 ## Tracking checklist
 
-- [ ] wp-00 Foundation
-- [ ] wp-01 Tenancy, branding, staff
-- [ ] wp-02 Customer auth & households
-- [ ] wp-03 Catalog
-- [ ] wp-04 Payments
-- [ ] wp-05 Notifications engine
-- [ ] wp-06 Players
-- [ ] wp-07 Waivers
-- [ ] wp-08 Inventory
-- [ ] wp-09 Frontend foundations
-- [ ] wp-10 Cancellation policies
-- [ ] wp-11 Scheduling
-- [ ] wp-12 Credits
-- [ ] wp-13 Commerce
-- [ ] wp-14 Booking engine
-- [ ] wp-15 Coach backend
-- [ ] wp-16 Transactional emails
-- [ ] wp-17 Broadcasts
-- [ ] wp-18 E2E tests
-- [ ] wp-19 Security review
-- [ ] wp-20 Ops
-- [ ] fe-01 Admin UI
-- [ ] fe-02 Portal UI
-- [ ] fe-03 Coach UI
+- [x] wp-00 Foundation
+- [x] wp-01 Tenancy, branding, staff
+- [x] wp-02 Customer auth & households
+- [x] wp-03 Catalog
+- [x] wp-04 Payments
+- [x] wp-05 Notifications engine
+- [x] wp-06 Players
+- [x] wp-07 Waivers
+- [x] wp-08 Inventory
+- [x] wp-09 Frontend foundations
+- [x] wp-10 Cancellation policies
+- [x] wp-11 Scheduling
+- [x] wp-12 Credits
+- [x] wp-13 Commerce
+- [x] wp-14 Booking engine
+- [x] wp-15 Coach backend
+- [x] wp-16 Transactional emails
+- [x] wp-17 Broadcasts
+- [x] wp-18 E2E tests _(backend journeys plus Playwright coverage of the real SPAs/API/Postgres stack)_
+- [x] wp-19 Security review
+- [ ] wp-20 Ops _(code and runbooks done; production values/alerting/backup drills are placeholders)_
+- [x] fe-01 Admin UI
+- [x] fe-02 Portal UI
+- [x] fe-03 Coach UI
 
 ## Before kickoff
 

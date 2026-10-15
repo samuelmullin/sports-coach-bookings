@@ -16,7 +16,7 @@ Staging and production environments in a Canadian region, with safe deploys, bac
 5. **Stripe:** Connect platform settings, Connect webhook endpoints for staging (test mode) and prod (live), secrets per env.
 6. **Secrets:** env-based secrets management; Cloak key rotation procedure documented.
 7. **Observability:** error tracking (Sentry or AppSignal) with PII scrubbing, structured JSON logs with `tenant_id` + `request_id`, Phoenix LiveDashboard behind platform-admin auth, Oban monitoring (failed jobs alert), uptime check, DB metrics.
-8. **Environments:** local (docker-compose Postgres + MinIO), CI, staging (seeded demo tenant), production. Staging auto-deploys from `main`; prod on tag.
+8. **Environments:** local (docker-compose Postgres + RustFS), CI, staging (seeded demo tenant), production. Staging auto-deploys from `main`; prod on tag.
 9. **Runbook:** deploy/rollback, restore from backup (tested once), rotate keys, replay failed webhooks, re-send emails, disable a tenant.
 
 ## Acceptance criteria

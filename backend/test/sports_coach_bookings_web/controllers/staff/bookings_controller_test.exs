@@ -59,7 +59,7 @@ defmodule SportsCoachBookingsWeb.Staff.BookingsControllerTest do
     tenant: tenant,
     venue: venue
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 0)
     session = session(venue, offering)
     player = player(household)
@@ -95,7 +95,7 @@ defmodule SportsCoachBookingsWeb.Staff.BookingsControllerTest do
   end
 
   test "a coach cannot book on behalf", %{conn: conn, tenant: tenant, venue: venue} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 0)
     session = session(venue, offering)
     player = player(household)
@@ -118,7 +118,7 @@ defmodule SportsCoachBookingsWeb.Staff.BookingsControllerTest do
     tenant: tenant,
     venue: venue
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering)
     player = player(household)

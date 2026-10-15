@@ -12,9 +12,8 @@ defmodule SportsCoachBookings.Players.Policy do
 
   A coach is only allowed to see a specific player when
   `SportsCoachBookings.Bookings.CoachAccess.player_visible?/2` returns `true`.
-  That module is owned by WP-14; the call is routed through the configurable
-  `:coach_access` module so tests can exercise both outcomes without editing the
-  stub.
+  The call is routed through the configurable `:coach_access` module (default:
+  that module) so tests can exercise both outcomes.
   """
 
   use SportsCoachBookings.Core.Policy

@@ -11,7 +11,7 @@ defmodule SportsCoachBookingsWeb.Portal.PlayersControllerTest do
   setup do
     tenant = insert(:tenant)
     SportsCoachBookings.DataCase.put_tenant(tenant)
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     %{tenant: tenant, household: household}
   end
 
@@ -77,7 +77,7 @@ defmodule SportsCoachBookingsWeb.Portal.PlayersControllerTest do
 
       insert(:player,
         tenant_id: tenant.id,
-        household_id: Ecto.UUID.generate(),
+        household_id: insert(:household).id,
         first_name: "Other"
       )
 
@@ -88,6 +88,39 @@ defmodule SportsCoachBookingsWeb.Portal.PlayersControllerTest do
         |> json_response(200)
 
       assert Enum.map(body["data"], & &1["first_name"]) == ["Mine"]
+    end
+
+    # The booking flow and players page decide "bookable?" from this list alone;
+    # without the contacts here nobody could ever be booked (regression, found by
+    # the browser e2e suite).
+    test "list items carry each player's emergency contacts (and never medical values)", %{
+      conn: conn,
+      tenant: tenant,
+      household: household
+    } do
+      with_contact =
+        insert(:player, tenant_id: tenant.id, household_id: household, first_name: "A")
+
+      _without = insert(:player, tenant_id: tenant.id, household_id: household, first_name: "B")
+
+      {:ok, _} =
+        Players.create_emergency_contact(with_contact, %{
+          name: "Pat",
+          relationship: "Parent",
+          phone: "+15555550100",
+          priority: 1
+        })
+
+      {:ok, _} = Players.upsert_medical_info(nil, with_contact, %{"allergies" => "Peanuts"})
+
+      body =
+        conn |> customer(tenant, household) |> get("/api/portal/players") |> json_response(200)
+
+      by_name = Map.new(body["data"], &{&1["first_name"], &1})
+
+      assert [%{"name" => "Pat", "phone" => "+15555550100"}] = by_name["A"]["emergency_contacts"]
+      assert by_name["B"]["emergency_contacts"] == []
+      refute Jason.encode!(body) =~ "Peanuts"
     end
 
     test "shows detail without medical values", %{

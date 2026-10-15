@@ -75,7 +75,8 @@ ENV PORT=4000
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
-      ca-certificates libstdc++6 openssl libncurses6 locales tzdata \
+      ca-certificates chromium fonts-lato fonts-noto-core fonts-noto-cjk \
+      fonts-noto-color-emoji libstdc++6 openssl libncurses6 locales tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home --shell /bin/bash --uid 10001 app

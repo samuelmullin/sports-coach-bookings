@@ -1,6 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
 export interface ModalProps {
@@ -32,18 +32,29 @@ export function Modal({
   closeLabel = 'Close',
   className,
 }: ModalProps) {
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <DialogPrimitive.Content
+          onOpenAutoFocus={() => {
+            returnFocusRef.current = document.activeElement as HTMLElement | null;
+          }}
+          onCloseAutoFocus={(event) => {
+            if (returnFocusRef.current?.isConnected) {
+              event.preventDefault();
+              returnFocusRef.current.focus();
+            }
+          }}
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-surface p-5 shadow-xl focus:outline-none',
+            'fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border border-border bg-surface p-5 shadow-xl focus:outline-none',
             SIZE_CLASS[size],
             className,
           )}
         >
-          <div className="mb-3 flex items-start justify-between gap-4">
+          <div className="mb-3 flex shrink-0 items-start justify-between gap-4">
             <div>
               <DialogPrimitive.Title className="text-base font-semibold">
                 {title}
@@ -61,8 +72,8 @@ export function Modal({
               <X className="h-4 w-4" aria-hidden="true" />
             </DialogPrimitive.Close>
           </div>
-          <div>{children}</div>
-          {footer ? <div className="mt-5 flex justify-end gap-2">{footer}</div> : null}
+          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+          {footer ? <div className="mt-5 flex shrink-0 justify-end gap-2">{footer}</div> : null}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
@@ -90,18 +101,29 @@ export function Drawer({
   closeLabel = 'Close',
   className,
 }: DrawerProps) {
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <DialogPrimitive.Content
+          onOpenAutoFocus={() => {
+            returnFocusRef.current = document.activeElement as HTMLElement | null;
+          }}
+          onCloseAutoFocus={(event) => {
+            if (returnFocusRef.current?.isConnected) {
+              event.preventDefault();
+              returnFocusRef.current.focus();
+            }
+          }}
           className={cn(
-            'fixed z-50 border-border bg-surface p-5 shadow-xl focus:outline-none',
+            'fixed z-50 flex flex-col border-border bg-surface p-5 shadow-xl focus:outline-none',
             SIDE_CLASS[side],
             className,
           )}
         >
-          <div className="mb-3 flex items-start justify-between gap-4">
+          <div className="mb-3 flex shrink-0 items-start justify-between gap-4">
             <div>
               <DialogPrimitive.Title className="text-base font-semibold">
                 {title}
@@ -119,8 +141,8 @@ export function Drawer({
               <X className="h-4 w-4" aria-hidden="true" />
             </DialogPrimitive.Close>
           </div>
-          <div className="overflow-y-auto">{children}</div>
-          {footer ? <div className="mt-5 flex justify-end gap-2">{footer}</div> : null}
+          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+          {footer ? <div className="mt-5 flex shrink-0 justify-end gap-2">{footer}</div> : null}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

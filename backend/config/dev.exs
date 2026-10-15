@@ -10,7 +10,7 @@ config :sports_coach_bookings, SportsCoachBookings.Repo,
   password: "scb_app",
   hostname: "localhost",
   port: 5432,
-  database: "sports_coach_bookings_dev",
+  database: System.get_env("DEV_DB_NAME", "sports_coach_bookings_dev"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -76,3 +76,27 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Links in dev emails must point at the local tenant host (e.g. demo.localhost:4000).
+config :sports_coach_bookings, :notifications_url_scheme, "http"
+config :sports_coach_bookings, :notifications_url_port, System.get_env("PORT", "4000")
+
+# Staff accounts are platform-wide; their email links open the platform host's admin app.
+config :sports_coach_bookings,
+       :notifications_app_url,
+       "http://localhost:#{System.get_env("PORT", "4000")}"
+
+# Without Stripe credentials, use the in-memory Fake provider so checkout works
+# locally (and in the browser e2e suite, which simulates the provider webhook).
+# Set STRIPE_SECRET_KEY to exercise the real Stripe adapter in development.
+unless System.get_env("STRIPE_SECRET_KEY") do
+  config :sports_coach_bookings,
+         :payments_provider,
+         SportsCoachBookings.Payments.Providers.Fake
+end
+
+# The browser e2e suite signs up many accounts from one IP, so it runs with
+# RATE_LIMITING=off. Limiter behaviour is covered by test/security/rate_limit_test.exs.
+config :sports_coach_bookings,
+       :rate_limiting_enabled,
+       System.get_env("RATE_LIMITING") != "off"

@@ -45,7 +45,7 @@ defmodule SportsCoachBookings.Customers do
 
   Creates the customer user, a household, and a `primary` household member in a
   single transaction; publishes `customer.registered`; creates a confirmation
-  token and emails it (stubbed until WP-05). Returns the created records and the
+  token and emails it via `Customers.Notifier`. Returns the created records and the
   plaintext confirmation token.
   """
   @spec register_customer(map()) :: {:ok, registration_result()} | {:error, Ecto.Changeset.t()}
@@ -195,7 +195,7 @@ defmodule SportsCoachBookings.Customers do
     plaintext
   end
 
-  @doc "Emails confirmation instructions (stubbed until WP-05 is merged)."
+  @doc "Emails confirmation instructions."
   @spec deliver_confirmation_instructions(CustomerUser.t()) :: :ok
   def deliver_confirmation_instructions(%CustomerUser{} = customer_user) do
     plaintext = create_confirm_token(customer_user)
@@ -329,7 +329,7 @@ defmodule SportsCoachBookings.Customers do
     end
   end
 
-  @doc "The customer's notification preferences (defaults until WP-05 is merged)."
+  @doc "The customer's notification preferences."
   @spec notification_preferences(CustomerUser.t()) :: map()
   def notification_preferences(%CustomerUser{} = customer_user),
     do: Preferences.get(customer_user)
@@ -1000,6 +1000,59 @@ defmodule SportsCoachBookings.Customers do
       {:ok, {:error, _step, reason, _changes}} -> {:error, reason}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  ## Privacy erasure
+
+  @doc """
+  Anonymizes every account in a household and removes the household's links.
+
+  Customer user rows are kept (orders, waivers, and audit events reference them
+  by id) but stripped of name, email, phone, and credentials and deactivated.
+  All sessions and tokens are revoked, members and invites are deleted, and the
+  household's name is cleared. Returns the anonymized user ids and the email
+  addresses they had. Called by `SportsCoachBookings.Privacy`.
+  """
+  @spec anonymize_household(binary()) :: %{user_ids: [binary()], emails: [binary()]}
+  def anonymize_household(household_id) do
+    read(fn ->
+      users =
+        Repo.all(
+          from u in CustomerUser,
+            join: m in HouseholdMember,
+            on: m.customer_user_id == u.id,
+            where: m.household_id == ^household_id
+        )
+
+      user_ids = Enum.map(users, & &1.id)
+      emails = Enum.map(users, & &1.email)
+
+      invite_emails =
+        Repo.all(
+          from i in HouseholdInvite, where: i.household_id == ^household_id, select: i.email
+        )
+
+      Repo.delete_all(from t in CustomerUserToken, where: t.customer_user_id in ^user_ids)
+      Repo.delete_all(from i in HouseholdInvite, where: i.household_id == ^household_id)
+      Repo.delete_all(from m in HouseholdMember, where: m.household_id == ^household_id)
+
+      for user <- users do
+        Repo.update_all(from(u in CustomerUser, where: u.id == ^user.id),
+          set: [
+            email: "erased-#{user.id}@erased.invalid",
+            first_name: "Erased",
+            last_name: "Account",
+            phone: nil,
+            hashed_password: Password.hash(Base.encode64(:crypto.strong_rand_bytes(32))),
+            active: false
+          ]
+        )
+      end
+
+      Repo.update_all(from(h in Household, where: h.id == ^household_id), set: [name: nil])
+
+      %{user_ids: user_ids, emails: Enum.uniq(emails ++ invite_emails)}
+    end)
   end
 
   defp read(fun) do

@@ -49,8 +49,10 @@ release **refuses to boot** without the required ones.
 | `S3_BUCKET` | uploads | Enables the real S3 backend; unset ⇒ local Fake. |
 | `S3_REGION` | uploads | `ca-central-1` (Canadian bucket). |
 | `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | uploads | Bucket credentials. |
-| `S3_ENDPOINT` / `S3_FORCE_PATH_STYLE` | no | Set for MinIO/R2; AWS uses virtual-hosted style. |
+| `S3_ENDPOINT` / `S3_FORCE_PATH_STYLE` | no | Set for RustFS/MinIO/R2; AWS uses virtual-hosted style. |
 | `S3_PUBLIC_BASE_URL` | no | CDN/base URL for reads. |
+| `S3_PRIVATE_BUCKET` | recommended | Private bucket for signed-waiver PDFs (minors' names, signer IPs). Never expose publicly. Unset ⇒ shares `S3_BUCKET`; with no `S3_BUCKET` PDFs go to local disk and are lost on redeploy (re-rendered on demand). |
+| `RATE_LIMIT_BACKEND` | no (`postgres`) | `ets` = per-node in-memory limits instead of the shared Postgres counters. |
 | `ERROR_REPORTER_MODULE` | no | Module with `capture_exception/4` (e.g. Sentry adapter). |
 | `ECTO_IPV6` / `DNS_CLUSTER_QUERY` | no | Multi-region clustering; unused while single-region. |
 
@@ -105,6 +107,32 @@ Local values live in `.env` (gitignored); see `.env.example`.
 9. **Alerts**: create the uptime check and metric alerts in §7.
 
 ---
+
+### 3.1 Commission a tenant custom domain (MVP)
+
+Custom domains are support-managed. Do this in staging first.
+
+1. Ask the customer for the exact hostname (prefer `www.example.com`) and have
+   them publish a temporary TXT ownership record supplied by the operator.
+2. Verify that TXT record, then provision the hostname certificate on the Fly
+   app with `fly certs add <hostname> --app <app>`. Give the customer the CNAME
+   or A/AAAA records printed by Fly; do not ask them to switch traffic yet.
+3. Insert the lower-case hostname into `tenant_domains` for the intended tenant.
+   Keep the platform subdomain as the primary/fallback mapping. This is a
+   platform operation and must not be exposed as a tenant-supplied ID write.
+4. Before DNS cutover, test with an explicit `Host` header that `/`,
+   `/api/portal/website`, `/robots.txt`, `/sitemap.xml`, login, schedule, and
+   checkout all resolve to the right tenant. Confirm another tenant's content
+   cannot be returned through the new host.
+5. Wait until `fly certs show <hostname> --app <app>` reports ready, then have
+   the customer switch DNS. Re-run the checks over HTTPS and retain their old
+   site until DNS TTLs expire.
+6. Record the tenant, hostname, verifier, certificate state, cutover time, and
+   rollback DNS target in the launch log. Certificate and DNS monitoring are a
+   human responsibility until lifecycle automation is implemented.
+
+Rollback is recoverable: point DNS back to the old host and remove the mapping
+only after traffic has drained. Do not delete the tenant or published content.
 
 ## 4. Deploy
 
@@ -274,7 +302,7 @@ fly ssh console --app <<PLACEHOLDER>>-staging -C "/app/bin/seed"
 
 Locally:
 ```bash
-docker compose up -d postgres minio
+docker compose up -d postgres rustfs rustfs-init
 cd backend && mix setup          # create/migrate + seeds + assets
 mix phx.server
 # demo tenant at http://demo.localhost:4000  (admin at /admin)
@@ -314,4 +342,4 @@ Seeds are **idempotent** (`Repo.get_by(Tenant, slug: "demo")`). Never run
 | `FLY_API_TOKEN(_STAGING)` | GitHub repo secrets | For `deploy.yml`. |
 | Error reporter adapter module | `ERROR_REPORTER_MODULE` | e.g. a Sentry adapter. |
 | Backup restore drill log | §6 | Record once completed. |
-| S3 upload round-trip verification | staging | Storage.S3 is unverified in CI. |
+| Production S3 upload round-trip verification | staging | CI verifies both buckets against RustFS; staging must verify the chosen provider and policies. |

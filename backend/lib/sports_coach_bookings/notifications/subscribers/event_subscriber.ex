@@ -28,10 +28,10 @@ defmodule SportsCoachBookings.Notifications.Subscribers.EventSubscriber do
   alias SportsCoachBookings.Inventory
   alias SportsCoachBookings.Notifications
   alias SportsCoachBookings.Notifications.Ics
+  alias SportsCoachBookings.Notifications.Templates.Helpers
   alias SportsCoachBookings.Players
   alias SportsCoachBookings.Scheduling
   alias SportsCoachBookings.Staff
-  alias SportsCoachBookings.Tenancy
   alias SportsCoachBookings.Waivers
 
   @impl true
@@ -838,27 +838,7 @@ defmodule SportsCoachBookings.Notifications.Subscribers.EventSubscriber do
 
   ## URLs
 
-  defp tenant_url(nil, path), do: app_url() <> path
-
-  defp tenant_url(tenant_id, path) do
-    case Tenancy.get_tenant(tenant_id) do
-      %{slug: slug} -> "#{scheme()}://#{slug}.#{base_domain()}#{path}"
-      _ -> app_url() <> path
-    end
-  end
-
-  defp app_url do
-    Application.get_env(
-      :sports_coach_bookings,
-      :notifications_app_url,
-      "https://sportscoachbookings.com"
-    )
-  end
-
-  defp scheme, do: Application.get_env(:sports_coach_bookings, :notifications_url_scheme, "https")
-
-  defp base_domain,
-    do: Application.get_env(:sports_coach_bookings, :base_domain, "sportscoachbookings.com")
+  defp tenant_url(tenant_id, path), do: Helpers.tenant_url(tenant_id, path)
 
   defp tenant_id(payload), do: payload["tenant_id"] || TenantContext.get_tenant_id()
 

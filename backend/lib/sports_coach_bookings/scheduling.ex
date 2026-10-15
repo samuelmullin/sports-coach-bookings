@@ -148,7 +148,8 @@ defmodule SportsCoachBookings.Scheduling do
   def portal_session(id, opts \\ []) do
     read(fn ->
       with {:ok, session} <- fetch_record(Session, id),
-           true <- session.status == :scheduled and session.visibility == :public do
+           true <- session.status == :scheduled and session.visibility == :public,
+           true <- portal_session_visible?(session, opts) do
         session = Repo.preload(session, :session_coaches)
         [entry] = build_entries([session], Keyword.put(opts, :portal, true))
         {:ok, entry}
@@ -356,7 +357,11 @@ defmodule SportsCoachBookings.Scheduling do
     duration = get_attr(attrs, :duration_minutes) || offering.duration_minutes
     ends_at = parse_datetime(get_attr(attrs, :ends_at)) || default_ends_at(starts_at, duration)
 
-    capacity = get_attr(attrs, :capacity) || offering.default_capacity
+    access_mode = get_attr(attrs, :access_mode) || default_access_mode(offering)
+
+    capacity =
+      get_attr(attrs, :capacity) ||
+        mode_capacity(offering, access_mode)
 
     changeset =
       Session.create_changeset(%Session{}, %{
@@ -370,6 +375,9 @@ defmodule SportsCoachBookings.Scheduling do
         title_override: get_attr(attrs, :title_override),
         notes_public: get_attr(attrs, :notes_public),
         notes_staff: get_attr(attrs, :notes_staff),
+        access_mode: access_mode,
+        party_size: get_attr(attrs, :party_size),
+        exclusive_household_id: get_attr(attrs, :exclusive_household_id),
         series_id: series_id
       })
       |> maybe_put_show_coaches(get_attr(attrs, :show_coaches))
@@ -384,6 +392,21 @@ defmodule SportsCoachBookings.Scheduling do
 
   defp default_ends_at(nil, _duration), do: nil
   defp default_ends_at(starts_at, duration), do: DateTime.add(starts_at, duration * 60)
+
+  defp default_access_mode(%{public_enabled: false, private_enabled: true}), do: :private
+  defp default_access_mode(_offering), do: :public
+
+  defp mode_capacity(offering, mode) when mode in [:private, "private"] do
+    if map_size(offering.private_price_tiers || %{}) == 0,
+      do: offering.default_capacity,
+      else: offering.private_max_players
+  end
+
+  defp mode_capacity(offering, _mode) do
+    if map_size(offering.public_price_tiers || %{}) == 0,
+      do: offering.default_capacity,
+      else: offering.public_max_players
+  end
 
   defp insert_series(attrs, venue) do
     changeset =
@@ -470,7 +493,10 @@ defmodule SportsCoachBookings.Scheduling do
         :notes_public,
         :notes_staff,
         :title_override,
-        :show_coaches
+        :show_coaches,
+        :access_mode,
+        :party_size,
+        :exclusive_household_id
       ])
       |> Map.new(fn
         {:starts_at, value} -> {:starts_at, parse_datetime(value)}
@@ -723,22 +749,39 @@ defmodule SportsCoachBookings.Scheduling do
       |> filter_sessions(filters)
       |> order_by([s], asc: s.starts_at)
 
-    query =
-      if Keyword.get(opts, :portal) do
-        where(query, [s], s.status == :scheduled and s.visibility == :public)
-      else
-        query
-      end
-
-    query =
-      if Keyword.get(opts, :include_hidden) == true or Keyword.get(opts, :portal) == true do
-        query
-      else
-        where(query, [s], s.visibility == :public)
-      end
+    query = query |> portal_calendar_query(opts) |> visible_calendar_query(opts)
 
     sessions = query |> Repo.all() |> Repo.preload(:session_coaches)
     build_entries(sessions, opts)
+  end
+
+  defp portal_calendar_query(query, opts) do
+    if Keyword.get(opts, :portal),
+      do: portal_household_query(query, Keyword.get(opts, :household_id)),
+      else: query
+  end
+
+  defp portal_household_query(query, household_id) when is_binary(household_id) do
+    where(
+      query,
+      [s],
+      s.status == :scheduled and s.visibility == :public and
+        (s.access_mode == :public or s.exclusive_household_id == ^household_id)
+    )
+  end
+
+  defp portal_household_query(query, _household_id) do
+    where(
+      query,
+      [s],
+      s.status == :scheduled and s.visibility == :public and s.access_mode == :public
+    )
+  end
+
+  defp visible_calendar_query(query, opts) do
+    if Keyword.get(opts, :include_hidden) == true or Keyword.get(opts, :portal) == true,
+      do: query,
+      else: where(query, [s], s.visibility == :public)
   end
 
   defp build_entries(sessions, opts) do
@@ -780,6 +823,14 @@ defmodule SportsCoachBookings.Scheduling do
     end)
   end
 
+  defp portal_session_visible?(%Session{access_mode: :public}, _opts), do: true
+
+  defp portal_session_visible?(
+         %Session{access_mode: :private, exclusive_household_id: owner},
+         opts
+       ),
+       do: is_binary(owner) and owner == Keyword.get(opts, :household_id)
+
   defp already_booked?(%{id: player_id}, %Session{id: session_id}),
     do: Bookings.player_booked_in_session?(player_id, session_id)
 
@@ -814,9 +865,26 @@ defmodule SportsCoachBookings.Scheduling do
     cond do
       too_late?(session, offering) -> :too_late
       too_early?(session, offering) -> :too_early
+      understaffed?(session, offering) -> :understaffed
       Session.seats_left(session) <= 0 -> :full
       true -> nil
     end
+  end
+
+  defp understaffed?(_session, nil), do: false
+
+  defp understaffed?(session, offering) do
+    {ratio, configured?} =
+      if session.access_mode == :private do
+        {offering.private_players_per_coach, map_size(offering.private_price_tiers || %{}) > 0}
+      else
+        {offering.public_players_per_coach, map_size(offering.public_price_tiers || %{}) > 0}
+      end
+
+    coach_count = length(session.session_coaches)
+
+    configured? and coach_count > 0 and
+      session.booked_count + session.held_count >= coach_count * (ratio || 1)
   end
 
   defp too_late?(session, offering) do

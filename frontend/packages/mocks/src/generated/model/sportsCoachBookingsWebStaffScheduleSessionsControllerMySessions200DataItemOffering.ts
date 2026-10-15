@@ -6,11 +6,16 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingFormat } from './sportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingFormat';
+import type { SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingPrivatePriceTiers } from './sportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingPrivatePriceTiers';
+import type { SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingPublicPriceTiers } from './sportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingPublicPriceTiers';
 
 /**
  * @nullable
  */
 export type SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOffering = {
+  allow_invite_reservations?: boolean;
+  allow_private_conversion?: boolean;
+  allow_private_requests?: boolean;
   /** @nullable */
   bookable_from_days_ahead?: number | null;
   bookable_until_minutes_before?: number;
@@ -23,10 +28,17 @@ export type SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200Da
   duration_minutes?: number;
   format?: SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingFormat;
   id?: string;
+  invite_hold_hours?: number;
   /** @nullable */
   max_age?: number | null;
   /** @nullable */
   min_age?: number | null;
   name?: string;
+  private_enabled?: boolean;
+  private_max_players?: number;
+  private_price_tiers?: SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingPrivatePriceTiers;
+  public_enabled?: boolean;
+  public_max_players?: number;
+  public_price_tiers?: SportsCoachBookingsWebStaffScheduleSessionsControllerMySessions200DataItemOfferingPublicPriceTiers;
   slug?: string;
 } | null;

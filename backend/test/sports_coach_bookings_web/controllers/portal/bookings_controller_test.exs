@@ -76,7 +76,7 @@ defmodule SportsCoachBookingsWeb.Portal.BookingsControllerTest do
     tenant: tenant,
     venue: venue
   } do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     session = session(venue, offering, 3)
     player = player(household)
@@ -117,8 +117,48 @@ defmodule SportsCoachBookingsWeb.Portal.BookingsControllerTest do
     assert Credits.available_for_offering(household, offering.id) == 5
   end
 
+  test "an unconfirmed customer cannot book (403 email_unconfirmed)", %{
+    conn: conn,
+    tenant: tenant,
+    venue: venue
+  } do
+    household = insert(:household).id
+    offering = insert(:offering, credit_cost: 1)
+    session = session(venue, offering, 3)
+    player = player(household)
+    {:ok, _} = Credits.grant_complimentary(nil, household, %{amount: 5})
+
+    unconfirmed = %SportsCoachBookings.Customers.CustomerUser{
+      id: Ecto.UUID.generate(),
+      tenant_id: tenant.id,
+      confirmed_at: nil
+    }
+
+    actor =
+      CustomerActor.new(
+        customer_user_id: unconfirmed.id,
+        household_id: household,
+        tenant_id: tenant.id,
+        customer_user: unconfirmed
+      )
+
+    conn = conn |> customer(tenant, household) |> Plug.Conn.assign(:current_customer_actor, actor)
+
+    body =
+      conn
+      |> json_post("/api/portal/bookings", %{
+        "player_id" => player.id,
+        "session_id" => session.id,
+        "method" => "credits"
+      })
+      |> json_response(403)
+
+    assert body["error"]["code"] == "email_unconfirmed"
+    assert Credits.available_for_offering(household, offering.id) == 5
+  end
+
   test "rebooks into another session", %{conn: conn, tenant: tenant, venue: venue} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 1)
     source = session(venue, offering, 3)
     target = session(venue, offering, 4)
@@ -158,7 +198,7 @@ defmodule SportsCoachBookingsWeb.Portal.BookingsControllerTest do
   end
 
   test "a full session returns 409 session_full", %{conn: conn, tenant: tenant, venue: venue} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     offering = insert(:offering, credit_cost: 0)
     session = session(venue, offering, 3, 1)
     p1 = player(household)

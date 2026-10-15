@@ -6,9 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { OfferingRequestFormat } from './offeringRequestFormat';
+import type { OfferingRequestPrivatePriceTiers } from './offeringRequestPrivatePriceTiers';
+import type { OfferingRequestPublicPriceTiers } from './offeringRequestPublicPriceTiers';
 
 export interface OfferingRequest {
   active?: boolean;
+  allow_invite_reservations?: boolean;
+  allow_private_conversion?: boolean;
+  allow_private_requests?: boolean;
   /** @nullable */
   bookable_from_days_ahead?: number | null;
   bookable_until_minutes_before?: number;
@@ -22,12 +27,26 @@ export interface OfferingRequest {
   format?: OfferingRequestFormat;
   /** @nullable */
   image_key?: string | null;
+  /** @minimum 1 */
+  invite_hold_hours?: number;
   /** @nullable */
   max_age?: number | null;
   /** @nullable */
   min_age?: number | null;
   name?: string;
   position?: number;
+  private_enabled?: boolean;
+  /** @minimum 1 */
+  private_max_players?: number;
+  /** @minimum 1 */
+  private_players_per_coach?: number;
+  private_price_tiers?: OfferingRequestPrivatePriceTiers;
+  public_enabled?: boolean;
+  /** @minimum 1 */
+  public_max_players?: number;
+  /** @minimum 1 */
+  public_players_per_coach?: number;
+  public_price_tiers?: OfferingRequestPublicPriceTiers;
   /** @nullable */
   slug?: string | null;
   taxable?: boolean;

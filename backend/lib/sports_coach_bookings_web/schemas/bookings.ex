@@ -20,7 +20,7 @@ defmodule SportsCoachBookingsWeb.Schemas.Bookings do
       properties: %{
         id: %Schema{type: :string, format: :uuid},
         session_id: %Schema{type: :string, format: :uuid},
-        player_id: %Schema{type: :string, format: :uuid},
+        player_id: %Schema{type: :string, format: :uuid, nullable: true},
         household_id: %Schema{type: :string, format: :uuid},
         status: %Schema{
           type: :string,
@@ -41,7 +41,7 @@ defmodule SportsCoachBookingsWeb.Schemas.Bookings do
         inserted_at: %Schema{type: :string, format: :"date-time", nullable: true},
         updated_at: %Schema{type: :string, format: :"date-time", nullable: true}
       },
-      required: [:id, :session_id, :player_id, :status, :payment_method]
+      required: [:id, :session_id, :status, :payment_method]
     }
   end
 
@@ -187,6 +187,110 @@ defmodule SportsCoachBookingsWeb.Schemas.Bookings do
         }
       },
       required: [:data]
+    }
+  end
+
+  def invitation do
+    %Schema{
+      type: :object,
+      properties: %{
+        id: %Schema{type: :string, format: :uuid},
+        session_id: %Schema{type: :string, format: :uuid},
+        organizer_household_id: %Schema{type: :string, format: :uuid},
+        invitee_household_id: %Schema{type: :string, format: :uuid, nullable: true},
+        invitee_player_id: %Schema{type: :string, format: :uuid, nullable: true},
+        email: %Schema{type: :string, format: :email},
+        status: %Schema{type: :string},
+        payment_mode: %Schema{type: :string, enum: ["split", "organizer"]},
+        seat_status: %Schema{type: :string},
+        expires_at: %Schema{type: :string, format: :"date-time", nullable: true},
+        accepted_at: %Schema{type: :string, format: :"date-time", nullable: true},
+        booking_id: %Schema{type: :string, format: :uuid, nullable: true},
+        resend_count: %Schema{type: :integer, minimum: 0},
+        last_sent_at: %Schema{type: :string, format: :"date-time", nullable: true}
+      },
+      required: [:id, :session_id, :email, :status, :payment_mode, :seat_status]
+    }
+  end
+
+  def invitation_result do
+    %Schema{
+      type: :object,
+      properties: %{
+        invitation: invitation(),
+        booking: Map.put(booking(), :nullable, true)
+      },
+      required: [:invitation]
+    }
+  end
+
+  def invitation_create_request do
+    %Schema{
+      type: :object,
+      properties: %{
+        email: %Schema{type: :string, format: :email},
+        payment_mode: %Schema{type: :string, enum: ["split", "organizer"]},
+        method: %Schema{type: :string, enum: ["credits", "paid"], nullable: true}
+      },
+      required: [:email, :payment_mode]
+    }
+  end
+
+  def invitation_accept_request do
+    %Schema{
+      type: :object,
+      properties: %{
+        player_id: %Schema{type: :string, format: :uuid},
+        method: %Schema{type: :string, enum: ["credits", "paid"]}
+      },
+      required: [:player_id, :method]
+    }
+  end
+
+  def private_conversion_request do
+    %Schema{
+      type: :object,
+      properties: %{party_size: %Schema{type: :integer, minimum: 1}},
+      required: [:party_size]
+    }
+  end
+
+  def private_session_request do
+    %Schema{
+      type: :object,
+      properties: %{
+        offering_id: %Schema{type: :string, format: :uuid},
+        player_count: %Schema{type: :integer, minimum: 1},
+        preferred_times: %Schema{
+          type: :array,
+          items: %Schema{type: :string, format: :"date-time"}
+        },
+        notes: %Schema{type: :string, nullable: true}
+      },
+      required: [:offering_id, :player_count]
+    }
+  end
+
+  def private_session_request_response do
+    %Schema{
+      type: :object,
+      properties: %{
+        id: %Schema{type: :string, format: :uuid},
+        offering_id: %Schema{type: :string, format: :uuid},
+        household_id: %Schema{type: :string, format: :uuid},
+        player_count: %Schema{type: :integer},
+        preferred_times: %Schema{
+          type: :array,
+          items: %Schema{type: :string, format: :"date-time"}
+        },
+        notes: %Schema{type: :string, nullable: true},
+        status: %Schema{type: :string, enum: ["pending", "approved", "declined", "cancelled"]},
+        session_id: %Schema{type: :string, format: :uuid, nullable: true},
+        decline_reason: %Schema{type: :string, nullable: true},
+        inserted_at: %Schema{type: :string, format: :"date-time"},
+        reviewed_at: %Schema{type: :string, format: :"date-time", nullable: true}
+      },
+      required: [:id, :offering_id, :household_id, :player_count, :preferred_times, :status]
     }
   end
 end

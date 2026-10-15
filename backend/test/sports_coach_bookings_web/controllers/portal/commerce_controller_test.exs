@@ -43,7 +43,7 @@ defmodule SportsCoachBookingsWeb.Portal.CommerceControllerTest do
   end
 
   test "shows an empty cart for a new household", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
 
     body =
       conn
@@ -56,7 +56,7 @@ defmodule SportsCoachBookingsWeb.Portal.CommerceControllerTest do
   end
 
   test "adds a line, prices it, and checks out", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_product(4)
     conn = customer(conn, tenant, household)
 
@@ -83,7 +83,7 @@ defmodule SportsCoachBookingsWeb.Portal.CommerceControllerTest do
   end
 
   test "order history shows the household's paid orders", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_product(3)
 
     {:ok, order} =
@@ -129,7 +129,7 @@ defmodule SportsCoachBookingsWeb.Portal.CommerceControllerTest do
   end
 
   test "a bad discount code surfaces at checkout", %{conn: conn, tenant: tenant} do
-    household = Ecto.UUID.generate()
+    household = insert(:household).id
     variant = seed_product(2)
 
     {:ok, package} =

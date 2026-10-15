@@ -26,6 +26,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      rustfs:
+        image: rustfs/rustfs:latest
+        env:
+          RUSTFS_ACCESS_KEY: rustfsadmin
+          RUSTFS_SECRET_KEY: rustfsadmin
+          RUSTFS_VOLUMES: /data
+          RUSTFS_ADDRESS: ":9000"
+        ports:
+          - 9000:9000
 
     steps:
       - uses: actions/checkout@v4
@@ -86,6 +95,30 @@ jobs:
           MIX_ENV: test
         run: mix test
 
+      - name: Create object-storage test buckets
+        env:
+          AWS_ACCESS_KEY_ID: rustfsadmin
+          AWS_SECRET_ACCESS_KEY: rustfsadmin
+          AWS_DEFAULT_REGION: us-east-1
+          S3_ENDPOINT: http://localhost:9000
+          S3_BUCKET: scb-uploads
+          S3_PRIVATE_BUCKET: scb-private
+        run: ./infra/rustfs/create-buckets.sh
+
+      - name: Test live S3-compatible storage round trips
+        working-directory: backend
+        env:
+          MIX_ENV: test
+          S3_INTEGRATION: "1"
+          S3_BUCKET: scb-uploads
+          S3_PRIVATE_BUCKET: scb-private
+          S3_REGION: us-east-1
+          S3_ACCESS_KEY_ID: rustfsadmin
+          S3_SECRET_ACCESS_KEY: rustfsadmin
+          S3_ENDPOINT: http://localhost:9000
+          S3_FORCE_PATH_STYLE: "true"
+        run: mix test test/sports_coach_bookings/ops/storage/s3_integration_test.exs
+
       - name: OpenAPI drift check
         working-directory: backend
         run: |
@@ -128,3 +161,94 @@ jobs:
       - name: Build
         working-directory: frontend
         run: pnpm -r build
+
+  e2e:
+    name: Browser E2E
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGPASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "29"
+          elixir-version: "1.20"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Create the non-superuser app role
+        run: |
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE scb_app LOGIN PASSWORD 'scb_app' NOSUPERUSER NOBYPASSRLS CREATEDB;
+          SQL
+
+      # Node's HTTP client does not resolve *.localhost on Linux; Chromium does.
+      - name: Resolve the demo tenant host
+        run: echo "127.0.0.1 demo.localhost" | sudo tee -a /etc/hosts
+
+      - name: Cache deps and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/deps
+            backend/_build
+          key: ${{ runner.os }}-mix-e2e-${{ hashFiles('backend/mix.lock') }}
+
+      - name: Install backend deps
+        working-directory: backend
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+
+      - name: Build the SPAs (Phoenix serves frontend/apps/*/dist)
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm -r build
+
+      - name: Install e2e dependencies and Chromium
+        working-directory: e2e
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Run the browser journeys
+        working-directory: e2e
+        env:
+          PSQL: psql -h localhost -U postgres
+        run: pnpm test:fresh
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
