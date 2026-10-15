@@ -185,7 +185,9 @@ function BookingCard({
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <span>Paid with {booking.payment_method}</span>
           {booking.credits_used && booking.credits_used > 0 ? (
-            <span>· {booking.credits_used} sessions used</span>
+            <span>
+              · {booking.credits_used} session{booking.credits_used === 1 ? '' : 's'} used
+            </span>
           ) : null}
         </div>
 

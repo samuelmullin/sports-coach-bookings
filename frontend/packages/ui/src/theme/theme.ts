@@ -66,7 +66,7 @@ export const FONT_STACKS: Record<string, { label: string; stack: string }> = {
   source_sans_pro: {
     label: 'Source Sans Pro',
     stack:
-      '"Source Sans Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+      '"Source Sans 3", "Source Sans Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   },
   system: {
     label: 'System default',

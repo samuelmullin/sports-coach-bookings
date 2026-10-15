@@ -50,10 +50,15 @@ defmodule SportsCoachBookings.Repo do
   def with_tenant_tx(fun, opts \\ [])
 
   def with_tenant_tx(fun, opts) when is_function(fun, 0) do
+    scope? = scope_tenant_guc?()
+
     transaction(
       fn ->
+        previous = if scope?, do: current_tenant_guc()
         set_tenant_guc(TenantContext.get_tenant_id())
-        fun.()
+        result = fun.()
+        if scope?, do: restore_tenant_guc(previous)
+        result
       end,
       opts
     )
@@ -82,6 +87,33 @@ defmodule SportsCoachBookings.Repo do
     SQL.query!(__MODULE__, "SELECT set_config('app.tenant_id', $1, true)", [
       tenant_id
     ])
+
+    :ok
+  end
+
+  # Test-only (`config :sports_coach_bookings, :scope_tenant_guc_to_call, true`).
+  #
+  # In production each top-level `with_tenant_tx/2` is a real transaction, so the
+  # local `app.tenant_id` setting disappears when it commits. The SQL sandbox wraps a
+  # whole test in one outer transaction (and Ecto opens each inner transaction as a
+  # savepoint), so the setting would instead leak past the call and make later tenant
+  # queries made *outside* a tenant transaction succeed in tests while returning no
+  # rows in production. Restoring the previous value makes the sandbox behave like
+  # production for that.
+  defp scope_tenant_guc?,
+    do: Application.get_env(:sports_coach_bookings, :scope_tenant_guc_to_call, false)
+
+  defp current_tenant_guc do
+    %{rows: [[value]]} =
+      SQL.query!(__MODULE__, "SELECT current_setting('app.tenant_id', true)", [])
+
+    value
+  end
+
+  defp restore_tenant_guc(previous) do
+    if current_tenant_guc() != previous do
+      SQL.query!(__MODULE__, "SELECT set_config('app.tenant_id', $1, true)", [previous || ""])
+    end
 
     :ok
   end

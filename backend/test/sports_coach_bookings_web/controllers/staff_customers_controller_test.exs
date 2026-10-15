@@ -103,6 +103,12 @@ defmodule SportsCoachBookingsWeb.StaffCustomersControllerTest do
     households = conn |> get("/api/staff/households") |> json_response(200)
     assert Enum.any?(households["data"], &(&1["id"] == result.household.id))
 
+    # List rows say who the household is (they used to be a bare name, so a club with
+    # several "Reyes Household" rows could not tell them apart).
+    row = Enum.find(households["data"], &(&1["id"] == result.household.id))
+    assert row["member_count"] == 1
+    assert row["primary_contact"] == %{"name" => "Dana Reyes", "email" => "dana@example.com"}
+
     detail =
       conn
       |> get("/api/staff/households/#{result.household.id}")
@@ -112,6 +118,23 @@ defmodule SportsCoachBookingsWeb.StaffCustomersControllerTest do
 
     assert [%{"role" => "primary", "customer_user" => %{"email" => "dana@example.com"}}] =
              detail["members"]
+  end
+
+  test "an erased household (no members) still lists, with no contact", %{
+    conn: conn,
+    tenant: tenant
+  } do
+    empty = insert(:household, name: nil)
+
+    row =
+      staff_conn(conn, tenant, :admin)
+      |> get("/api/staff/households")
+      |> json_response(200)
+      |> Map.fetch!("data")
+      |> Enum.find(&(&1["id"] == empty.id))
+
+    assert row["member_count"] == 0
+    assert row["primary_contact"] == nil
   end
 
   test "a different tenant cannot read a customer by id", %{conn: conn} do

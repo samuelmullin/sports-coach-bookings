@@ -145,6 +145,18 @@ across machines without adding Redis. Set `RATE_LIMIT_BACKEND=ets` to opt out.
 
 ---
 
+### Dependency advisories (`mix hex.audit`, reviewed 2026-10-14)
+
+All four were assessed and none is currently exploitable here; re-check when a
+patched release appears (`mix hex.audit`, then `mix deps.update <pkg>`).
+
+| Package | Advisory | Why it does not apply |
+|---|---|---|
+| `cloak` 1.1.4 | AES-CTR cipher lacks authentication (HIGH) | The medical-data vault uses `Cloak.Ciphers.AES.GCM` (authenticated); CTR is not used. |
+| `cloak_ecto` 1.3.0 | PBKDF2 *field* ignores iteration count | We do not use that field type; passwords use our own PBKDF2 via `:crypto` (`Staff.Password`). |
+| `bandit` 1.12.5 | HTTP/2 blocked-send deadlines reset on WINDOW_UPDATE (HIGH) | Fly's proxy speaks HTTP/1.1 to the app (`fly.toml` sets no `h2_backend`), so Bandit's HTTP/2 path is not reachable. No patched release yet. |
+| `decimal` 3.1.1 | Unbounded allocation in `Decimal.round/3` via `places` (MEDIUM) | Nothing calls `Decimal.round` with user-controlled `places`. No patched release yet. |
+
 ## 5. Evidence — commands and results
 
 Run from `backend/` (`export PATH="$HOME/.asdf/shims:$PATH"`).

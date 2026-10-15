@@ -17,7 +17,13 @@ export function QueryState({
 }) {
   if (loading) {
     return (
-      <div className="flex flex-col gap-2" aria-label="Loading">
+      <div
+        className="flex flex-col gap-2"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        aria-label="Loading"
+      >
         {Array.from({ length: skeletonRows }).map((_, index) => (
           <Skeleton key={index} className="h-10 w-full" />
         ))}

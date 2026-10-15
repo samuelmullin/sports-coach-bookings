@@ -20925,15 +20925,35 @@
                             "nullable": true,
                             "type": "string"
                           },
+                          "member_count": {
+                            "type": "integer"
+                          },
                           "name": {
                             "nullable": true,
                             "type": "string"
+                          },
+                          "primary_contact": {
+                            "nullable": true,
+                            "properties": {
+                              "email": {
+                                "format": "email",
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
                           },
                           "tenant_id": {
                             "format": "uuid",
                             "type": "string"
                           }
                         },
+                        "required": [
+                          "id",
+                          "member_count"
+                        ],
                         "type": "object"
                       },
                       "type": "array"

@@ -110,8 +110,8 @@ export function SessionCard({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             {typeof creditCost === 'number' && creditCost > 0 ? (
-              <Badge variant="accent">
-                {creditCost} session{creditCost === 1 ? '' : 's'}
+              <Badge variant="outline">
+                Uses {creditCost} session{creditCost === 1 ? '' : 's'}
               </Badge>
             ) : null}
             {typeof dropInPrice === 'number' ? (
@@ -132,12 +132,12 @@ export function SessionCard({
               </Link>
             </Button>
           ) : bookable && !canBook ? (
-            <Button asChild size="sm" variant="outline">
+            <Button asChild size="sm">
               <Link
                 to={offering?.id ? `/offerings/${offering.id}/schedule` : '/login'}
                 onClick={(clickEvent) => clickEvent.stopPropagation()}
               >
-                Book now
+                Book
               </Link>
             </Button>
           ) : (

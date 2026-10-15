@@ -20,7 +20,12 @@ import { QueryState } from '../shared/QueryState';
 function HouseholdSearch() {
   const [q, setQ] = useState('');
   const query = useHouseholds({ q: q || undefined, limit: 25 });
-  const households = listItems<{ id?: string; name?: string | null }>(query);
+  const households = listItems<{
+    id?: string;
+    name?: string | null;
+    member_count?: number;
+    primary_contact?: { name: string; email: string } | null;
+  }>(query);
   const navigate = useNavigate();
 
   return (
@@ -59,6 +64,27 @@ function HouseholdSearch() {
                     {row.name ?? 'Unnamed household'}
                   </Link>
                 ),
+              },
+              {
+                key: 'contact',
+                header: 'Primary contact',
+                cell: (row) =>
+                  row.primary_contact ? (
+                    <div className="flex flex-col">
+                      <span>{row.primary_contact.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {row.primary_contact.email}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  ),
+              },
+              {
+                key: 'members',
+                header: 'Members',
+                align: 'right',
+                cell: (row) => row.member_count ?? 0,
               },
             ]}
             data={households}

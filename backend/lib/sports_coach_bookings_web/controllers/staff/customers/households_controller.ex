@@ -31,7 +31,11 @@ defmodule SportsCoachBookingsWeb.Staff.Customers.HouseholdsController do
   def index(conn, params) do
     with :ok <- Policy.authorize(actor(conn), :list, :household) do
       %{data: data, next_cursor: cursor} = Customers.page_households(term(params), params)
-      json(conn, CustomersJSON.collection(Enum.map(data, &CustomersJSON.household/1), cursor))
+
+      json(
+        conn,
+        CustomersJSON.collection(Enum.map(data, &CustomersJSON.household_summary/1), cursor)
+      )
     end
   end
 
