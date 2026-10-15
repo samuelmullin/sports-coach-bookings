@@ -199,6 +199,28 @@ defmodule SportsCoachBookingsWeb.Schemas.Customers do
     }
   end
 
+  def household_summary do
+    %Schema{
+      type: :object,
+      properties: %{
+        id: %Schema{type: :string, format: :uuid},
+        tenant_id: %Schema{type: :string, format: :uuid},
+        name: %Schema{type: :string, nullable: true},
+        inserted_at: %Schema{type: :string, nullable: true},
+        member_count: %Schema{type: :integer},
+        primary_contact: %Schema{
+          type: :object,
+          nullable: true,
+          properties: %{
+            name: %Schema{type: :string},
+            email: %Schema{type: :string, format: :email}
+          }
+        }
+      },
+      required: [:id, :member_count]
+    }
+  end
+
   def household_member do
     %Schema{
       type: :object,
@@ -233,7 +255,7 @@ defmodule SportsCoachBookingsWeb.Schemas.Customers do
     %Schema{
       type: :object,
       properties: %{
-        data: %Schema{type: :array, items: household()},
+        data: %Schema{type: :array, items: household_summary()},
         next_cursor: %Schema{type: :string, nullable: true}
       },
       required: [:data]

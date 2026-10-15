@@ -592,6 +592,7 @@ export * from './sportsCoachBookingsWebStaffCustomersCustomersControllerUpdate2B
 export * from './sportsCoachBookingsWebStaffCustomersCustomersControllerUpdateBody';
 export * from './sportsCoachBookingsWebStaffCustomersHouseholdsControllerIndex200';
 export * from './sportsCoachBookingsWebStaffCustomersHouseholdsControllerIndex200DataItem';
+export * from './sportsCoachBookingsWebStaffCustomersHouseholdsControllerIndex200DataItemPrimaryContact';
 export * from './sportsCoachBookingsWebStaffCustomersHouseholdsControllerIndexParams';
 export * from './sportsCoachBookingsWebStaffCustomersHouseholdsControllerShow200';
 export * from './sportsCoachBookingsWebStaffCustomersHouseholdsControllerShow200MembersItem';

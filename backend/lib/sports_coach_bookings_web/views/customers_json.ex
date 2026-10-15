@@ -36,6 +36,26 @@ defmodule SportsCoachBookingsWeb.CustomersJSON do
     }
   end
 
+  @doc """
+  Serialises a household for list views: the household plus its member count and a
+  primary contact (the `primary` member, else the first). Requires `members` loaded
+  with their `customer_user`.
+  """
+  @spec household_summary(Household.t()) :: map()
+  def household_summary(%Household{members: members} = household) do
+    primary = Enum.find(members, &(&1.role == :primary)) || List.first(members)
+
+    household(household)
+    |> Map.put(:member_count, length(members))
+    |> Map.put(:primary_contact, primary_contact(primary))
+  end
+
+  defp primary_contact(%HouseholdMember{customer_user: %CustomerUser{} = user}) do
+    %{name: String.trim("#{user.first_name} #{user.last_name}"), email: user.email}
+  end
+
+  defp primary_contact(_member), do: nil
+
   @doc "Serialises a household with its members."
   @spec household_detail(Household.t()) :: map()
   def household_detail(%Household{members: members} = household) do

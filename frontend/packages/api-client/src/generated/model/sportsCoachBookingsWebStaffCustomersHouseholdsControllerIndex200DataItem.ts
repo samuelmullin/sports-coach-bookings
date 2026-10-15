@@ -5,12 +5,16 @@
  * Multi-tenant coaching bookings API. JSON only.
  * OpenAPI spec version: 0.1.0
  */
+import type { SportsCoachBookingsWebStaffCustomersHouseholdsControllerIndex200DataItemPrimaryContact } from './sportsCoachBookingsWebStaffCustomersHouseholdsControllerIndex200DataItemPrimaryContact';
 
 export type SportsCoachBookingsWebStaffCustomersHouseholdsControllerIndex200DataItem = {
-  id?: string;
+  id: string;
   /** @nullable */
   inserted_at?: string | null;
+  member_count: number;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  primary_contact?: SportsCoachBookingsWebStaffCustomersHouseholdsControllerIndex200DataItemPrimaryContact;
   tenant_id?: string;
 };

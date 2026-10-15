@@ -470,7 +470,8 @@ defmodule SportsCoachBookings.Customers do
   def page_households(term \\ nil, params \\ %{}) do
     read(fn ->
       {rows, cursor} = Pagination.paginate(household_query(term), params)
-      %{data: rows, next_cursor: cursor}
+      # Members (and their accounts) so list views can show who the household is.
+      %{data: Repo.preload(rows, members: :customer_user), next_cursor: cursor}
     end)
   end
 
