@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Coins, ExternalLink } from 'lucide-react';
+import { ArrowRight, Coins } from 'lucide-react';
 import { Badge, Card, CardContent, EmptyState, TabsView } from '@scb/ui';
 import {
   useCreditLedger,
@@ -22,7 +22,7 @@ function useOfferingNames() {
   const offerings = listItems<OfferingResponse>(useOfferings());
   const map = new Map(offerings.map((offering) => [offering.id, offering.name]));
   return (offeringId: string | null | undefined) => {
-    if (!offeringId || offeringId === 'any') return 'Any offering';
+    if (!offeringId || offeringId === 'any') return 'All offerings';
     return map.get(offeringId) ?? 'Offering';
   };
 }
@@ -202,7 +202,7 @@ export function CreditsPage() {
             to="/packages"
             className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
-            Buy sessions <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            Buy sessions <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         }
       />
