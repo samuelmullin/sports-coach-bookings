@@ -122,6 +122,7 @@ export function AppRoutes() {
           <Route path="shop" element={<ShopPage />} />
           <Route path="shop/:productId" element={<ProductDetailPage />} />
           <Route path="cart" element={<CartPage />} />
+          <Route path="book/:sessionId" element={<BookingFlowPage />} />
           <Route
             element={
               <RequireCustomerAuth>
@@ -136,7 +137,6 @@ export function AppRoutes() {
             <Route path="players/:playerId/waivers/:versionId/sign" element={<WaiverSignPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="private-session-requests" element={<PrivateSessionRequestsPage />} />
-            <Route path="book/:sessionId" element={<BookingFlowPage />} />
             <Route path="reservations/:id/complete" element={<ReservationCompletePage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/:orderId" element={<OrderDetailPage />} />
