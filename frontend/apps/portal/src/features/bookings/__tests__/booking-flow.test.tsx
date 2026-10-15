@@ -98,13 +98,13 @@ const booking = {
   paid_amount: 0,
 };
 
-function renderFlow() {
+function renderFlow(withAuth = false) {
   return renderWithProviders(
     <Routes>
       <Route path="/book/:sessionId" element={<BookingFlowPage />} />
       <Route path="/cart" element={<p>Cart page</p>} />
     </Routes>,
-    { route: '/book/session-1' },
+    { route: '/book/session-1', withAuth },
   );
 }
 
@@ -233,5 +233,24 @@ describe('BookingFlowPage', () => {
 
     await waitFor(() => expect(cancelPost).toHaveBeenCalledTimes(1));
     expect(screen.queryByText('Cart page')).not.toBeInTheDocument();
+  });
+
+  it('shows account creation instead of redirecting when signed out', async () => {
+    useBookingData();
+    server.use(
+      http.get('*/api/portal/account', () =>
+        HttpResponse.json({ error: { code: 'forbidden', message: 'No session' } }, { status: 403 }),
+      ),
+    );
+
+    renderFlow(true);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Create your account to book' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Book Private Coaching' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
   });
 });

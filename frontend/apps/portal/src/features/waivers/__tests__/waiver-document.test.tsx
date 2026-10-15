@@ -45,7 +45,7 @@ describe('WaiverSignPage document modal', () => {
     renderSign();
 
     await screen.findByRole('heading', { name: 'Read and sign' });
-    await userEvent.click(screen.getByRole('button', { name: /View document/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /View document/ }));
 
     expect(await screen.findByRole('heading', { name: 'Waiver' })).toBeInTheDocument();
     expect(screen.getAllByText('Please read carefully.').length).toBeGreaterThan(0);
