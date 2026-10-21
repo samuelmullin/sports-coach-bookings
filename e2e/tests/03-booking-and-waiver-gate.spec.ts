@@ -70,10 +70,7 @@ test.describe('booking a session', () => {
       const waiverCheck = page.getByText('Required waivers signed');
       await expect(waiverCheck).toBeVisible();
       await expect(page.getByRole('button', { name: 'Confirm booking' })).toBeDisabled();
-      await expect(page.getByRole('link', { name: 'Fix' }).last()).toHaveAttribute(
-        'href',
-        new RegExp(`/players/${created.id}\\?tab=waivers`),
-      );
+      await expect(page.getByRole('button', { name: 'Read & sign' })).toBeVisible();
     });
 
     await test.step('the server refuses the booking too, and no session is spent', async () => {

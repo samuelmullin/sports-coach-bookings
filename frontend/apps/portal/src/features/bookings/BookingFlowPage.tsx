@@ -1,13 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarPlus, CheckCircle2, XCircle } from 'lucide-react';
 import { useSportsCoachBookingsWebPortalAccountConfirmationsControllerResend as useResendConfirmation } from '@scb/api-client';
-import { Badge, Button, Card, CardContent, RadioGroup, useToast } from '@scb/ui';
+import { Badge, Button, Card, CardContent, Drawer, RadioGroup, Splash, useToast } from '@scb/ui';
 import { useOptionalCustomerAuth } from '../../auth/customer-auth';
+import { RegisterForm } from '../../pages/auth/RegisterForm';
+import { PlayerWizard } from '../players/PlayerWizard';
+import { WaiverSigner } from '../waivers/WaiverSigner';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   bookingsQueryKey,
   creditsQueryKey,
+  householdWaiverStatusQueryKey,
+  useCancelBooking,
   useCreateBooking,
   useCredits,
   useHouseholdWaiverStatus,
@@ -56,7 +61,7 @@ function icsDataUrl(item: SessionListItem, title: string): string | undefined {
   return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join('\r\n'))}`;
 }
 
-export function BookingFlowPage() {
+function AuthedBookingFlow() {
   const { sessionId = '' } = useParams<{ sessionId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -83,6 +88,7 @@ export function BookingFlowPage() {
   const creditsQuery = useCredits();
   const waiversQuery = useHouseholdWaiverStatus();
   const createBooking = useCreateBooking();
+  const cancelBooking = useCancelBooking();
 
   const players = listItems<PlayerResponse>(playersQuery);
   const credits = listItems<CreditBalance>(creditsQuery);
@@ -99,6 +105,10 @@ export function BookingFlowPage() {
   const [playerId, setPlayerId] = useState<string | undefined>();
   const [chosenMethod, setChosenMethod] = useState<'credits' | 'paid' | undefined>();
   const [confirmed, setConfirmed] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [signingVersion, setSigningVersion] = useState<string | null>(null);
+  const knownPlayerIds = useRef<Set<string> | null>(null);
+  const refreshAccount = useOptionalCustomerAuth()?.refresh;
 
   const player = players.find((candidate) => candidate.id === playerId);
   const offering = item?.offering;
@@ -142,6 +152,35 @@ export function BookingFlowPage() {
   const bookingPath = `/book/${sessionId}`;
   useEffect(() => clearReturnTo(), []);
 
+  // First-time visitors have no player yet: open the add-player form straight away, and
+  // pick the player they just added so they can carry on without hunting for it.
+  useEffect(() => {
+    if (playersQuery.isLoading) return;
+    const known = knownPlayerIds.current;
+    if (known === null) {
+      knownPlayerIds.current = new Set(players.map((entry) => entry.id));
+      if (players.length === 0) setWizardOpen(true);
+      else if (players.length === 1) setPlayerId(players[0]?.id);
+      return;
+    }
+    const added = players.find((entry) => !known.has(entry.id));
+    if (added) setPlayerId(added.id);
+    knownPlayerIds.current = new Set(players.map((entry) => entry.id));
+  }, [playersQuery.isLoading, players]);
+
+  // The confirmation link opens in another tab; notice it here so the customer can carry on.
+  useEffect(() => {
+    if (!emailUnconfirmed || !refreshAccount) return;
+    const timer = window.setInterval(refreshAccount, 4000);
+    window.addEventListener('focus', refreshAccount);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refreshAccount);
+    };
+  }, [emailUnconfirmed, refreshAccount]);
+
+  const unsignedWaiver = requiredWaivers.find((waiver) => !waiver.signed && waiver.version_id);
+
   const canSubmit =
     Boolean(player) &&
     bookable &&
@@ -161,6 +200,9 @@ export function BookingFlowPage() {
     {
       label: 'Required waivers signed',
       ok: waiversSigned,
+      action: unsignedWaiver?.version_id
+        ? () => setSigningVersion(unsignedWaiver.version_id ?? null)
+        : undefined,
       fix: `/players/${playerId}?tab=waivers`,
     },
     { label: 'Seats available', ok: seatsLeft > 0, fix: '/schedule' },
@@ -178,7 +220,16 @@ export function BookingFlowPage() {
         // A paid booking is only a timed hold until the order is paid.
         const held = responseData<{ id?: string }>(result);
         if (held?.id) {
-          await addToCart.mutateAsync({ data: { type: 'drop_in', ref_id: held.id, quantity: 1 } });
+          try {
+            await addToCart.mutateAsync({
+              data: { type: 'drop_in', ref_id: held.id, quantity: 1 },
+            });
+          } catch (cartError) {
+            // Don't leave the seat held for someone who never reached payment.
+            await cancelBooking.mutateAsync({ id: held.id, data: {} }).catch(() => undefined);
+            await queryClient.invalidateQueries({ queryKey: bookingsQueryKey() });
+            throw cartError;
+          }
           toast({ title: 'Seat held — complete payment to confirm', variant: 'success' });
           navigate('/cart');
           return;
@@ -289,9 +340,13 @@ export function BookingFlowPage() {
                 </label>
                 {players.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    <Link className="text-primary hover:underline" to="/players">
+                    <button
+                      type="button"
+                      className="text-primary hover:underline"
+                      onClick={() => setWizardOpen(true)}
+                    >
                       Add a player
-                    </Link>{' '}
+                    </button>{' '}
                     to book this session.
                   </p>
                 ) : null}
@@ -308,7 +363,15 @@ export function BookingFlowPage() {
                         <span className={check.ok ? '' : 'text-muted-foreground'}>
                           {check.label}
                         </span>
-                        {!check.ok ? (
+                        {!check.ok && check.action ? (
+                          <button
+                            type="button"
+                            className="ml-auto text-xs font-medium text-primary hover:underline"
+                            onClick={check.action}
+                          >
+                            Read &amp; sign
+                          </button>
+                        ) : !check.ok ? (
                           <Link
                             className="ml-auto text-xs font-medium text-primary hover:underline"
                             to={check.fix}
@@ -407,6 +470,102 @@ export function BookingFlowPage() {
           </>
         )}
       </QueryState>
+      <PlayerWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+      <Drawer
+        open={signingVersion !== null}
+        onOpenChange={(open) => {
+          if (!open) setSigningVersion(null);
+        }}
+        title="Sign waiver"
+        className="max-w-lg overflow-y-auto"
+      >
+        {signingVersion && playerId ? (
+          <WaiverSigner
+            playerId={playerId}
+            versionId={signingVersion}
+            onSigned={() => {
+              // Close only once the status is fresh, or the row offers the waiver just signed.
+              void queryClient
+                .invalidateQueries({
+                  queryKey: householdWaiverStatusQueryKey(),
+                  refetchType: 'all',
+                })
+                .then(() => setSigningVersion(null));
+            }}
+          />
+        ) : null}
+      </Drawer>
     </div>
   );
+}
+
+function SignedOutBooking({ sessionId }: { sessionId: string }) {
+  const location = useLocation();
+  const settings = usePortalSettings();
+  const stateItem = (location.state as { session?: SessionListItem } | null)?.session;
+  const range = useMemo(() => {
+    const from = new Date();
+    from.setDate(from.getDate() - 1);
+    const to = new Date();
+    to.setDate(to.getDate() + 180);
+    return { from: isoDate(from), to: isoDate(to) };
+  }, []);
+  const sessionsQuery = useSessions({ from: range.from, to: range.to });
+  const item =
+    stateItem ??
+    listItems<SessionListItem>(sessionsQuery).find(
+      (candidate) => candidate.session?.id === sessionId,
+    );
+
+  return (
+    <div className="mx-auto flex max-w-xl flex-col gap-4">
+      <Button asChild variant="ghost" size="sm" className="self-start">
+        <Link to="/schedule">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to schedule
+        </Link>
+      </Button>
+      <PageHeader
+        title={`Book ${item?.offering?.name ?? 'a session'}`}
+        description={
+          item?.session?.starts_at ? (
+            <VenueTime
+              instant={item.session.starts_at}
+              timezone={item.venue?.timezone ?? settings.timezone}
+            />
+          ) : undefined
+        }
+      />
+      <Card>
+        <CardContent className="flex flex-col gap-4 pt-4">
+          <ol className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <li className="font-medium text-foreground">1. Your account</li>
+            <li>2. Player details</li>
+            <li>3. Waiver</li>
+            <li>4. Payment</li>
+          </ol>
+          <h2 className="text-base font-semibold">Create your account to book</h2>
+          <RegisterForm onRegistered={() => undefined} />
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              state={{ from: `/book/${sessionId}` }}
+              className="text-primary hover:underline"
+            >
+              Sign in
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function BookingFlowPage() {
+  const { sessionId = '' } = useParams<{ sessionId: string }>();
+  const auth = useOptionalCustomerAuth();
+  // No provider (unit tests) behaves as signed in.
+  if (auth?.status === 'loading') return <Splash label="Loading…" />;
+  if (auth?.status === 'anonymous') return <SignedOutBooking sessionId={sessionId} />;
+  return <AuthedBookingFlow />;
 }

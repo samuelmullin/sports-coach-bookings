@@ -19,9 +19,7 @@ test.describe('customer onboarding', () => {
       await page.getByLabel('Email').fill(email);
       await page.getByRole('textbox', { name: 'Phone' }).fill('9025550142');
       await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
-      await page.getByLabel('Confirm password').fill(PASSWORD);
-      await page.getByLabel('I accept the terms of service').check();
-      await page.getByLabel('I accept the privacy policy').check();
+      await page.getByLabel(/I agree to the/).check();
       await page.getByRole('button', { name: 'Create account' }).click();
       await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
     });

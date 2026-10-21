@@ -42,7 +42,7 @@ describe('RegisterPage legal documents', () => {
       { withAuth: true },
     );
 
-    await userEvent.click(await screen.findByRole('link', { name: 'terms of service' }));
+    await userEvent.click(await screen.findByRole('link', { name: 'Terms of Service' }));
 
     expect(await screen.findAllByText('Be kind to each other.')).not.toHaveLength(0);
     await userEvent.click(screen.getByRole('button', { name: /Print/ }));
@@ -70,7 +70,7 @@ describe('RegisterPage legal documents', () => {
       { withAuth: true },
     );
 
-    await userEvent.click(await screen.findByRole('link', { name: 'terms of service' }));
+    await userEvent.click(await screen.findByRole('link', { name: 'Terms of Service' }));
     await screen.findAllByText('Be kind to each other.');
 
     await userEvent.type(screen.getByLabelText('Email address'), 'dana@example.com');

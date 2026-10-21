@@ -98,13 +98,13 @@ const booking = {
   paid_amount: 0,
 };
 
-function renderFlow() {
+function renderFlow(withAuth = false) {
   return renderWithProviders(
     <Routes>
       <Route path="/book/:sessionId" element={<BookingFlowPage />} />
       <Route path="/cart" element={<p>Cart page</p>} />
     </Routes>,
-    { route: '/book/session-1' },
+    { route: '/book/session-1', withAuth },
   );
 }
 
@@ -211,5 +211,46 @@ describe('BookingFlowPage', () => {
     expect(post).toHaveBeenCalledTimes(1);
     expect(cartPost).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("You're booked!")).not.toBeInTheDocument();
+  });
+
+  it('releases the held seat when adding to the cart fails', async () => {
+    useBookingData();
+    server.use(http.get('/api/portal/credits', () => HttpResponse.json({ data: [] })));
+    const cancelPost = vi.fn(() => HttpResponse.json({ ...booking, status: 'cancelled' }));
+    server.use(
+      http.post('/api/portal/bookings', () =>
+        HttpResponse.json({ ...booking, status: 'held', payment_method: 'paid' }, { status: 201 }),
+      ),
+      http.post('/api/portal/cart/lines', () =>
+        HttpResponse.json({ error: { code: 'invalid', message: 'nope' } }, { status: 422 }),
+      ),
+      http.post('/api/portal/bookings/:id/cancel', cancelPost),
+    );
+
+    renderFlow();
+    await selectPlayer();
+    await userEvent.click(await screen.findByRole('button', { name: 'Continue to payment' }));
+
+    await waitFor(() => expect(cancelPost).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText('Cart page')).not.toBeInTheDocument();
+  });
+
+  it('shows account creation instead of redirecting when signed out', async () => {
+    useBookingData();
+    server.use(
+      http.get('*/api/portal/account', () =>
+        HttpResponse.json({ error: { code: 'forbidden', message: 'No session' } }, { status: 403 }),
+      ),
+    );
+
+    renderFlow(true);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Create your account to book' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Book Private Coaching' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
   });
 });

@@ -27,9 +27,7 @@ async function fillRequiredFields() {
   await userEvent.type(screen.getByLabelText('Last name'), 'Reyes');
   await userEvent.type(screen.getByLabelText('Email'), 'dana@example.com');
   await userEvent.type(screen.getByLabelText('Password'), 'a very long password');
-  await userEvent.type(screen.getByLabelText('Confirm password'), 'a very long password');
-  await userEvent.click(screen.getByLabelText('I accept the terms of service'));
-  await userEvent.click(screen.getByLabelText('I accept the privacy policy'));
+  await userEvent.click(screen.getByLabelText(/I agree to the/));
 }
 
 describe('RegisterPage phone input', () => {

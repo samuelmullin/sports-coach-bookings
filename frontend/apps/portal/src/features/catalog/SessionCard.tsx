@@ -134,7 +134,7 @@ export function SessionCard({
           ) : bookable && !canBook ? (
             <Button asChild size="sm">
               <Link
-                to={offering?.id ? `/offerings/${offering.id}/schedule` : '/login'}
+                to={session?.id ? `/book/${session.id}` : '/login'}
                 onClick={(clickEvent) => clickEvent.stopPropagation()}
               >
                 Book

@@ -178,9 +178,7 @@ export function SessionDetailPage() {
                         venueName={venue?.name ?? undefined}
                       />
                       <Button asChild variant="outline">
-                        <Link to="/register" state={{ from }}>
-                          Register to book
-                        </Link>
+                        <Link to={`/book/${session.id}`}>Book this session</Link>
                       </Button>
                     </>
                   )
